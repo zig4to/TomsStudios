@@ -87,14 +87,14 @@ body {
 .brand-mark {
   display: grid;
   place-items: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 16px;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
   color: #fff;
   background: linear-gradient(140deg, #6366f1, #a855f7 55%, #22d3ee);
-  box-shadow: 0 10px 24px -8px rgba(99, 102, 241, .7);
+  box-shadow: 0 6px 16px -6px rgba(99, 102, 241, .7);
 }
-.brand-mark svg { width: 26px; height: 26px; }
+.brand-mark svg { width: 17px; height: 17px; }
 
 .site-header h1 {
   margin: 0;
@@ -108,37 +108,78 @@ body {
   color: transparent;
 }
 
-.tagline {
-  margin: 14px 0 0;
-  color: var(--text-soft);
-  font-size: clamp(.95rem, 1.6vw, 1.1rem);
-  letter-spacing: .01em;
+/* ---------- Nastavitve v nogi ---------- */
+.settings {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
 }
 
-/* ---------- Preklop teme ---------- */
+.settings-btn,
 .theme-toggle {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 44px;
-  height: 44px;
-  display: grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 16px;
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 999px;
   background: var(--surface);
   backdrop-filter: blur(14px);
+  box-shadow: var(--shadow);
   color: var(--text);
+  font: inherit;
+  font-size: .88rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: transform .2s ease, border-color .2s ease, background .2s ease;
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
 }
-.theme-toggle:hover { transform: translateY(-2px); border-color: var(--border-strong); }
-.theme-toggle svg { width: 20px; height: 20px; grid-area: 1 / 1; transition: opacity .25s ease, transform .35s ease; }
 
-html[data-theme="dark"] .icon-sun  { opacity: 1; transform: rotate(0)     scale(1); }
-html[data-theme="dark"] .icon-moon { opacity: 0; transform: rotate(-90deg) scale(.6); }
-html[data-theme="light"] .icon-sun  { opacity: 0; transform: rotate(90deg) scale(.6); }
-html[data-theme="light"] .icon-moon { opacity: 1; transform: rotate(0)     scale(1); }
+.settings-btn:hover,
+.theme-toggle:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-lift);
+}
+.settings-btn:focus-visible,
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--glow-1);
+  outline-offset: 3px;
+}
+
+.settings-btn .gear { width: 17px; height: 17px; color: var(--text-soft); }
+.settings-btn .chevron {
+  width: 15px;
+  height: 15px;
+  color: var(--text-soft);
+  transition: transform .28s cubic-bezier(.2, .8, .2, 1);
+}
+.settings-btn[aria-expanded="true"] .chevron { transform: rotate(180deg); }
+
+/* razgrnjena plošča */
+.settings-panel[hidden] { display: none; }
+.settings-panel {
+  animation: panel-in .3s cubic-bezier(.2, .8, .2, 1);
+}
+@keyframes panel-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* preklop teme */
+.theme-toggle { padding-left: 13px; }
+.theme-icons { display: grid; width: 19px; height: 19px; }
+.theme-icons svg {
+  width: 19px;
+  height: 19px;
+  grid-area: 1 / 1;
+  transition: opacity .25s ease, transform .35s ease;
+}
+
+html[data-theme="dark"]  .icon-sun  { opacity: 1; transform: rotate(0)      scale(1);  color: #fbbf24; }
+html[data-theme="dark"]  .icon-moon { opacity: 0; transform: rotate(-90deg) scale(.6); }
+html[data-theme="light"] .icon-sun  { opacity: 0; transform: rotate(90deg)  scale(.6); }
+html[data-theme="light"] .icon-moon { opacity: 1; transform: rotate(0)      scale(1);  color: #6366f1; }
 
 /* ---------- Mreža 6 x 2 ---------- */
 main {
@@ -271,9 +312,14 @@ main {
 
 /* ---------- Noga ---------- */
 .site-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
   width: 100%;
   max-width: var(--maxw);
   margin: 0 auto;
+  padding-top: 8px;
   text-align: center;
   color: var(--text-soft);
   font-size: .82rem;
@@ -292,8 +338,6 @@ main {
   .card { min-height: 148px; padding: 16px; }
   .card-icon { width: 42px; height: 42px; }
   .card-icon svg { width: 22px; height: 22px; }
-  .theme-toggle { position: static; margin: 0 auto 18px; }
-  .site-header { display: flex; flex-direction: column; align-items: center; }
 }
 
 @media (prefers-reduced-motion: reduce) {
