@@ -1,0 +1,301 @@
+/* =========================================================
+   Pr'Tomšetu — hub aplikacij
+   ========================================================= */
+
+/* ---------- Barvni sistem ---------- */
+:root {
+  --bg:            #f6f7fb;
+  --bg-2:          #ffffff;
+  --surface:       rgba(255, 255, 255, 0.72);
+  --surface-solid: #ffffff;
+  --border:        rgba(15, 23, 42, 0.08);
+  --border-strong: rgba(15, 23, 42, 0.14);
+  --text:          #0f172a;
+  --text-soft:     #64748b;
+  --shadow:        0 1px 2px rgba(15, 23, 42, .05), 0 12px 28px -12px rgba(15, 23, 42, .18);
+  --shadow-lift:   0 2px 4px rgba(15, 23, 42, .06), 0 24px 48px -16px rgba(15, 23, 42, .28);
+  --glow-1:        #6366f1;
+  --glow-2:        #22d3ee;
+  --glow-3:        #f59e0b;
+  --glow-alpha:    .28;
+
+  --radius:        22px;
+  --radius-sm:     14px;
+  --maxw:          1320px;
+}
+
+html[data-theme="dark"] {
+  --bg:            #0b1020;
+  --bg-2:          #0e1428;
+  --surface:       rgba(255, 255, 255, 0.045);
+  --surface-solid: #141b31;
+  --border:        rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --text:          #eef2ff;
+  --text-soft:     #94a3b8;
+  --shadow:        0 1px 2px rgba(0, 0, 0, .4), 0 16px 32px -16px rgba(0, 0, 0, .7);
+  --shadow-lift:   0 2px 6px rgba(0, 0, 0, .45), 0 28px 56px -18px rgba(0, 0, 0, .85);
+  --glow-alpha:    .40;
+}
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100%;
+  padding: clamp(28px, 5vw, 64px) clamp(18px, 4vw, 48px) 32px;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(28px, 4vw, 48px);
+  font-family: "Outfit", ui-sans-serif, system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  transition: background .35s ease, color .35s ease;
+}
+
+/* ---------- Ozadje: mehki barvni žarki ---------- */
+.bg-glow {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(46vw 46vw at 12% -6%,  color-mix(in srgb, var(--glow-1) calc(var(--glow-alpha) * 100%), transparent), transparent 62%),
+    radial-gradient(40vw 40vw at 92% 4%,   color-mix(in srgb, var(--glow-2) calc(var(--glow-alpha) * 100%), transparent), transparent 62%),
+    radial-gradient(52vw 42vw at 60% 108%, color-mix(in srgb, var(--glow-3) calc(var(--glow-alpha) * 70%),  transparent), transparent 66%);
+  filter: blur(10px);
+}
+
+/* ---------- Glava ---------- */
+.site-header {
+  position: relative;
+  width: 100%;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  text-align: center;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  color: #fff;
+  background: linear-gradient(140deg, #6366f1, #a855f7 55%, #22d3ee);
+  box-shadow: 0 10px 24px -8px rgba(99, 102, 241, .7);
+}
+.brand-mark svg { width: 26px; height: 26px; }
+
+.site-header h1 {
+  margin: 0;
+  font-size: clamp(2.1rem, 5.2vw, 3.4rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  background: linear-gradient(100deg, var(--text) 20%, #6366f1 60%, #22d3ee 95%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.tagline {
+  margin: 14px 0 0;
+  color: var(--text-soft);
+  font-size: clamp(.95rem, 1.6vw, 1.1rem);
+  letter-spacing: .01em;
+}
+
+/* ---------- Preklop teme ---------- */
+.theme-toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  backdrop-filter: blur(14px);
+  color: var(--text);
+  cursor: pointer;
+  transition: transform .2s ease, border-color .2s ease, background .2s ease;
+}
+.theme-toggle:hover { transform: translateY(-2px); border-color: var(--border-strong); }
+.theme-toggle svg { width: 20px; height: 20px; grid-area: 1 / 1; transition: opacity .25s ease, transform .35s ease; }
+
+html[data-theme="dark"] .icon-sun  { opacity: 1; transform: rotate(0)     scale(1); }
+html[data-theme="dark"] .icon-moon { opacity: 0; transform: rotate(-90deg) scale(.6); }
+html[data-theme="light"] .icon-sun  { opacity: 0; transform: rotate(90deg) scale(.6); }
+html[data-theme="light"] .icon-moon { opacity: 1; transform: rotate(0)     scale(1); }
+
+/* ---------- Mreža 6 x 2 ---------- */
+main {
+  width: 100%;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  flex: 1;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: clamp(14px, 1.4vw, 20px);
+}
+
+/* ---------- Kartica ---------- */
+.card {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 178px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  backdrop-filter: blur(18px);
+  box-shadow: var(--shadow);
+  color: inherit;
+  text-decoration: none;
+  overflow: hidden;
+  transition: transform .28s cubic-bezier(.2, .8, .2, 1),
+              box-shadow .28s ease,
+              border-color .28s ease;
+}
+
+/* barvni sij ob robu, viden ob hoverju */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: -40% 40% 55% -30%;
+  z-index: -1;
+  background: radial-gradient(closest-side, var(--accent, #6366f1), transparent 70%);
+  opacity: .16;
+  transition: opacity .3s ease, transform .45s cubic-bezier(.2, .8, .2, 1);
+}
+
+.card-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  color: #fff;
+  background: linear-gradient(140deg, var(--accent, #6366f1), var(--accent-2, #a855f7));
+  box-shadow: 0 10px 22px -10px color-mix(in srgb, var(--accent, #6366f1) 85%, transparent);
+  transition: transform .28s cubic-bezier(.2, .8, .2, 1);
+}
+.card-icon svg { width: 25px; height: 25px; }
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: auto;
+}
+
+.card-title {
+  font-size: 1.12rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.card-sub {
+  font-size: .82rem;
+  color: var(--text-soft);
+  line-height: 1.35;
+}
+
+.card-arrow {
+  position: absolute;
+  top: 20px;
+  right: 18px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  color: var(--text-soft);
+  opacity: 0;
+  transform: translate(-4px, 4px);
+  transition: opacity .25s ease, transform .25s ease, color .25s ease;
+}
+.card-arrow svg { width: 17px; height: 17px; }
+
+/* hover / fokus */
+.card[href]:hover,
+.card[href]:focus-visible {
+  transform: translateY(-6px);
+  border-color: color-mix(in srgb, var(--accent, #6366f1) 45%, var(--border-strong));
+  box-shadow: var(--shadow-lift);
+  outline: none;
+}
+.card[href]:hover::before,
+.card[href]:focus-visible::before { opacity: .4; transform: translate(10px, 10px); }
+.card[href]:hover .card-icon,
+.card[href]:focus-visible .card-icon { transform: scale(1.06) rotate(-3deg); }
+.card[href]:hover .card-arrow,
+.card[href]:focus-visible .card-arrow {
+  opacity: 1;
+  transform: translate(0, 0);
+  color: var(--accent, #6366f1);
+}
+.card[href]:active { transform: translateY(-2px); }
+
+/* prosta mesta */
+.card--empty {
+  background: transparent;
+  border-style: dashed;
+  box-shadow: none;
+  opacity: .5;
+}
+.card--empty::before { display: none; }
+.card--empty .card-icon {
+  background: none;
+  border: 1px dashed var(--border-strong);
+  color: var(--text-soft);
+  box-shadow: none;
+}
+
+/* ---------- Noga ---------- */
+.site-footer {
+  width: 100%;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  text-align: center;
+  color: var(--text-soft);
+  font-size: .82rem;
+}
+
+/* ---------- Odzivnost ---------- */
+@media (max-width: 1180px) {
+  .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 820px) {
+  .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .card { min-height: 160px; }
+}
+@media (max-width: 560px) {
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .card { min-height: 148px; padding: 16px; }
+  .card-icon { width: 42px; height: 42px; }
+  .card-icon svg { width: 22px; height: 22px; }
+  .theme-toggle { position: static; margin: 0 auto 18px; }
+  .site-header { display: flex; flex-direction: column; align-items: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}

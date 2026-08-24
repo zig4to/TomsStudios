@@ -1,0 +1,10 @@
+{
+  "name": "prtomsetu-hub",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Domača stran s povezavami do aplikacij Pr'Tomšetu",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js"
+  }
+}
