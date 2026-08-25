@@ -39,4 +39,69 @@
 
   var year = document.getElementById("year");
   if (year) year.textContent = new Date().getFullYear();
+
+  /* ---------- Namestitev kot aplikacija (PWA) ---------- */
+
+  var installBtn = document.getElementById("installBtn");
+  var installHint = document.getElementById("installHint");
+  var deferred = null;
+
+  function jeNamescena() {
+    return window.matchMedia("(display-mode: standalone)").matches ||
+           window.navigator.standalone === true;
+  }
+
+  function pokaziNamig(besedilo) {
+    if (!installHint) return;
+    installHint.textContent = besedilo;
+    installHint.hidden = false;
+  }
+
+  // Chrome sproži ta dogodek, ko je stran namestljiva.
+  window.addEventListener("beforeinstallprompt", function (e) {
+    e.preventDefault();
+    deferred = e;
+    if (installBtn) installBtn.hidden = false;
+    if (installHint) installHint.hidden = true;
+  });
+
+  if (installBtn) {
+    installBtn.addEventListener("click", function () {
+      if (!deferred) return;
+      deferred.prompt();
+      deferred.userChoice.then(function (izbira) {
+        if (izbira.outcome === "accepted") installBtn.hidden = true;
+        deferred = null;
+      });
+    });
+  }
+
+  window.addEventListener("appinstalled", function () {
+    deferred = null;
+    if (installBtn) installBtn.hidden = true;
+    pokaziNamig("Aplikacija je nameščena.");
+  });
+
+  // Če gumba ni (iOS ali že nameščeno), po kratkem zamiku pokaži navodilo.
+  if (!jeNamescena()) {
+    setTimeout(function () {
+      if (deferred || (installBtn && !installBtn.hidden)) return;
+      var ua = navigator.userAgent;
+      if (/iPhone|iPad|iPod/i.test(ua)) {
+        pokaziNamig("V Safariju: Deli → Dodaj na začetni zaslon.");
+      } else if (/Android/i.test(ua)) {
+        pokaziNamig("V Chromu: meni ⋮ → Namesti aplikacijo.");
+      }
+    }, 2500);
+  }
+
+  /* ---------- Service worker ---------- */
+
+  if ("serviceWorker" in navigator && location.protocol !== "file:") {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("./sw.js").catch(function (e) {
+        console.warn("Service worker ni bil registriran:", e);
+      });
+    });
+  }
 })();

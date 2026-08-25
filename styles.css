@@ -117,7 +117,8 @@ body {
 }
 
 .settings-btn,
-.theme-toggle {
+.theme-toggle,
+.install-btn {
   display: inline-flex;
   align-items: center;
   gap: 9px;
@@ -136,15 +137,38 @@ body {
 }
 
 .settings-btn:hover,
-.theme-toggle:hover {
+.theme-toggle:hover,
+.install-btn:hover {
   transform: translateY(-2px);
   border-color: var(--border-strong);
   box-shadow: var(--shadow-lift);
 }
 .settings-btn:focus-visible,
-.theme-toggle:focus-visible {
+.theme-toggle:focus-visible,
+.install-btn:focus-visible {
   outline: 2px solid var(--glow-1);
   outline-offset: 3px;
+}
+
+/* namestitev aplikacije */
+.install-btn[hidden],
+.install-hint[hidden] { display: none; }
+
+.install-btn {
+  border-color: transparent;
+  color: #fff;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  box-shadow: 0 10px 24px -10px rgba(99, 102, 241, .8);
+}
+.install-btn:hover { border-color: transparent; }
+.install-btn svg { width: 17px; height: 17px; }
+
+.install-hint {
+  max-width: 30ch;
+  margin: 0;
+  font-size: .76rem;
+  line-height: 1.45;
+  color: var(--text-soft);
 }
 
 .settings-btn .gear { width: 17px; height: 17px; color: var(--text-soft); }

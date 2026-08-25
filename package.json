@@ -5,6 +5,7 @@
   "description": "Domača stran s povezavami do aplikacij Pr'Tomšetu",
   "scripts": {
     "dev": "node server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "icons": "node tools/generate-icons.js"
   }
 }

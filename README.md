@@ -8,11 +8,28 @@ Odpri `index.html` v brskalniku. Ni build koraka, ni odvisnosti.
 
 ## Struktura
 
-| Datoteka     | Vsebina                                    |
-|--------------|--------------------------------------------|
-| `index.html` | Naslov, mreža kartic, noga                 |
-| `styles.css` | Barvni sistem (svetla/temna tema), kartice |
-| `app.js`     | Preklop teme, letnica v nogi               |
+| Datoteka                 | Vsebina                                            |
+|--------------------------|----------------------------------------------------|
+| `index.html`             | Naslov, mreža kartic, noga z nastavitvami          |
+| `styles.css`             | Barvni sistem (svetla/temna tema), kartice         |
+| `app.js`                 | Tema, nastavitve, namestitev, service worker       |
+| `manifest.json`          | Podatki za namestitev (ime, ikone, barve)          |
+| `sw.js`                  | Service worker — namestljivost in delovanje offline |
+| `icons/`                 | Generirane PNG ikone                               |
+| `tools/generate-icons.js`| Generator ikon (`npm run icons`)                   |
+| `server.js`              | Mini dev strežnik brez odvisnosti                  |
+
+## Namestitev na telefon
+
+Stran je PWA. Na **Androidu (Chrome)** odpri objavljeno povezavo → **Nastavitve → Namesti
+aplikacijo**, ali meni ⋮ → *Namesti aplikacijo*. Na **iPhonu (Safari)**: Deli → *Dodaj na
+začetni zaslon*.
+
+Pogoj je HTTPS — deluje na GitHub Pages, lokalno pa le prek `http://localhost`.
+Ikono spremeniš v `tools/generate-icons.js` in zaženi `npm run icons`.
+
+> Po vsaki spremembi datotek povečaj `VERZIJA` v `sw.js`, sicer nameščene naprave
+> še nekaj časa vidijo staro različico iz predpomnilnika.
 
 ## Dodajanje nove kartice
 

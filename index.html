@@ -6,7 +6,15 @@
 <title>Pr'Tomšetu</title>
 <meta name="description" content="Središče aplikacij Pr'Tomšetu — dogodki, checkliste, računi." />
 <meta name="theme-color" content="#0b1020" />
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127968;</text></svg>" />
+
+<!-- Namestitev kot aplikacija (PWA) -->
+<link rel="manifest" href="manifest.json" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Pr'Tomšetu" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon-180.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -165,6 +173,15 @@
           </span>
           <span id="themeLabel">Temna tema</span>
         </button>
+
+        <button class="install-btn" id="installBtn" type="button" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3v11m0 0 4-4m-4 4-4-4"/><path d="M4 17v2.5A1.5 1.5 0 0 0 5.5 21h13a1.5 1.5 0 0 0 1.5-1.5V17"/>
+          </svg>
+          <span>Namesti aplikacijo</span>
+        </button>
+
+        <p class="install-hint" id="installHint" hidden></p>
       </div>
     </div>
 
