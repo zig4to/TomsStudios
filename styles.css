@@ -159,7 +159,7 @@ body {
   outline-offset: 3px;
 }
 
-.reset-btn svg { width: 16px; height: 16px; color: var(--text-soft); }
+.reset-btn svg { width: 17px; height: 17px; color: var(--text-soft); }
 .reset-btn.is-spinning svg { animation: reset-spin .6s linear; }
 @keyframes reset-spin {
   to { transform: rotate(360deg); }
