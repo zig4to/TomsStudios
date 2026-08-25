@@ -116,7 +116,14 @@ body {
   gap: 10px;
 }
 
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .settings-btn,
+.reset-btn,
 .theme-toggle,
 .install-btn {
   display: inline-flex;
@@ -137,6 +144,7 @@ body {
 }
 
 .settings-btn:hover,
+.reset-btn:hover,
 .theme-toggle:hover,
 .install-btn:hover {
   transform: translateY(-2px);
@@ -144,10 +152,17 @@ body {
   box-shadow: var(--shadow-lift);
 }
 .settings-btn:focus-visible,
+.reset-btn:focus-visible,
 .theme-toggle:focus-visible,
 .install-btn:focus-visible {
   outline: 2px solid var(--glow-1);
   outline-offset: 3px;
+}
+
+.reset-btn svg { width: 16px; height: 16px; color: var(--text-soft); }
+.reset-btn.is-spinning svg { animation: reset-spin .6s linear; }
+@keyframes reset-spin {
+  to { transform: rotate(360deg); }
 }
 
 /* namestitev aplikacije */
