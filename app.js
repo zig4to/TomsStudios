@@ -43,7 +43,7 @@
   // Trd reset: pobriše service worker + predpomnilnik in stran naloži znova
   // neposredno s strežnika (kot Ctrl+F5). getRegistrations()/caches.keys() brez
   // scope filtra zajameta VSE aplikacije na istem izvoru (zig4to.github.io), ne
-  // le Pr'Tomšetu - zato oba spodnja gumba dejansko naredita isto stvar.
+  // le Pr'Tomšetu - zato ta gumb dejansko osveži vse aplikacije naenkrat.
   function hardReset(btn) {
     btn.disabled = true;
     btn.classList.add("is-spinning");
@@ -70,9 +70,6 @@
       .catch(function (e) { console.warn("Trd reset ni v celoti uspel:", e); })
       .then(poNaloziPonovno);
   }
-
-  var hardResetBtn = document.getElementById("hardResetBtn");
-  if (hardResetBtn) hardResetBtn.addEventListener("click", function () { hardReset(hardResetBtn); });
 
   var hardResetAllBtn = document.getElementById("hardResetAllBtn");
   if (hardResetAllBtn) hardResetAllBtn.addEventListener("click", function () { hardReset(hardResetAllBtn); });
