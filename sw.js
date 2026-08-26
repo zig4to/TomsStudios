@@ -1,7 +1,7 @@
 /* Service worker — omogoča namestitev in delovanje brez povezave.
    Ob spremembi datotek povečaj VERZIJO, da se predpomnilnik osveži. */
 
-const VERZIJA = "v4";
+const VERZIJA = "v5";
 const CACHE = "ptomsetu-" + VERZIJA;
 
 const LUPINA = [
