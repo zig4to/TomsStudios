@@ -40,37 +40,42 @@
   var year = document.getElementById("year");
   if (year) year.textContent = new Date().getFullYear();
 
-  // Gumb Osveži naredi trd reset: pobriše predpomnilnik in service worker,
-  // nato stran naloži znova neposredno s strežnika (kot Ctrl+F5).
-  var hardResetBtn = document.getElementById("hardResetBtn");
-  if (hardResetBtn) {
-    hardResetBtn.addEventListener("click", function () {
-      hardResetBtn.disabled = true;
-      hardResetBtn.classList.add("is-spinning");
+  // Trd reset: pobriše service worker + predpomnilnik in stran naloži znova
+  // neposredno s strežnika (kot Ctrl+F5). getRegistrations()/caches.keys() brez
+  // scope filtra zajameta VSE aplikacije na istem izvoru (zig4to.github.io), ne
+  // le Pr'Tomšetu - zato oba spodnja gumba dejansko naredita isto stvar.
+  function hardReset(btn) {
+    btn.disabled = true;
+    btn.classList.add("is-spinning");
 
-      var poNaloziPonovno = function () {
-        var url = new URL(location.href);
-        url.searchParams.set("_r", Date.now());
-        location.replace(url.toString());
-      };
+    var poNaloziPonovno = function () {
+      var url = new URL(location.href);
+      url.searchParams.set("_r", Date.now());
+      location.replace(url.toString());
+    };
 
-      Promise.resolve()
-        .then(function () {
-          if (!("serviceWorker" in navigator)) return;
-          return navigator.serviceWorker.getRegistrations().then(function (regs) {
-            return Promise.all(regs.map(function (r) { return r.unregister(); }));
-          });
-        })
-        .then(function () {
-          if (!("caches" in window)) return;
-          return caches.keys().then(function (keys) {
-            return Promise.all(keys.map(function (k) { return caches.delete(k); }));
-          });
-        })
-        .catch(function (e) { console.warn("Trd reset ni v celoti uspel:", e); })
-        .then(poNaloziPonovno);
-    });
+    Promise.resolve()
+      .then(function () {
+        if (!("serviceWorker" in navigator)) return;
+        return navigator.serviceWorker.getRegistrations().then(function (regs) {
+          return Promise.all(regs.map(function (r) { return r.unregister(); }));
+        });
+      })
+      .then(function () {
+        if (!("caches" in window)) return;
+        return caches.keys().then(function (keys) {
+          return Promise.all(keys.map(function (k) { return caches.delete(k); }));
+        });
+      })
+      .catch(function (e) { console.warn("Trd reset ni v celoti uspel:", e); })
+      .then(poNaloziPonovno);
   }
+
+  var hardResetBtn = document.getElementById("hardResetBtn");
+  if (hardResetBtn) hardResetBtn.addEventListener("click", function () { hardReset(hardResetBtn); });
+
+  var hardResetAllBtn = document.getElementById("hardResetAllBtn");
+  if (hardResetAllBtn) hardResetAllBtn.addEventListener("click", function () { hardReset(hardResetAllBtn); });
 
   /* ---------- Namestitev kot aplikacija (PWA) ---------- */
 
