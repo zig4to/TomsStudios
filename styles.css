@@ -323,6 +323,10 @@ main {
 .card[href]:focus-visible::before { opacity: .4; transform: translate(10px, 10px); }
 .card[href]:hover .card-icon,
 .card[href]:focus-visible .card-icon { transform: scale(1.06) rotate(-3deg); }
+/* Aktovka (Posel) je široka in ravna na vrhu — rotacija jo vizualno potisne
+   v levo. Zanjo ob hoverju samo poskočimo, brez zasuka. */
+.card[href*="posel-six"]:hover .card-icon,
+.card[href*="posel-six"]:focus-visible .card-icon { transform: scale(1.06); }
 .card[href]:hover .card-arrow,
 .card[href]:focus-visible .card-arrow {
   opacity: 1;
