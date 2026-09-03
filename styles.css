@@ -110,7 +110,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .settings-row {
@@ -195,6 +195,10 @@ body {
 /* razgrnjena plošča */
 .settings-panel[hidden] { display: none; }
 .settings-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
   animation: panel-in .3s cubic-bezier(.2, .8, .2, 1);
 }
 @keyframes panel-in {
@@ -350,6 +354,88 @@ main {
   box-shadow: none;
 }
 
+/* ---------- Način urejanja razporeda ---------- */
+.reorder-btn .reorder-icon {
+  display: grid;
+  place-items: center;
+  width: 19px;
+  height: 19px;
+}
+.reorder-btn .reorder-icon svg { width: 18px; height: 18px; color: var(--text-soft); }
+#reorderBtn[aria-pressed="true"] {
+  border-color: color-mix(in srgb, var(--glow-1) 55%, var(--border-strong));
+  box-shadow: var(--shadow-lift);
+}
+#reorderBtn[aria-pressed="true"] .reorder-icon svg { color: var(--glow-1); }
+
+body.is-reordering .grid { cursor: default; }
+
+body.is-reordering .card {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  animation: card-wiggle 1.7s ease-in-out infinite;
+}
+body.is-reordering .card:nth-child(3n)   { animation-delay: -.55s; }
+body.is-reordering .card:nth-child(3n+1) { animation-delay: -1.1s; }
+
+/* grip iz pik v kotu, viden le med urejanjem */
+body.is-reordering .card::after {
+  content: "";
+  position: absolute;
+  top: 18px;
+  right: 16px;
+  width: 16px;
+  height: 10px;
+  background:
+    radial-gradient(circle, currentColor 1.4px, transparent 1.6px) 0 0 / 5px 5px;
+  color: var(--text-soft);
+  opacity: .55;
+  pointer-events: none;
+}
+
+/* med urejanjem kartice ne navigirajo in ne poskočijo ob hoverju */
+body.is-reordering .card-arrow { display: none; }
+body.is-reordering .card[href]:hover,
+body.is-reordering .card[href]:focus-visible {
+  transform: none;
+  border-color: var(--border);
+  box-shadow: var(--shadow);
+}
+body.is-reordering .card[href]:hover::before,
+body.is-reordering .card[href]:focus-visible::before { opacity: .16; transform: none; }
+body.is-reordering .card[href]:hover .card-icon,
+body.is-reordering .card[href]:focus-visible .card-icon { transform: none; }
+
+.card.is-dragging {
+  opacity: .28;
+  animation: none;
+  cursor: grabbing;
+}
+.card.is-dragging::after { display: none; }
+
+.card-drag-clone {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 999;
+  margin: 0;
+  pointer-events: none;
+  animation: none;
+  box-shadow: var(--shadow-lift);
+  transform: scale(1.04);
+  will-change: transform;
+}
+.card-drag-clone::before,
+.card-drag-clone::after { display: none; }
+.card-drag-clone .card-arrow { display: none; }
+
+@keyframes card-wiggle {
+  0%, 100% { transform: rotate(-0.6deg); }
+  50%      { transform: rotate(0.6deg); }
+}
+
 /* ---------- Noga ---------- */
 .site-footer {
   display: flex;
@@ -378,8 +464,15 @@ main {
   .card { min-height: 148px; padding: 16px; }
   .card-icon { width: 42px; height: 42px; }
   .card-icon svg { width: 22px; height: 22px; }
+
+  /* na telefonu gumbi v nastavitvah bolj zračni, z enakomernim razmikom */
+  .settings { gap: 14px; }
+  .settings-panel { gap: 14px; }
+  .settings-panel .theme-toggle,
+  .settings-panel .install-btn { width: 100%; max-width: 280px; justify-content: center; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+  body.is-reordering .card { animation: none !important; transform: none !important; }
 }

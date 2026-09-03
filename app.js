@@ -74,6 +74,165 @@
   var hardResetAllBtn = document.getElementById("hardResetAllBtn");
   if (hardResetAllBtn) hardResetAllBtn.addEventListener("click", function () { hardReset(hardResetAllBtn); });
 
+  /* ---------- Ročno razvrščanje kartic ----------
+     Gumb "Uredi razpored" vklopi način urejanja; kartice se premikajo z
+     vlečenjem (miška takoj ob premiku, dotik po kratkem pridržanju). Vrstni
+     red se shrani v localStorage ("ptomsetu-card-order"); uveljavi ga inline
+     skript v index.html še pred izrisom. */
+
+  var reorderBtn = document.getElementById("reorderBtn");
+  var reorderLabel = document.getElementById("reorderLabel");
+  var grid = document.querySelector(".grid");
+
+  if (reorderBtn && reorderLabel && grid) {
+    var ORDER_KEY = "ptomsetu-card-order";
+
+    var jeUrejanje = function () {
+      return document.body.classList.contains("is-reordering");
+    };
+
+    var saveOrder = function () {
+      var cards = grid.querySelectorAll(".card");
+      var ids = [];
+      for (var i = 0; i < cards.length; i++) {
+        var id = cards[i].getAttribute("data-app");
+        if (id) ids.push(id);
+      }
+      try { localStorage.setItem(ORDER_KEY, JSON.stringify(ids)); } catch (e) { /* zasebni način / poln disk */ }
+    };
+
+    var setReorder = function (on) {
+      document.body.classList.toggle("is-reordering", on);
+      reorderBtn.setAttribute("aria-pressed", String(on));
+      reorderLabel.textContent = on ? "Končaj urejanje" : "Uredi razpored";
+      if (!on) { endDrag(); saveOrder(); }
+    };
+
+    reorderBtn.addEventListener("click", function () {
+      setReorder(reorderBtn.getAttribute("aria-pressed") !== "true");
+    });
+
+    // Med urejanjem klik na kartico ne sme odpreti aplikacije.
+    grid.addEventListener("click", function (e) {
+      if (!jeUrejanje()) return;
+      var c = e.target.closest ? e.target.closest(".card") : null;
+      if (c) { e.preventDefault(); e.stopPropagation(); }
+    }, true);
+
+    /* --- Vlečenje prek Pointer Events (miška + dotik) --- */
+    var drag = null;        // { card, pointerId, offsetX, offsetY, clone, started, lastX, lastY }
+    var holdTimer = null;
+    var startX = 0, startY = 0;
+
+    var clearHold = function () {
+      if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
+    };
+
+    var moveClone = function (x, y) {
+      if (!drag || !drag.clone) return;
+      drag.clone.style.transform =
+        "translate(" + (x - drag.offsetX) + "px," + (y - drag.offsetY) + "px) scale(1.04)";
+    };
+
+    var beginDrag = function () {
+      if (!drag || drag.started) return;
+      clearHold();
+      var card = drag.card;
+      var r = card.getBoundingClientRect();
+      var clone = card.cloneNode(true);
+      clone.classList.add("card-drag-clone");
+      clone.classList.remove("is-dragging");
+      clone.removeAttribute("href");
+      clone.style.width = r.width + "px";
+      clone.style.height = r.height + "px";
+      document.body.appendChild(clone);
+      card.classList.add("is-dragging");
+      try { card.setPointerCapture(drag.pointerId); } catch (e) {}
+      drag.clone = clone;
+      drag.started = true;
+      moveClone(drag.lastX, drag.lastY);
+    };
+
+    var reorderTo = function (x, y) {
+      var card = drag.card;
+      drag.clone.style.visibility = "hidden";
+      var over = document.elementFromPoint(x, y);
+      drag.clone.style.visibility = "";
+      if (!over) return;
+      var target = over.closest ? over.closest(".card") : null;
+      if (target && target !== card && target.parentNode === grid) {
+        var r = target.getBoundingClientRect();
+        var after = x > r.left + r.width / 2;
+        grid.insertBefore(card, after ? target.nextSibling : target);
+      } else if (over === grid) {
+        var last = grid.lastElementChild;
+        if (last && last !== card && y > last.getBoundingClientRect().top) {
+          grid.appendChild(card);
+        }
+      }
+    };
+
+    function endDrag() {
+      clearHold();
+      if (!drag) return;
+      var card = drag.card;
+      if (drag.pointerId != null) {
+        try { card.releasePointerCapture(drag.pointerId); } catch (e) {}
+      }
+      if (drag.clone && drag.clone.parentNode) drag.clone.parentNode.removeChild(drag.clone);
+      card.classList.remove("is-dragging");
+      var started = drag.started;
+      drag = null;
+      if (started) saveOrder();
+    }
+
+    grid.addEventListener("pointerdown", function (e) {
+      if (!jeUrejanje() || drag) return;
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      var card = e.target.closest ? e.target.closest(".card") : null;
+      if (!card || card.parentNode !== grid) return;
+
+      var r = card.getBoundingClientRect();
+      drag = {
+        card: card,
+        pointerId: e.pointerId,
+        offsetX: e.clientX - r.left,
+        offsetY: e.clientY - r.top,
+        clone: null,
+        started: false,
+        lastX: e.clientX,
+        lastY: e.clientY
+      };
+      startX = e.clientX;
+      startY = e.clientY;
+      if (e.pointerType === "touch") holdTimer = setTimeout(beginDrag, 170);
+    });
+
+    grid.addEventListener("pointermove", function (e) {
+      if (!drag || e.pointerId !== drag.pointerId) return;
+      drag.lastX = e.clientX;
+      drag.lastY = e.clientY;
+
+      if (!drag.started) {
+        var dx = e.clientX - startX, dy = e.clientY - startY;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        if (e.pointerType === "touch") {
+          if (dist > 16) { clearHold(); drag = null; } // hiter poteg = drsenje, ne vlečenje
+          return;
+        }
+        if (dist > 4) beginDrag();
+        if (!drag || !drag.started) return;
+      }
+
+      e.preventDefault();
+      moveClone(e.clientX, e.clientY);
+      reorderTo(e.clientX, e.clientY);
+    }, { passive: false });
+
+    grid.addEventListener("pointerup", endDrag);
+    grid.addEventListener("pointercancel", endDrag);
+  }
+
   /* ---------- Namestitev kot aplikacija (PWA) ---------- */
 
   var installBtn = document.getElementById("installBtn");
