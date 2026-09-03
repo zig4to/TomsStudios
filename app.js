@@ -119,6 +119,12 @@
       if (c) { e.preventDefault(); e.stopPropagation(); }
     }, true);
 
+    // Med urejanjem brskalnik ne sme sprožiti lastnega vlečenja povezave
+    // (na namizju to prekine našo Pointer-Events sled in vlečenje "ne deluje").
+    grid.addEventListener("dragstart", function (e) {
+      if (jeUrejanje()) e.preventDefault();
+    });
+
     /* --- Vlečenje prek Pointer Events (miška + dotik) --- */
     var drag = null;        // { card, pointerId, offsetX, offsetY, clone, started, lastX, lastY }
     var holdTimer = null;
@@ -191,6 +197,9 @@
       if (e.pointerType === "mouse" && e.button !== 0) return;
       var card = e.target.closest ? e.target.closest(".card") : null;
       if (!card || card.parentNode !== grid) return;
+
+      // prepreči izbor besedila / fokus / začetek vlečenja povezave
+      if (e.cancelable) e.preventDefault();
 
       var r = card.getBoundingClientRect();
       drag = {

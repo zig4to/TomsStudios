@@ -375,10 +375,16 @@ body.is-reordering .card {
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+}
+/* zibanje NE sme zadeti kopije med vlečenjem ne izvorne kartice — sicer
+   transform iz animacije prepiše inline translate() in kopija obtiči v kotu */
+body.is-reordering .card:not(.is-dragging):not(.card-drag-clone) {
   animation: card-wiggle 1.7s ease-in-out infinite;
 }
-body.is-reordering .card:nth-child(3n)   { animation-delay: -.55s; }
-body.is-reordering .card:nth-child(3n+1) { animation-delay: -1.1s; }
+body.is-reordering .card:not(.is-dragging):not(.card-drag-clone):nth-child(3n)   { animation-delay: -.55s; }
+body.is-reordering .card:not(.is-dragging):not(.card-drag-clone):nth-child(3n+1) { animation-delay: -1.1s; }
 
 /* grip iz pik v kotu, viden le med urejanjem */
 body.is-reordering .card::after {
@@ -408,9 +414,9 @@ body.is-reordering .card[href]:focus-visible::before { opacity: .16; transform: 
 body.is-reordering .card[href]:hover .card-icon,
 body.is-reordering .card[href]:focus-visible .card-icon { transform: none; }
 
-.card.is-dragging {
+body.is-reordering .card.is-dragging {
   opacity: .28;
-  animation: none;
+  animation: none !important;
   cursor: grabbing;
 }
 .card.is-dragging::after { display: none; }
@@ -422,9 +428,9 @@ body.is-reordering .card[href]:focus-visible .card-icon { transform: none; }
   z-index: 999;
   margin: 0;
   pointer-events: none;
-  animation: none;
+  animation: none !important;
+  transition: none;          /* .card ima prehod transforma — kopija mora slediti kazalcu 1:1 */
   box-shadow: var(--shadow-lift);
-  transform: scale(1.04);
   will-change: transform;
 }
 .card-drag-clone::before,
