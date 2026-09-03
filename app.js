@@ -101,6 +101,29 @@
       try { localStorage.setItem(ORDER_KEY, JSON.stringify(ids)); } catch (e) { /* zasebni način / poln disk */ }
     };
 
+    // Ročaj za premikanje v zgornjem desnem kotu vsake kartice. Viden je le v
+    // načinu urejanja; premik se sproži IZKLJUČNO ob prijemu tega ročaja, da
+    // ostane drsenje po strani gladko (preostanek kartice ne prestreže poteze).
+    var GRIP_ICON =
+      '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true">' +
+      '<circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/>' +
+      '<circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/>' +
+      '<circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg>';
+
+    var ensureGrips = function () {
+      var cards = grid.querySelectorAll(".card");
+      for (var i = 0; i < cards.length; i++) {
+        if (cards[i].querySelector(".card-grip")) continue;
+        var g = document.createElement("span");
+        g.className = "card-grip";
+        g.setAttribute("aria-hidden", "true");
+        g.setAttribute("title", "Povleci za premik");
+        g.innerHTML = GRIP_ICON;
+        cards[i].appendChild(g);
+      }
+    };
+    ensureGrips();
+
     var setReorder = function (on) {
       document.body.classList.toggle("is-reordering", on);
       reorderBtn.setAttribute("aria-pressed", String(on));
@@ -127,12 +150,7 @@
 
     /* --- Vlečenje prek Pointer Events (miška + dotik) --- */
     var drag = null;        // { card, pointerId, offsetX, offsetY, clone, started, lastX, lastY }
-    var holdTimer = null;
     var startX = 0, startY = 0;
-
-    var clearHold = function () {
-      if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
-    };
 
     var moveClone = function (x, y) {
       if (!drag || !drag.clone) return;
@@ -142,7 +160,6 @@
 
     var beginDrag = function () {
       if (!drag || drag.started) return;
-      clearHold();
       var card = drag.card;
       var r = card.getBoundingClientRect();
       var clone = card.cloneNode(true);
@@ -179,7 +196,6 @@
     };
 
     function endDrag() {
-      clearHold();
       if (!drag) return;
       var card = drag.card;
       if (drag.pointerId != null) {
@@ -195,7 +211,12 @@
     grid.addEventListener("pointerdown", function (e) {
       if (!jeUrejanje() || drag) return;
       if (e.pointerType === "mouse" && e.button !== 0) return;
-      var card = e.target.closest ? e.target.closest(".card") : null;
+
+      // Premik se sproži samo ob prijemu ročaja v kotu kartice — drugod po
+      // kartici gre poteza brskalniku (gladko drsenje po strani).
+      var grip = e.target.closest ? e.target.closest(".card-grip") : null;
+      if (!grip) return;
+      var card = grip.closest(".card");
       if (!card || card.parentNode !== grid) return;
 
       // prepreči izbor besedila / fokus / začetek vlečenja povezave
@@ -214,7 +235,6 @@
       };
       startX = e.clientX;
       startY = e.clientY;
-      if (e.pointerType === "touch") holdTimer = setTimeout(beginDrag, 170);
     });
 
     grid.addEventListener("pointermove", function (e) {
@@ -224,12 +244,7 @@
 
       if (!drag.started) {
         var dx = e.clientX - startX, dy = e.clientY - startY;
-        var dist = Math.sqrt(dx * dx + dy * dy);
-        if (e.pointerType === "touch") {
-          if (dist > 16) { clearHold(); drag = null; } // hiter poteg = drsenje, ne vlečenje
-          return;
-        }
-        if (dist > 4) beginDrag();
+        if (Math.sqrt(dx * dx + dy * dy) > 4) beginDrag();
         if (!drag || !drag.started) return;
       }
 
