@@ -206,11 +206,9 @@
   /* ---------- Preverjanje / spremljanje seje ---------- */
 
   function onSession(session) {
-    var userEmailLabel = document.getElementById("userEmailLabel");
     if (session) {
       window.PTOMSETU_USER = session.user;
       window.PTOMSETU_SESSION = session;
-      if (userEmailLabel) userEmailLabel.textContent = session.user.email || "";
       if (userAvatarInitials) userAvatarInitials.textContent = initialsFor(session.user);
       if (userAvatarName) {
         var fullName = displayNameFor(session.user);
@@ -223,7 +221,6 @@
     } else {
       window.PTOMSETU_USER = null;
       window.PTOMSETU_SESSION = null;
-      if (userEmailLabel) userEmailLabel.textContent = "";
       closeAvatarPopover();
       showAuth();
       setTab("login");

@@ -30,6 +30,12 @@
     '<circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg>';
   var REMOVE_ICON =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+  var CHECK_SVG =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+
+  // Nastavljeno spodaj (znotraj bloka za vlečenje razvrščanja), a poklicano
+  // tudi iz render() — zato deklarirano tu, da je vidno v celotnem obsegu.
+  var toggleEndCap;
 
   /* ---------- Pomožno ---------- */
 
@@ -149,6 +155,10 @@
         grid.appendChild(card);
       });
     ensureEditControls();
+    // render() zbriše in ponovno zgradi celotno mrežo (grid.innerHTML = "")
+    // — če smo bili sredi urejanja, se gumb "Končaj urejanje" izgubi skupaj
+    // z ostalim; tu ga po potrebi takoj obnovimo.
+    if (toggleEndCap && jeUrejanje()) toggleEndCap(true);
   }
 
   /* ---------- Supabase: nalaganje / prva prijava ---------- */
@@ -434,10 +444,33 @@
       }, 400);
     };
 
+    // Gumb "Končaj urejanje" na koncu mreže (za zadnjo "+" kartico) — enak
+    // učinek kot klik na "Uredi razpored" v meniju, le da je na dosegu roke
+    // med samim urejanjem. Ni razred ".card", ker se izogiba vsej logiki
+    // vlečenja/shranjevanja spodaj (querySelectorAll(".card") ga ne zajame).
+    toggleEndCap = function (on) {
+      var existing = document.getElementById("gridEndCap");
+      if (on) {
+        if (existing) return;
+        var el = document.createElement("button");
+        el.type = "button";
+        el.id = "gridEndCap";
+        el.className = "card--end-action";
+        el.innerHTML =
+          '<span class="card-end-icon">' + CHECK_SVG + "</span>" +
+          '<span class="card-end-label">Končaj urejanje</span>';
+        el.addEventListener("click", function () { setReorder(false); });
+        grid.appendChild(el);
+      } else if (existing && existing.parentNode) {
+        existing.parentNode.removeChild(existing);
+      }
+    };
+
     var setReorder = function (on) {
       document.body.classList.toggle("is-reordering", on);
       reorderBtn.setAttribute("aria-pressed", String(on));
       reorderLabel.textContent = on ? "Končaj urejanje" : "Uredi razpored";
+      toggleEndCap(on);
       if (!on) { endDrag(); saveOrder(); }
     };
 

@@ -315,6 +315,21 @@ body {
 .user-avatar-popover-item svg { width: 16px; height: 16px; color: var(--text-soft); flex-shrink: 0; }
 .user-avatar-popover-item:hover { background: var(--surface); }
 
+/* puščica na "Nastavitve" se zasuka, ko je podmeni odprt — jasen znak, da se
+   je odprl tu, ne nekje drugje */
+#settingsBtn .chevron {
+  width: 14px;
+  height: 14px;
+  margin-left: auto;
+  color: var(--text-soft);
+  transition: transform .25s cubic-bezier(.2, .8, .2, 1);
+}
+#settingsBtn[aria-expanded="true"] {
+  background: var(--surface);
+  color: var(--glow-1);
+}
+#settingsBtn[aria-expanded="true"] .chevron { transform: rotate(180deg); color: var(--glow-1); }
+
 .site-header h1 {
   margin: 0;
   font-size: clamp(1.6rem, 3.6vw, 2.4rem);
@@ -332,7 +347,6 @@ body {
   gap: 12px;
 }
 
-.theme-toggle,
 .install-btn {
   display: inline-flex;
   align-items: center;
@@ -351,13 +365,11 @@ body {
   transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
 }
 
-.theme-toggle:hover,
 .install-btn:hover {
   transform: translateY(-2px);
   border-color: var(--border-strong);
   box-shadow: var(--shadow-lift);
 }
-.theme-toggle:focus-visible,
 .install-btn:focus-visible {
   outline: 2px solid var(--glow-1);
   outline-offset: 3px;
@@ -389,27 +401,31 @@ body {
   color: var(--text-soft);
 }
 
-/* razgrnjena plošča */
+/* razgrnjena plošča — vidno "vgnezdena" škatla pod gumbom Nastavitve, z
+   enakomernim razmikom med vsemi postavkami (gap velja za vse otroke, tudi
+   za .install-btn/.install-hint, ne glede na njun drugačen slog) */
 .settings-panel[hidden] { display: none; }
 .settings-panel {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  animation: panel-in .3s cubic-bezier(.2, .8, .2, 1);
+  align-items: stretch;
+  gap: 4px;
+  margin: 2px 0 6px;
+  padding: 6px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  animation: panel-in .2s cubic-bezier(.2, .8, .2, 1);
 }
+.settings-panel .user-avatar-popover-item:hover { background: var(--surface-solid); }
+.settings-panel .install-btn { width: 100%; justify-content: center; }
+.settings-panel .install-hint { padding: 0 8px; }
 @keyframes panel-in {
   from { opacity: 0; transform: translateY(-6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.user-email-label {
-  font-size: .8rem;
-  color: var(--text-soft);
-}
-
 /* preklop teme */
-.theme-toggle { padding-left: 13px; }
 .theme-icons { display: grid; width: 19px; height: 19px; }
 .theme-icons svg {
   width: 19px;
@@ -579,19 +595,54 @@ main {
 }
 body.is-reordering .card-add-btn { pointer-events: none; }
 
-/* ---------- Način urejanja razporeda ---------- */
-.reorder-btn .reorder-icon {
+/* gumb "Končaj urejanje" na koncu mreže, za zadnjo "+" kartico — enake mere
+   kot .card (namerno ni razred .card, da ga izloči logika vlečenja), samo
+   vsebina je poravnana na sredino */
+.card--end-action {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 178px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  backdrop-filter: blur(18px);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  transition: transform .28s cubic-bezier(.2, .8, .2, 1), box-shadow .28s ease, border-color .28s ease;
+}
+.card--end-action:hover,
+.card--end-action:focus-visible {
+  transform: translateY(-6px);
+  border-color: color-mix(in srgb, #22c55e 45%, var(--border-strong));
+  box-shadow: var(--shadow-lift);
+  outline: none;
+}
+.card-end-icon {
   display: grid;
   place-items: center;
-  width: 19px;
-  height: 19px;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  color: #fff;
+  background: linear-gradient(140deg, #22c55e, #16a34a);
+  box-shadow: 0 10px 22px -10px rgba(34, 197, 94, .6);
 }
-.reorder-btn .reorder-icon svg { width: 18px; height: 18px; color: var(--text-soft); }
+.card-end-icon svg { width: 22px; height: 22px; }
+.card-end-label { font-size: 1.02rem; font-weight: 600; }
+
+/* ---------- Način urejanja razporeda ---------- */
 #reorderBtn[aria-pressed="true"] {
-  border-color: color-mix(in srgb, var(--glow-1) 55%, var(--border-strong));
-  box-shadow: var(--shadow-lift);
+  background: var(--surface);
+  color: var(--glow-1);
 }
-#reorderBtn[aria-pressed="true"] .reorder-icon svg { color: var(--glow-1); }
+#reorderBtn[aria-pressed="true"] svg { color: var(--glow-1); }
 
 body.is-reordering .grid { cursor: default; }
 
@@ -852,12 +903,6 @@ body.is-reordering .card.is-dragging .card-grip { cursor: grabbing; }
   .site-header { text-align: left; padding-right: 52px; }
   .site-header h1 { font-size: 1.3rem; }
   .site-header .brand { gap: 10px; align-items: center; }
-
-  /* na telefonu gumbi v nastavitvah bolj zračni, z enakomernim razmikom */
-  .settings { gap: 14px; }
-  .settings-panel { gap: 14px; }
-  .settings-panel .theme-toggle,
-  .settings-panel .install-btn { width: 100%; max-width: 280px; justify-content: center; }
 }
 
 @media (prefers-reduced-motion: reduce) {
