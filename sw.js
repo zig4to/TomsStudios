@@ -1,7 +1,7 @@
 /* Service worker — omogoča namestitev in delovanje brez povezave.
    Ob spremembi datotek povečaj VERZIJO, da se predpomnilnik osveži. */
 
-const VERZIJA = "v18";
+const VERZIJA = "v19";
 const CACHE = "ptomsetu-" + VERZIJA;
 
 const LUPINA = [
@@ -9,6 +9,10 @@ const LUPINA = [
   "./index.html",
   "./styles.css",
   "./app.js",
+  "./auth.js",
+  "./dashboard.js",
+  "./apps-registry.js",
+  "./supabase-config.js",
   "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
