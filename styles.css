@@ -332,13 +332,6 @@ body {
   gap: 12px;
 }
 
-.settings-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.reset-btn,
 .theme-toggle,
 .install-btn {
   display: inline-flex;
@@ -358,22 +351,19 @@ body {
   transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
 }
 
-.reset-btn:hover,
 .theme-toggle:hover,
 .install-btn:hover {
   transform: translateY(-2px);
   border-color: var(--border-strong);
   box-shadow: var(--shadow-lift);
 }
-.reset-btn:focus-visible,
 .theme-toggle:focus-visible,
 .install-btn:focus-visible {
   outline: 2px solid var(--glow-1);
   outline-offset: 3px;
 }
 
-.reset-btn svg { width: 17px; height: 17px; color: var(--text-soft); }
-.reset-btn.is-spinning svg { animation: reset-spin .6s linear; }
+.user-avatar-popover-item.is-spinning svg { animation: reset-spin .6s linear; }
 @keyframes reset-spin {
   to { transform: rotate(360deg); }
 }
