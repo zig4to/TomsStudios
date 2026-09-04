@@ -229,8 +229,9 @@ body {
 
 .user-avatar-wrap {
   position: absolute;
-  top: 4px;
+  top: 50%;
   right: 0;
+  transform: translateY(-50%);
 }
 
 .user-avatar {
@@ -849,6 +850,13 @@ body.is-reordering .card.is-dragging .card-grip { cursor: grabbing; }
   .card { min-height: 148px; padding: 16px; }
   .card-icon { width: 42px; height: 42px; }
   .card-icon svg { width: 22px; height: 22px; }
+
+  /* naslov na telefonu poravnan levo (prostor za krog uporabnika desno) in manjši */
+  .site-header { text-align: left; padding-right: 52px; }
+  .site-header h1 { font-size: 1.5rem; }
+  .site-header .brand-mark { width: 28px; height: 28px; }
+  .site-header .brand-mark svg { width: 14px; height: 14px; }
+  .site-header .brand { gap: 10px; align-items: center; }
 
   /* na telefonu gumbi v nastavitvah bolj zračni, z enakomernim razmikom */
   .settings { gap: 14px; }
