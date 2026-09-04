@@ -172,6 +172,7 @@
           slots = res.data;
           render();
           saveCache();
+          ensureEmptySlotAvailable();
           return;
         }
         // Prva prijava: ni še vrstic — ustvari privzetih 6 praznih mest.
@@ -192,6 +193,37 @@
       });
   }
 
+  /* ---------- Dodajanje praznega mesta (ročno in samodejno) ---------- */
+
+  function addEmptySlot(onDone) {
+    var nextPosition = slots.length
+      ? Math.max.apply(null, slots.map(function (s) { return s.position; })) + 1
+      : 0;
+    window.sb
+      .from("user_dashboard_slots")
+      .insert({ user_id: session.user.id, app_id: null, position: nextPosition })
+      .select("id, app_id, position")
+      .then(function (res) {
+        if (res.error || !res.data || !res.data.length) {
+          if (onDone) onDone(false);
+          return;
+        }
+        slots.push(res.data[0]);
+        render();
+        saveCache();
+        if (onDone) onDone(true);
+      });
+  }
+
+  // Ko ni več nobenega praznega "+" mesta (vsa so zapolnjena z aplikacijo),
+  // samodejno dodaj novo prazno mesto — uporabniku ni treba ročno klikati
+  // "Dodaj mesto" vsakič, ko zapolni zadnjo prazno kartico.
+  function ensureEmptySlotAvailable() {
+    var hasEmpty = slots.some(function (s) { return !s.app_id; });
+    if (hasEmpty) return;
+    addEmptySlot();
+  }
+
   /* ---------- Dodelitev / odstranitev aplikacije ---------- */
 
   function findSlot(slotId) {
@@ -208,6 +240,7 @@
     slot.app_id = appId;
     render();
     saveCache();
+    if (appId) ensureEmptySlotAvailable();
 
     window.sb
       .from("user_dashboard_slots")
@@ -302,24 +335,11 @@
   var addSlotBtn = document.getElementById("addSlotBtn");
   if (addSlotBtn) {
     addSlotBtn.addEventListener("click", function () {
-      var nextPosition = slots.length
-        ? Math.max.apply(null, slots.map(function (s) { return s.position; })) + 1
-        : 0;
       addSlotBtn.disabled = true;
-      window.sb
-        .from("user_dashboard_slots")
-        .insert({ user_id: session.user.id, app_id: null, position: nextPosition })
-        .select("id, app_id, position")
-        .then(function (res) {
-          addSlotBtn.disabled = false;
-          if (res.error || !res.data || !res.data.length) {
-            showToast("Dodajanje mesta ni uspelo. Poskusi znova.");
-            return;
-          }
-          slots.push(res.data[0]);
-          render();
-          saveCache();
-        });
+      addEmptySlot(function (ok) {
+        addSlotBtn.disabled = false;
+        if (!ok) showToast("Dodajanje mesta ni uspelo. Poskusi znova.");
+      });
     });
   }
 
