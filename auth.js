@@ -210,6 +210,7 @@
     var userEmailLabel = document.getElementById("userEmailLabel");
     if (session) {
       window.PTOMSETU_USER = session.user;
+      window.PTOMSETU_SESSION = session;
       if (userEmailLabel) userEmailLabel.textContent = session.user.email || "";
       if (userAvatarInitials) userAvatarInitials.textContent = initialsFor(session.user);
       if (userAvatarName) userAvatarName.textContent = displayNameFor(session.user);
@@ -218,6 +219,7 @@
       document.dispatchEvent(new CustomEvent("ptomsetu:signed-in", { detail: { session: session } }));
     } else {
       window.PTOMSETU_USER = null;
+      window.PTOMSETU_SESSION = null;
       if (userEmailLabel) userEmailLabel.textContent = "";
       closeAvatarPopover();
       showAuth();
@@ -250,7 +252,15 @@
       onSession(null);
     });
 
-  sb.auth.onAuthStateChange(function (_event, session) {
+  sb.auth.onAuthStateChange(function (event, session) {
+    // INITIAL_SESSION je začetni "sinhronizacijski" dogodek, ki ga supabase-js
+    // sproži takoj ob registraciji tega listenerja — to začetno stanje že
+    // obravnava getSession() klic zgoraj. Če bi ga tudi tu obravnavali, se
+    // lahko (odvisno od trenutka nalaganja shranjene seje) sproži z null,
+    // preden je seja iz localStorage do konca prebrana — to bi uporabnika
+    // videti kot odjavljenega, čeprav je prijavljen, in počistilo nadzorno
+    // ploščo. Zato tu reagiramo samo na PRAVE naknadne spremembe.
+    if (event === "INITIAL_SESSION") return;
     clearTimeout(initialTimeout);
     onSession(session);
   });

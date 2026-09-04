@@ -563,15 +563,15 @@
 
   /* ---------- Vklop / izklop ob prijavi / odjavi ---------- */
 
-  document.addEventListener("ptomsetu:signed-in", function (e) {
-    session = e.detail.session;
+  function handleSignedIn(sess) {
+    session = sess;
     cacheKey = "ptomsetu-dashboard-cache-" + session.user.id;
     var addSlot = document.getElementById("addSlotBtn");
     if (addSlot) addSlot.hidden = false;
     loadSlots();
-  });
+  }
 
-  document.addEventListener("ptomsetu:signed-out", function () {
+  function handleSignedOut() {
     if (cacheKey) {
       try { localStorage.removeItem(cacheKey); } catch (e) {}
     }
@@ -580,5 +580,17 @@
     slots = [];
     grid.innerHTML = "";
     closePicker();
-  });
+  }
+
+  document.addEventListener("ptomsetu:signed-in", function (e) { handleSignedIn(e.detail.session); });
+  document.addEventListener("ptomsetu:signed-out", handleSignedOut);
+
+  // Dohitevalni preklop: auth.js seje včasih razreši (in dogodek sproži) že
+  // med lastnim izvajanjem, še preden brskalnik sploh začne izvajati TO
+  // datoteko (mikro-opravila se izvedejo med posameznimi <script> značkami)
+  // — takrat tu zgoraj registriran poslušalec zamudi dogodek. Če je seja v
+  // tem trenutku že na voljo globalno, jo takoj uporabimo namesto čakanja.
+  if (window.PTOMSETU_SESSION) {
+    handleSignedIn(window.PTOMSETU_SESSION);
+  }
 })();
