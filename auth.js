@@ -145,14 +145,12 @@
     });
   }
 
-  /* ---------- Odjava (gumb v nastavitvah + gumb v pojavnem oknu kroga) ---------- */
+  /* ---------- Odjava (gumb v pojavnem oknu kroga) ---------- */
 
-  function bindLogout(id) {
-    var btn = document.getElementById(id);
-    if (btn) btn.addEventListener("click", function () { sb.auth.signOut(); });
+  var avatarLogoutBtn = document.getElementById("avatarLogoutBtn");
+  if (avatarLogoutBtn) {
+    avatarLogoutBtn.addEventListener("click", function () { sb.auth.signOut(); });
   }
-  bindLogout("logoutBtn");
-  bindLogout("avatarLogoutBtn");
 
   /* ---------- Krog z začetnicami (kdo je prijavljen) ---------- */
 
@@ -162,12 +160,13 @@
   var userAvatarName = document.getElementById("userAvatarName");
   var userAvatarEmail = document.getElementById("userAvatarEmail");
 
+  // Prazen niz, če ni shranjenega pravega imena (star račun) — takrat se v
+  // pojavnem oknu prikaže samo e-pošta, ne podvojeno še enkrat kot "ime".
   function displayNameFor(user) {
     var meta = (user && user.user_metadata) || {};
     var first = (meta.first_name || "").trim();
     var last = (meta.last_name || "").trim();
-    if (first || last) return (first + " " + last).trim();
-    return user.email || "";
+    return (first + " " + last).trim();
   }
 
   function initialsFor(user) {
@@ -213,7 +212,11 @@
       window.PTOMSETU_SESSION = session;
       if (userEmailLabel) userEmailLabel.textContent = session.user.email || "";
       if (userAvatarInitials) userAvatarInitials.textContent = initialsFor(session.user);
-      if (userAvatarName) userAvatarName.textContent = displayNameFor(session.user);
+      if (userAvatarName) {
+        var fullName = displayNameFor(session.user);
+        userAvatarName.textContent = fullName;
+        userAvatarName.hidden = !fullName;
+      }
       if (userAvatarEmail) userAvatarEmail.textContent = session.user.email || "";
       showApp();
       document.dispatchEvent(new CustomEvent("ptomsetu:signed-in", { detail: { session: session } }));
