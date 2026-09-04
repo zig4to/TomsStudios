@@ -52,6 +52,6 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log("\n  Pr'Tomsetu dev strežnik");
+  console.log("\n  TomStudios dev strežnik");
   console.log("  → http://localhost:" + PORT + "\n");
 });
