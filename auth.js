@@ -185,6 +185,9 @@
     if (userAvatarPopover) userAvatarPopover.hidden = true;
     if (userAvatarBtn) userAvatarBtn.setAttribute("aria-expanded", "false");
   }
+  // Izpostavljeno navzven, da lahko dashboard.js zapre meni ob kliku na
+  // "Uredi razpored" (auth.js in dashboard.js sta ločena, brez uvozov).
+  window.ptomsetuCloseAvatarPopover = closeAvatarPopover;
 
   if (userAvatarBtn) {
     userAvatarBtn.addEventListener("click", function () {
@@ -193,7 +196,10 @@
       if (userAvatarPopover) userAvatarPopover.hidden = open;
     });
   }
-  document.addEventListener("click", function (e) {
+  // pointerdown namesto click: na iOS Safari se sintetični "click" na
+  // navadnih (neinteraktivnih) elementih ne sproži zanesljivo ob dotiku,
+  // zato se meni na telefonu ni zapiral ob dotiku zunaj njega.
+  document.addEventListener("pointerdown", function (e) {
     if (!userAvatarPopover || userAvatarPopover.hidden) return;
     if (e.target === userAvatarBtn || userAvatarBtn.contains(e.target)) return;
     if (userAvatarPopover.contains(e.target)) return;

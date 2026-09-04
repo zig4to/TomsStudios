@@ -476,6 +476,7 @@
 
     reorderBtn.addEventListener("click", function () {
       setReorder(reorderBtn.getAttribute("aria-pressed") !== "true");
+      if (window.ptomsetuCloseAvatarPopover) window.ptomsetuCloseAvatarPopover();
     });
 
     // Med urejanjem klik na kartico ne sme odpreti aplikacije.
