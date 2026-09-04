@@ -114,8 +114,17 @@
       var password = registerForm.querySelector('input[type="password"]').value;
       var btn = registerForm.querySelector(".auth-submit");
       if (btn) btn.disabled = true;
+      // emailRedirectTo: potrditvena povezava v e-pošti pripelje nazaj sem —
+      // na isto stran/izvor, s katerega se je nekdo registriral (lokalno v
+      // razvoju ali na dejanski objavljeni domeni), namesto na privzeti
+      // "Site URL" iz Supabase nastavitev. Ta naslov mora biti vnaprej dodan
+      // v Supabase: Authentication → URL Configuration → Redirect URLs.
       sb.auth
-        .signUp({ email: email, password: password })
+        .signUp({
+          email: email,
+          password: password,
+          options: { emailRedirectTo: location.origin + location.pathname }
+        })
         .then(function (res) {
           if (res.error) {
             showFormMessage(registerForm, friendlySignupError(res.error), true);
