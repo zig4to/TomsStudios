@@ -169,13 +169,10 @@
       slots = cached;
       render();
     }
-    fetchSlots(false);
+    fetchSlots();
   }
 
-  // isRetry=true pomeni: to je drugi poskus branja, izveden PO tem, ko smo že
-  // poskusili ustvariti privzetih 6 mest — če je odgovor še vedno prazen, se
-  // ne obesi v neskončno zanko, samo pokaže napako.
-  function fetchSlots(isRetry) {
+  function fetchSlots() {
     window.sb
       .from("user_dashboard_slots")
       .select("id, app_id, position")
@@ -194,23 +191,29 @@
           ensureEmptySlotAvailable();
           return;
         }
-        if (isRetry) {
-          showToast("Nadzorne plošče ni bilo mogoče naložiti. Poskusi osvežiti stran.");
-          return;
-        }
-        // Prva prijava (ali prazen odgovor): poskusi ustvariti privzetih 6
-        // praznih mest. "ignoreDuplicates" prepreči napako/podvajanje, če
-        // vrstice v resnici že obstajajo (npr. zaradi prehodne napake pri
-        // branju zgoraj) — po tem vedno znova preberemo pravo stanje.
+        // Prva prijava: ni še vrstic — ustvari privzetih 6 praznih mest.
+        // POZOR: namerno navaden insert, ne upsert z onConflict — unikatna
+        // omejitev (user_id, position) je "deferrable" (zaradi vlečenja
+        // razporeda spodaj), Postgres pa odložene omejitve ne dovoli kot cilj
+        // za ON CONFLICT (klic bi tiho spodletel za vsakega novega uporabnika).
         var defaults = [];
         for (var i = 0; i < DEFAULT_SLOT_COUNT; i++) {
           defaults.push({ user_id: session.user.id, app_id: null, position: i });
         }
         window.sb
           .from("user_dashboard_slots")
-          .upsert(defaults, { onConflict: "user_id,position", ignoreDuplicates: true })
-          .then(function () { fetchSlots(true); })
-          .catch(function () { showToast("Ustvarjanje nadzorne plošče ni uspelo."); });
+          .insert(defaults)
+          .select("id, app_id, position")
+          .then(function (insertRes) {
+            if (insertRes.error) {
+              showToast("Ustvarjanje nadzorne plošče ni uspelo.");
+              return;
+            }
+            slots = insertRes.data || [];
+            render();
+            saveCache();
+          })
+          .catch(function () { showToast("Ustvarjanje nadzorne plošče ni uspelo. Preveri povezavo."); });
       })
       .catch(function () {
         showToast("Nalaganje ni uspelo. Preveri internetno povezavo.");
