@@ -145,14 +145,14 @@
     });
   }
 
-  /* ---------- Odjava ---------- */
+  /* ---------- Odjava (gumb v nastavitvah + gumb v pojavnem oknu kroga) ---------- */
 
-  var logoutBtn = document.getElementById("logoutBtn");
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", function () {
-      sb.auth.signOut();
-    });
+  function bindLogout(id) {
+    var btn = document.getElementById(id);
+    if (btn) btn.addEventListener("click", function () { sb.auth.signOut(); });
   }
+  bindLogout("logoutBtn");
+  bindLogout("avatarLogoutBtn");
 
   /* ---------- Krog z začetnicami (kdo je prijavljen) ---------- */
 
