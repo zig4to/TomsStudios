@@ -159,7 +159,13 @@
       slots = cached;
       render();
     }
+    fetchSlots(false);
+  }
 
+  // isRetry=true pomeni: to je drugi poskus branja, izveden PO tem, ko smo že
+  // poskusili ustvariti privzetih 6 mest — če je odgovor še vedno prazen, se
+  // ne obesi v neskončno zanko, samo pokaže napako.
+  function fetchSlots(isRetry) {
     window.sb
       .from("user_dashboard_slots")
       .select("id, app_id, position")
@@ -167,7 +173,10 @@
       .eq("user_id", session.user.id)
       .order("position", { ascending: true })
       .then(function (res) {
-        if (res.error) { showToast("Nalaganje ni uspelo. Poskusi osvežiti stran."); return; }
+        if (res.error) {
+          showToast("Nalaganje ni uspelo. Preveri povezavo in poskusi znova.");
+          return;
+        }
         if (res.data && res.data.length) {
           slots = res.data;
           render();
@@ -175,21 +184,26 @@
           ensureEmptySlotAvailable();
           return;
         }
-        // Prva prijava: ni še vrstic — ustvari privzetih 6 praznih mest.
+        if (isRetry) {
+          showToast("Nadzorne plošče ni bilo mogoče naložiti. Poskusi osvežiti stran.");
+          return;
+        }
+        // Prva prijava (ali prazen odgovor): poskusi ustvariti privzetih 6
+        // praznih mest. "ignoreDuplicates" prepreči napako/podvajanje, če
+        // vrstice v resnici že obstajajo (npr. zaradi prehodne napake pri
+        // branju zgoraj) — po tem vedno znova preberemo pravo stanje.
         var defaults = [];
         for (var i = 0; i < DEFAULT_SLOT_COUNT; i++) {
           defaults.push({ user_id: session.user.id, app_id: null, position: i });
         }
         window.sb
           .from("user_dashboard_slots")
-          .insert(defaults)
-          .select("id, app_id, position")
-          .then(function (insertRes) {
-            if (insertRes.error) { showToast("Ustvarjanje nadzorne plošče ni uspelo."); return; }
-            slots = insertRes.data || [];
-            render();
-            saveCache();
-          });
+          .upsert(defaults, { onConflict: "user_id,position", ignoreDuplicates: true })
+          .then(function () { fetchSlots(true); })
+          .catch(function () { showToast("Ustvarjanje nadzorne plošče ni uspelo."); });
+      })
+      .catch(function () {
+        showToast("Nalaganje ni uspelo. Preveri internetno povezavo.");
       });
   }
 
@@ -212,7 +226,8 @@
         render();
         saveCache();
         if (onDone) onDone(true);
-      });
+      })
+      .catch(function () { if (onDone) onDone(false); });
   }
 
   // Ko ni več nobenega praznega "+" mesta (vsa so zapolnjena z aplikacijo),
@@ -254,6 +269,12 @@
           saveCache();
           showToast("Shranjevanje ni uspelo. Poskusi znova.");
         }
+      })
+      .catch(function () {
+        slot.app_id = previous;
+        render();
+        saveCache();
+        showToast("Shranjevanje ni uspelo. Preveri internetno povezavo.");
       });
   }
 
@@ -408,7 +429,8 @@
           .upsert(rows)
           .then(function (res) {
             if (res.error) showToast("Shranjevanje razporeda ni uspelo.");
-          });
+          })
+          .catch(function () { showToast("Shranjevanje razporeda ni uspelo. Preveri povezavo."); });
       }, 400);
     };
 

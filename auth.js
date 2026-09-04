@@ -227,10 +227,31 @@
   }
 
   showLoading();
-  sb.auth.getSession().then(function (res) {
-    onSession(res.data && res.data.session);
-  });
+
+  // Varnostni izklop: če getSession() obtiči (počasno/nezanesljivo omrežje,
+  // npr. na telefonu), stran ne sme obviseti na zaslonu za nalaganje v
+  // nedogled — po nekaj sekundah raje pokaže prijavo. clearTimeout spodaj
+  // to prekliče, brž ko dobimo pravi odgovor (tudi če pride kasneje —
+  // onSession() takrat uporabnika vseeno pravilno spusti naprej).
+  var initialTimeout = setTimeout(function () {
+    showFormMessage(loginForm, "Preverjanje prijave traja dlje kot običajno. Poskusi znova, če se ne naloži.", false);
+    onSession(null);
+  }, 8000);
+
+  sb.auth
+    .getSession()
+    .then(function (res) {
+      clearTimeout(initialTimeout);
+      onSession(res.data && res.data.session);
+    })
+    .catch(function () {
+      clearTimeout(initialTimeout);
+      showFormMessage(loginForm, "Preverjanje prijave ni uspelo. Preveri povezavo in poskusi znova.", true);
+      onSession(null);
+    });
+
   sb.auth.onAuthStateChange(function (_event, session) {
+    clearTimeout(initialTimeout);
     onSession(session);
   });
 })();
