@@ -227,6 +227,11 @@ body {
 }
 .brand-mark svg { width: 17px; height: 17px; }
 
+/* v glavi nadzorne plošče (za razliko od prijavnega zaslona) je naslov manjši,
+   zato se ustrezno pomanjša tudi znak zraven njega */
+.site-header .brand-mark { width: 28px; height: 28px; border-radius: 9px; }
+.site-header .brand-mark svg { width: 14px; height: 14px; }
+
 .user-avatar-wrap {
   position: absolute;
   top: 50%;
@@ -298,7 +303,7 @@ body {
 
 .site-header h1 {
   margin: 0;
-  font-size: clamp(2.1rem, 5.2vw, 3.4rem);
+  font-size: clamp(1.6rem, 3.6vw, 2.4rem);
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1;
@@ -853,9 +858,7 @@ body.is-reordering .card.is-dragging .card-grip { cursor: grabbing; }
 
   /* naslov na telefonu poravnan levo (prostor za krog uporabnika desno) in manjši */
   .site-header { text-align: left; padding-right: 52px; }
-  .site-header h1 { font-size: 1.5rem; }
-  .site-header .brand-mark { width: 28px; height: 28px; }
-  .site-header .brand-mark svg { width: 14px; height: 14px; }
+  .site-header h1 { font-size: 1.3rem; }
   .site-header .brand { gap: 10px; align-items: center; }
 
   /* na telefonu gumbi v nastavitvah bolj zračni, z enakomernim razmikom */
