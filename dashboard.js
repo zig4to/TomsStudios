@@ -163,6 +163,8 @@
     window.sb
       .from("user_dashboard_slots")
       .select("id, app_id, position")
+      // eksplicitni filter poleg RLS — obramba v globino, ne edina zaščita
+      .eq("user_id", session.user.id)
       .order("position", { ascending: true })
       .then(function (res) {
         if (res.error) { showToast("Nalaganje ni uspelo. Poskusi osvežiti stran."); return; }
@@ -211,6 +213,7 @@
       .from("user_dashboard_slots")
       .update({ app_id: appId, updated_at: new Date().toISOString() })
       .eq("id", slotId)
+      .eq("user_id", session.user.id)
       .then(function (res) {
         if (res.error) {
           slot.app_id = previous;

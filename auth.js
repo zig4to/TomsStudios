@@ -110,6 +110,9 @@
     registerForm.addEventListener("submit", function (e) {
       e.preventDefault();
       showFormMessage(registerForm, "", true);
+      var nameInputs = registerForm.querySelectorAll('input[type="text"]');
+      var firstName = nameInputs[0] ? nameInputs[0].value.trim() : "";
+      var lastName = nameInputs[1] ? nameInputs[1].value.trim() : "";
       var email = registerForm.querySelector('input[type="email"]').value.trim();
       var password = registerForm.querySelector('input[type="password"]').value;
       var btn = registerForm.querySelector(".auth-submit");
@@ -119,11 +122,16 @@
       // razvoju ali na dejanski objavljeni domeni), namesto na privzeti
       // "Site URL" iz Supabase nastavitev. Ta naslov mora biti vnaprej dodan
       // v Supabase: Authentication → URL Configuration → Redirect URLs.
+      // options.data se shrani v user_metadata — od tod dashboard.js in
+      // krog z začetnicami dobita ime in priimek.
       sb.auth
         .signUp({
           email: email,
           password: password,
-          options: { emailRedirectTo: location.origin + location.pathname }
+          options: {
+            emailRedirectTo: location.origin + location.pathname,
+            data: { first_name: firstName, last_name: lastName }
+          }
         })
         .then(function (res) {
           if (res.error) {
@@ -146,6 +154,56 @@
     });
   }
 
+  /* ---------- Krog z začetnicami (kdo je prijavljen) ---------- */
+
+  var userAvatarBtn = document.getElementById("userAvatarBtn");
+  var userAvatarInitials = document.getElementById("userAvatarInitials");
+  var userAvatarPopover = document.getElementById("userAvatarPopover");
+  var userAvatarName = document.getElementById("userAvatarName");
+  var userAvatarEmail = document.getElementById("userAvatarEmail");
+
+  function displayNameFor(user) {
+    var meta = (user && user.user_metadata) || {};
+    var first = (meta.first_name || "").trim();
+    var last = (meta.last_name || "").trim();
+    if (first || last) return (first + " " + last).trim();
+    return user.email || "";
+  }
+
+  function initialsFor(user) {
+    var meta = (user && user.user_metadata) || {};
+    var first = (meta.first_name || "").trim();
+    var last = (meta.last_name || "").trim();
+    if (first || last) {
+      return ((first.charAt(0) || "") + (last.charAt(0) || "")).toUpperCase() || "?";
+    }
+    // Star račun brez shranjenega imena — začetnici iz e-pošte kot nadomestilo.
+    var email = (user && user.email) || "";
+    return email.slice(0, 2).toUpperCase() || "?";
+  }
+
+  function closeAvatarPopover() {
+    if (userAvatarPopover) userAvatarPopover.hidden = true;
+    if (userAvatarBtn) userAvatarBtn.setAttribute("aria-expanded", "false");
+  }
+
+  if (userAvatarBtn) {
+    userAvatarBtn.addEventListener("click", function () {
+      var open = userAvatarBtn.getAttribute("aria-expanded") === "true";
+      userAvatarBtn.setAttribute("aria-expanded", String(!open));
+      if (userAvatarPopover) userAvatarPopover.hidden = open;
+    });
+  }
+  document.addEventListener("click", function (e) {
+    if (!userAvatarPopover || userAvatarPopover.hidden) return;
+    if (e.target === userAvatarBtn || userAvatarBtn.contains(e.target)) return;
+    if (userAvatarPopover.contains(e.target)) return;
+    closeAvatarPopover();
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") closeAvatarPopover();
+  });
+
   /* ---------- Preverjanje / spremljanje seje ---------- */
 
   function onSession(session) {
@@ -153,11 +211,15 @@
     if (session) {
       window.PTOMSETU_USER = session.user;
       if (userEmailLabel) userEmailLabel.textContent = session.user.email || "";
+      if (userAvatarInitials) userAvatarInitials.textContent = initialsFor(session.user);
+      if (userAvatarName) userAvatarName.textContent = displayNameFor(session.user);
+      if (userAvatarEmail) userAvatarEmail.textContent = session.user.email || "";
       showApp();
       document.dispatchEvent(new CustomEvent("ptomsetu:signed-in", { detail: { session: session } }));
     } else {
       window.PTOMSETU_USER = null;
       if (userEmailLabel) userEmailLabel.textContent = "";
+      closeAvatarPopover();
       showAuth();
       setTab("login");
       document.dispatchEvent(new CustomEvent("ptomsetu:signed-out"));

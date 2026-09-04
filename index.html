@@ -71,6 +71,8 @@
         </form>
 
         <form id="registerForm" class="auth-form" hidden>
+          <input type="text" required placeholder="Ime" autocomplete="given-name" />
+          <input type="text" required placeholder="Priimek" autocomplete="family-name" />
           <input type="email" required placeholder="E-pošta" autocomplete="email" />
           <input type="password" required minlength="6" placeholder="Geslo (najmanj 6 znakov)" autocomplete="new-password" />
           <p class="auth-error" hidden></p>
@@ -90,6 +92,16 @@
           </svg>
         </span>
         <h1>TomStudios</h1>
+      </div>
+
+      <div class="user-avatar-wrap">
+        <button class="user-avatar" id="userAvatarBtn" type="button" aria-haspopup="true" aria-expanded="false" title="Kdo je prijavljen">
+          <span id="userAvatarInitials">?</span>
+        </button>
+        <div class="user-avatar-popover" id="userAvatarPopover" hidden>
+          <span class="user-avatar-popover-name" id="userAvatarName"></span>
+          <span class="user-avatar-popover-email" id="userAvatarEmail"></span>
+        </div>
       </div>
     </header>
 
