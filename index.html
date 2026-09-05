@@ -121,6 +121,15 @@
         <div class="user-avatar-popover" id="userAvatarPopover" hidden>
           <span class="user-avatar-popover-name" id="userAvatarName" hidden></span>
           <span class="user-avatar-popover-email" id="userAvatarEmail"></span>
+          <form class="user-name-form" id="userNameForm" hidden>
+            <p class="user-name-form-hint">Vpiši ime in priimek za začetnici v krogu.</p>
+            <div class="user-name-form-row">
+              <input id="userFirstName" type="text" autocomplete="given-name" placeholder="Ime" aria-label="Ime" required />
+              <input id="userLastName" type="text" autocomplete="family-name" placeholder="Priimek" aria-label="Priimek" required />
+            </div>
+            <button type="submit" class="user-name-form-save">Shrani</button>
+            <p class="user-name-form-msg" id="userNameFormMsg" role="status"></p>
+          </form>
           <div class="user-avatar-popover-menu">
             <button class="user-avatar-popover-item" id="settingsBtn" type="button" aria-expanded="false" aria-controls="settingsPanel">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">

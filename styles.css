@@ -310,6 +310,58 @@ body {
   word-break: break-all;
 }
 
+.user-name-form[hidden] { display: none; }
+.user-name-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+.user-name-form-hint {
+  margin: 0;
+  font-size: .74rem;
+  line-height: 1.4;
+  color: var(--text-soft);
+}
+.user-name-form-row {
+  display: flex;
+  gap: 6px;
+}
+.user-name-form-row input {
+  width: 100%;
+  min-width: 0;
+  padding: 7px 9px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: .8rem;
+}
+.user-name-form-row input:focus-visible {
+  outline: 2px solid var(--glow-1);
+  outline-offset: 1px;
+}
+.user-name-form-save {
+  align-self: flex-start;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  color: #fff;
+  font: inherit;
+  font-size: .78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.user-name-form-save:disabled { opacity: .55; cursor: default; }
+.user-name-form-msg:empty { display: none; }
+.user-name-form-msg {
+  margin: 0;
+  font-size: .74rem;
+  color: var(--text-soft);
+}
+
 .user-avatar-popover-menu {
   display: flex;
   flex-direction: column;

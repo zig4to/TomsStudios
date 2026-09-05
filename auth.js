@@ -184,26 +184,86 @@
   var userAvatarPopover = document.getElementById("userAvatarPopover");
   var userAvatarName = document.getElementById("userAvatarName");
   var userAvatarEmail = document.getElementById("userAvatarEmail");
+  var userNameForm = document.getElementById("userNameForm");
+  var userFirstName = document.getElementById("userFirstName");
+  var userLastName = document.getElementById("userLastName");
+  var userNameFormMsg = document.getElementById("userNameFormMsg");
+
+  // Ime uporabnika iz user_metadata v različnih oblikah: first_name/last_name
+  // (kar shrani registracijski obrazec), sicer given_name/family_name ali
+  // enotni full_name/name/display_name (npr. iz drugih aplikacij ali OAuth).
+  function fullNameFor(user) {
+    var meta = (user && user.user_metadata) || {};
+    var first = String(meta.first_name || meta.given_name || "").trim();
+    var last = String(meta.last_name || meta.family_name || "").trim();
+    var full = (first + " " + last).trim();
+    if (!full) {
+      full = String(meta.full_name || meta.name || meta.display_name || "").trim();
+    }
+    return full;
+  }
 
   // Prazen niz, če ni shranjenega pravega imena (star račun) — takrat se v
   // pojavnem oknu prikaže samo e-pošta, ne podvojeno še enkrat kot "ime".
   function displayNameFor(user) {
-    var meta = (user && user.user_metadata) || {};
-    var first = (meta.first_name || "").trim();
-    var last = (meta.last_name || "").trim();
-    return (first + " " + last).trim();
+    return fullNameFor(user);
   }
 
   function initialsFor(user) {
-    var meta = (user && user.user_metadata) || {};
-    var first = (meta.first_name || "").trim();
-    var last = (meta.last_name || "").trim();
-    if (first || last) {
-      return ((first.charAt(0) || "") + (last.charAt(0) || "")).toUpperCase() || "?";
+    var full = fullNameFor(user);
+    if (full) {
+      var words = full.split(/\s+/).filter(Boolean);
+      var a = words[0] ? words[0].charAt(0) : "";
+      var b = words.length > 1 ? words[words.length - 1].charAt(0) : "";
+      var ini = (a + b).toUpperCase();
+      if (ini) return ini;
     }
     // Star račun brez shranjenega imena — začetnici iz e-pošte kot nadomestilo.
     var email = (user && user.email) || "";
     return email.slice(0, 2).toUpperCase() || "?";
+  }
+
+  // Napolni krog z začetnicami + ime/e-pošto v pojavnem oknu. Če uporabnik nima
+  // shranjenega imena, pokaže obrazec za vpis imena in priimka.
+  function applyUser(user) {
+    if (userAvatarInitials) userAvatarInitials.textContent = initialsFor(user);
+    var fullName = displayNameFor(user);
+    if (userAvatarName) {
+      userAvatarName.textContent = fullName;
+      userAvatarName.hidden = !fullName;
+    }
+    if (userAvatarEmail) userAvatarEmail.textContent = (user && user.email) || "";
+    if (userNameForm) userNameForm.hidden = !!fullName;
+  }
+
+  if (userNameForm) {
+    userNameForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var first = (userFirstName && userFirstName.value || "").trim();
+      var last = (userLastName && userLastName.value || "").trim();
+      if (userNameFormMsg) userNameFormMsg.textContent = "";
+      if (!first || !last) {
+        if (userNameFormMsg) userNameFormMsg.textContent = "Vpiši ime in priimek.";
+        return;
+      }
+      var saveBtn = userNameForm.querySelector("button[type=submit]");
+      if (saveBtn) saveBtn.disabled = true;
+      sb.auth.updateUser({ data: { first_name: first, last_name: last } })
+        .then(function (res) {
+          if (saveBtn) saveBtn.disabled = false;
+          if (res.error) {
+            if (userNameFormMsg) userNameFormMsg.textContent = "Shranjevanje ni uspelo. Poskusi znova.";
+            return;
+          }
+          var updated = (res.data && res.data.user) || window.PTOMSETU_USER;
+          window.PTOMSETU_USER = updated;
+          applyUser(updated);
+        })
+        .catch(function () {
+          if (saveBtn) saveBtn.disabled = false;
+          if (userNameFormMsg) userNameFormMsg.textContent = "Napaka pri povezavi. Poskusi znova.";
+        });
+    });
   }
 
   function closeAvatarPopover() {
@@ -240,13 +300,7 @@
     if (session) {
       window.PTOMSETU_USER = session.user;
       window.PTOMSETU_SESSION = session;
-      if (userAvatarInitials) userAvatarInitials.textContent = initialsFor(session.user);
-      if (userAvatarName) {
-        var fullName = displayNameFor(session.user);
-        userAvatarName.textContent = fullName;
-        userAvatarName.hidden = !fullName;
-      }
-      if (userAvatarEmail) userAvatarEmail.textContent = session.user.email || "";
+      applyUser(session.user);
       showApp();
       document.dispatchEvent(new CustomEvent("ptomsetu:signed-in", { detail: { session: session } }));
     } else {
