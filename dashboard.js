@@ -295,6 +295,35 @@
     assignApp(slotId, null);
   }
 
+  function deleteSlot(slotId) {
+    var slot = findSlot(slotId);
+    if (!slot) return;
+    var idx = slots.indexOf(slot);
+    slots.splice(idx, 1);
+    render();
+    saveCache();
+
+    window.sb
+      .from("user_dashboard_slots")
+      .delete()
+      .eq("id", slotId)
+      .eq("user_id", session.user.id)
+      .then(function (res) {
+        if (res.error) {
+          slots.splice(idx, 0, slot);
+          render();
+          saveCache();
+          showToast("Brisanje mesta ni uspelo. Poskusi znova.");
+        }
+      })
+      .catch(function () {
+        slots.splice(idx, 0, slot);
+        render();
+        saveCache();
+        showToast("Brisanje mesta ni uspelo. Preveri internetno povezavo.");
+      });
+  }
+
   /* ---------- Izbirnik aplikacij ("+" modal) ---------- */
 
   var modal = document.getElementById("appPickerModal");
@@ -392,18 +421,20 @@
         card.appendChild(grip);
       }
       var isEmpty = card.classList.contains("card--empty");
-      if (!isEmpty && !card.querySelector(".card-remove")) {
+      if (!card.querySelector(".card-remove")) {
         var remove = document.createElement("button");
         remove.type = "button";
         remove.className = "card-remove";
-        remove.setAttribute("aria-label", "Odstrani aplikacijo s tega mesta");
-        remove.setAttribute("title", "Odstrani s tega mesta");
+        remove.setAttribute("aria-label", isEmpty ? "Izbriši prazno mesto" : "Odstrani aplikacijo s tega mesta");
+        remove.setAttribute("title", isEmpty ? "Izbriši mesto" : "Odstrani s tega mesta");
         remove.innerHTML = REMOVE_ICON;
         remove.addEventListener("click", function (e) {
           e.preventDefault();
           e.stopPropagation();
-          var slotId = e.currentTarget.closest(".card").getAttribute("data-slot-id");
-          unassignApp(slotId);
+          var cardEl = e.currentTarget.closest(".card");
+          var slotId = cardEl.getAttribute("data-slot-id");
+          if (cardEl.classList.contains("card--empty")) deleteSlot(slotId);
+          else unassignApp(slotId);
         });
         card.appendChild(remove);
       }
