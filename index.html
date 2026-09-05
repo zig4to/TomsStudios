@@ -65,7 +65,17 @@
 
         <form id="loginForm" class="auth-form">
           <input type="email" required placeholder="E-pošta" autocomplete="email" />
-          <input type="password" required placeholder="Geslo" autocomplete="current-password" />
+          <div class="password-field">
+            <input class="auth-password" type="password" required placeholder="Geslo" autocomplete="current-password" />
+            <button type="button" class="password-toggle" aria-label="Pokaži geslo" aria-pressed="false">
+              <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0Z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" hidden>
+                <path d="M10.73 5.08a10.74 10.74 0 0 1 11.2 6.57 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-1.44 2.49"/><path d="M14.08 14.16a3 3 0 0 1-4.24-4.24"/><path d="M17.48 17.5a10.75 10.75 0 0 1-15.42-5.15 1 1 0 0 1 0-.7 10.75 10.75 0 0 1 4.45-5.14"/><path d="m2 2 20 20"/>
+              </svg>
+            </button>
+          </div>
           <p class="auth-error" hidden></p>
           <button type="submit" class="auth-submit">Prijava</button>
         </form>
@@ -74,7 +84,17 @@
           <input type="text" required placeholder="Ime" autocomplete="given-name" />
           <input type="text" required placeholder="Priimek" autocomplete="family-name" />
           <input type="email" required placeholder="E-pošta" autocomplete="email" />
-          <input type="password" required minlength="6" placeholder="Geslo (najmanj 6 znakov)" autocomplete="new-password" />
+          <div class="password-field">
+            <input class="auth-password" type="password" required minlength="6" placeholder="Geslo (najmanj 6 znakov)" autocomplete="new-password" />
+            <button type="button" class="password-toggle" aria-label="Pokaži geslo" aria-pressed="false">
+              <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0Z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" hidden>
+                <path d="M10.73 5.08a10.74 10.74 0 0 1 11.2 6.57 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-1.44 2.49"/><path d="M14.08 14.16a3 3 0 0 1-4.24-4.24"/><path d="M17.48 17.5a10.75 10.75 0 0 1-15.42-5.15 1 1 0 0 1 0-.7 10.75 10.75 0 0 1 4.45-5.14"/><path d="m2 2 20 20"/>
+              </svg>
+            </button>
+          </div>
           <p class="auth-error" hidden></p>
           <p class="auth-hint">Registracija je na voljo samo za povabljene e-poštne naslove.</p>
           <button type="submit" class="auth-submit">Ustvari račun</button>

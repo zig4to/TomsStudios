@@ -159,6 +159,28 @@ body {
   outline-offset: 1px;
 }
 
+.password-field { position: relative; }
+.password-field .auth-password { width: 100%; padding-right: 42px; }
+
+.password-toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--text-soft);
+  cursor: pointer;
+}
+.password-toggle:hover { color: var(--text); }
+.password-toggle svg { width: 19px; height: 19px; }
+.password-toggle .icon-eye[hidden],
+.password-toggle .icon-eye-off[hidden] { display: none; }
+
 .auth-submit {
   padding: 12px 16px;
   border: none;

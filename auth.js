@@ -93,7 +93,7 @@
       e.preventDefault();
       showFormMessage(loginForm, "", true);
       var email = loginForm.querySelector('input[type="email"]').value.trim();
-      var password = loginForm.querySelector('input[type="password"]').value;
+      var password = loginForm.querySelector(".auth-password").value;
       var btn = loginForm.querySelector(".auth-submit");
       if (btn) btn.disabled = true;
       sb.auth
@@ -114,7 +114,7 @@
       var firstName = nameInputs[0] ? nameInputs[0].value.trim() : "";
       var lastName = nameInputs[1] ? nameInputs[1].value.trim() : "";
       var email = registerForm.querySelector('input[type="email"]').value.trim();
-      var password = registerForm.querySelector('input[type="password"]').value;
+      var password = registerForm.querySelector(".auth-password").value;
       var btn = registerForm.querySelector(".auth-submit");
       if (btn) btn.disabled = true;
       // emailRedirectTo: potrditvena povezava v e-pošti pripelje nazaj sem —
@@ -143,6 +143,31 @@
         .catch(function () { showFormMessage(registerForm, "Registracija ni uspela. Poskusi znova.", true); })
         .then(function () { if (btn) btn.disabled = false; });
     });
+  }
+
+  /* ---------- Prikaži/skrij geslo (ikona "oko") ---------- */
+
+  var passwordToggles = document.querySelectorAll(".password-toggle");
+  for (var pt = 0; pt < passwordToggles.length; pt++) {
+    (function (btn) {
+      var input = btn.parentElement.querySelector(".auth-password");
+      var eyeIcon = btn.querySelector(".icon-eye");
+      var eyeOffIcon = btn.querySelector(".icon-eye-off");
+      btn.addEventListener("click", function () {
+        var showing = input.type === "text";
+        input.type = showing ? "password" : "text";
+        btn.setAttribute("aria-pressed", String(!showing));
+        btn.setAttribute("aria-label", showing ? "Pokaži geslo" : "Skrij geslo");
+        if (eyeIcon) {
+          if (showing) eyeIcon.removeAttribute("hidden");
+          else eyeIcon.setAttribute("hidden", "");
+        }
+        if (eyeOffIcon) {
+          if (showing) eyeOffIcon.setAttribute("hidden", "");
+          else eyeOffIcon.removeAttribute("hidden");
+        }
+      });
+    })(passwordToggles[pt]);
   }
 
   /* ---------- Odjava (gumb v pojavnem oknu kroga) ---------- */
