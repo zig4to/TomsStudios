@@ -364,6 +364,9 @@
         btn.addEventListener("click", function () {
           assignApp(activeSlotId, app.id);
           closePicker();
+          if (window.ptomsetuInstall) {
+            window.ptomsetuInstall.maybeShowPromo("dashboard-add");
+          }
         });
       }
 

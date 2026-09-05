@@ -201,6 +201,28 @@
     </div>
   </div>
 
+  <!-- Ponudba namestitve aplikacije (PWA) -->
+  <div class="modal-overlay" id="installPromoModal" hidden>
+    <div class="modal modal--promo" role="dialog" aria-modal="true"
+         aria-labelledby="installPromoTitle" aria-describedby="installPromoText">
+      <span class="install-promo-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3v11m0 0 4-4m-4 4-4-4"/><path d="M4 17v2.5A1.5 1.5 0 0 0 5.5 21h13a1.5 1.5 0 0 0 1.5-1.5V17"/>
+        </svg>
+      </span>
+      <h2 id="installPromoTitle">Namesti aplikacijo</h2>
+      <p id="installPromoText">Za najboljšo izkušnjo namesti TomStudios na svojo napravo.</p>
+      <p class="install-promo-ios" id="installPromoIos" hidden></p>
+      <button class="install-btn" id="installPromoPrimary" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3v11m0 0 4-4m-4 4-4-4"/><path d="M4 17v2.5A1.5 1.5 0 0 0 5.5 21h13a1.5 1.5 0 0 0 1.5-1.5V17"/>
+        </svg>
+        <span id="installPromoPrimaryLabel">Namesti</span>
+      </button>
+      <button class="install-promo-cancel" id="installPromoCancel" type="button">Prekliči</button>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
   <script src="apps-registry.js"></script>

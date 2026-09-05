@@ -885,6 +885,53 @@ body.is-reordering .card.is-dragging .card-grip { cursor: grabbing; }
   color: var(--text-soft);
 }
 
+/* ---------- Ponudba namestitve (modal) ---------- */
+.modal--promo {
+  max-width: 360px;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+.modal--promo h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.modal--promo p {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: .9rem;
+  line-height: 1.5;
+}
+.install-promo-icon {
+  display: grid;
+  place-items: center;
+}
+.install-promo-icon svg {
+  width: 32px;
+  height: 32px;
+  color: var(--text);
+}
+.modal--promo p.install-promo-ios {
+  max-width: 32ch;
+  font-size: .8rem;
+}
+.install-promo-ios[hidden] { display: none; }
+.modal--promo .install-btn {
+  margin-top: 4px;
+}
+.install-promo-cancel {
+  padding: 6px 10px;
+  border: 0;
+  background: none;
+  color: var(--text-soft);
+  font: inherit;
+  font-size: .8rem;
+  cursor: pointer;
+}
+.install-promo-cancel:hover { color: var(--text); }
+.install-promo-cancel[hidden] { display: none; }
+
 /* ---------- Obvestilo (toast) ---------- */
 .toast {
   position: fixed;
