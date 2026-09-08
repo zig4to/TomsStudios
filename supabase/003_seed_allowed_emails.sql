@@ -5,5 +5,5 @@
 insert into public.allowed_emails (email) values
   ('tina.brdnik@gmail.com'),
   ('gregor.grabec@gmail.com'),
-  ('andrej.n1@gmail.com')
+  ('andrejkalan.n1@gmail.com')
 on conflict (email) do nothing;
