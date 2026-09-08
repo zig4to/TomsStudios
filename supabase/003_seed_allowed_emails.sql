@@ -3,5 +3,7 @@
 -- SQL editorju. "on conflict do nothing" naredi skript varen za ponovni zagon.
 
 insert into public.allowed_emails (email) values
-  ('tina.brdnik@gmail.com')
+  ('tina.brdnik@gmail.com'),
+  ('gregor.grabec@gmail.com'),
+  ('andrej.n1@gmail.com')
 on conflict (email) do nothing;
