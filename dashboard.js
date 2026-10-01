@@ -22,6 +22,10 @@
   var slots = [];          // { id, app_id, position }
   var session = null;
   var cacheKey = null;
+  // Pravice iz my_access() (supabase/005_admin.sql): { is_admin, blocked, apps }.
+  // null = še ni znano ali funkcije v bazi še ni — takrat je vse dovoljeno
+  // kot pred administracijo, da plošča ne ostane prazna.
+  var access = null;
 
   var ARROW_SVG =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>';
@@ -148,13 +152,28 @@
     return div;
   }
 
+  function canUse(appId) {
+    if (!access) return true;
+    if (access.blocked) return false;
+    return access.is_admin || access.apps.indexOf(appId) !== -1;
+  }
+
   function render() {
     grid.innerHTML = "";
+    if (access && access.blocked) {
+      var msg = document.createElement("p");
+      msg.className = "grid-blocked";
+      msg.textContent = "Tvoj račun je onemogočen. Za pomoč se obrni na administratorja.";
+      grid.appendChild(msg);
+      return;
+    }
     slots
       .slice()
       .sort(function (a, b) { return a.position - b.position; })
       .forEach(function (slot) {
-        var appEntry = slot.app_id ? APPS_BY_ID[slot.app_id] : null;
+        // Aplikacija brez dostopa (admin jo je odvzel) se prikaže kot prazno
+        // mesto; v bazi ostane, da se vrne, če admin dostop spet dodeli.
+        var appEntry = slot.app_id && canUse(slot.app_id) ? APPS_BY_ID[slot.app_id] : null;
         var card = appEntry ? buildFilledCard(slot, appEntry) : buildEmptyCard(slot);
         grid.appendChild(card);
       });
@@ -167,12 +186,37 @@
 
   /* ---------- Supabase: nalaganje / prva prijava ---------- */
 
+  function setAccess(a) {
+    access = a;
+    window.PTOMSETU_ACCESS = a;
+    document.dispatchEvent(new CustomEvent("ptomsetu:access", { detail: a }));
+  }
+
+  function fetchAccess() {
+    var forUser = session && session.user.id;
+    window.sb
+      .rpc("my_access")
+      .then(function (res) {
+        if (!session || session.user.id !== forUser) return;
+        // Napaka (npr. 005_admin.sql še ni zagnan) → vse dovoljeno.
+        var d = res.error ? null : res.data;
+        var a = d ? { is_admin: !!d.is_admin, blocked: !!d.blocked, apps: d.apps || [] } : null;
+        try { localStorage.setItem(cacheKey + "-access", JSON.stringify(a)); } catch (e) {}
+        setAccess(a);
+        render();
+      })
+      .catch(function () {});
+  }
+
   function loadSlots() {
+    try { access = JSON.parse(localStorage.getItem(cacheKey + "-access")); } catch (e) { access = null; }
+    if (access) setAccess(access);
     var cached = loadCache();
     if (cached && cached.length) {
       slots = cached;
       render();
     }
+    fetchAccess();
     fetchSlots();
   }
 
@@ -341,7 +385,8 @@
     if (!modalList) return;
     modalList.innerHTML = "";
     APPS.forEach(function (app) {
-      var taken = slots.some(function (s) { return s.app_id === app.id; });
+      if (!canUse(app.id)) return;
+      var taken = slots.some(function (s) { return s.app_id === app.id && canUse(s.app_id); });
 
       var btn = document.createElement("button");
       btn.type = "button";
@@ -652,8 +697,12 @@
     if (cacheKey) {
       try { localStorage.removeItem(cacheKey); } catch (e) {}
     }
+    if (cacheKey) {
+      try { localStorage.removeItem(cacheKey + "-access"); } catch (e) {}
+    }
     session = null;
     cacheKey = null;
+    setAccess(null);
     slots = [];
     grid.innerHTML = "";
     closePicker();

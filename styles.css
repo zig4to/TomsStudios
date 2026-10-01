@@ -406,6 +406,7 @@ body {
 }
 .user-avatar-popover-item svg { width: 16px; height: 16px; color: var(--text-soft); flex-shrink: 0; }
 .user-avatar-popover-item:hover { background: var(--surface); }
+.user-avatar-popover-item[hidden] { display: none; }
 
 /* puščica na "Nastavitve" se zasuka, ko je podmeni odprt — jasen znak, da se
    je odprl tu, ne nekje drugje */
@@ -1047,4 +1048,114 @@ body.is-reordering .card.is-dragging .card-grip { cursor: grabbing; }
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: .01ms !important; animation-duration: .01ms !important; }
   body.is-reordering .card { animation: none !important; transform: none !important; }
+}
+
+/* ---------- Administracija (admin.js) ---------- */
+
+.grid-blocked {
+  grid-column: 1 / -1;
+  margin: 40px auto;
+  max-width: 40ch;
+  text-align: center;
+  color: var(--text-soft);
+}
+
+.admin-modal { max-width: 860px; max-height: 88vh; max-height: 88dvh; }
+.admin-tabs { flex-shrink: 0; }
+.admin-body { overflow-y: auto; margin: 0 -6px; padding: 0 6px; }
+.admin-body section[hidden] { display: none; }
+
+.admin-search,
+.admin-invite-form input,
+.admin-inline-form input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: .9rem;
+}
+.admin-search:focus-visible,
+.admin-invite-form input:focus-visible,
+.admin-inline-form input:focus-visible { outline: 2px solid var(--glow-1); outline-offset: 1px; }
+
+.admin-list { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.admin-status { margin: 8px 0 0; font-size: .82rem; color: var(--text-soft); word-break: break-all; }
+.admin-status:empty { display: none; }
+.admin-empty, .admin-note { margin: 0; font-size: .86rem; color: var(--text-soft); }
+
+.admin-user, .admin-invite {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.admin-user.is-blocked { opacity: .7; }
+.admin-user-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; }
+.admin-user-who, .admin-invite-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.admin-user-name { font-weight: 600; }
+.admin-user-name.is-muted { color: var(--text-soft); font-weight: 500; font-style: italic; }
+.admin-user-email, .admin-user-meta { font-size: .82rem; color: var(--text-soft); overflow-wrap: anywhere; }
+.admin-user-meta { margin: 0; }
+
+.admin-badges { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-start; }
+.admin-badge {
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  font-size: .72rem;
+  color: var(--text-soft);
+}
+.admin-badge--admin { border-color: transparent; color: #fff; background: linear-gradient(135deg, #6366f1, #a855f7); }
+.admin-badge--blocked { border-color: transparent; color: #fff; background: #ef4444; }
+
+.admin-apps { display: flex; flex-wrap: wrap; gap: 6px; }
+.admin-app-chip {
+  padding: 6px 11px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-soft);
+  font: inherit;
+  font-size: .8rem;
+  cursor: pointer;
+}
+.admin-app-chip[aria-pressed="true"] {
+  border-color: transparent;
+  color: #fff;
+  background: var(--accent, #6366f1);
+}
+.admin-app-chip:disabled { opacity: .6; cursor: default; }
+
+.admin-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.admin-btn {
+  padding: 7px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--surface-solid);
+  color: var(--text);
+  font: inherit;
+  font-size: .82rem;
+  cursor: pointer;
+}
+.admin-btn:hover:not(:disabled) { border-color: var(--glow-1); }
+.admin-btn:disabled { opacity: .5; cursor: default; }
+.admin-btn--primary { border-color: transparent; color: #fff; background: linear-gradient(135deg, #6366f1, #a855f7); }
+.admin-btn--danger { color: #ef4444; }
+
+.admin-inline:empty { display: none; }
+.admin-inline-form, .admin-invite-form { display: flex; flex-wrap: wrap; gap: 8px; }
+.admin-inline-form input, .admin-invite-form input { flex: 1 1 160px; width: auto; }
+.admin-invite-form { margin-top: 4px; }
+.admin-invite { flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+.admin-invite.is-used { opacity: .7; }
+
+@media (max-width: 560px) {
+  .admin-modal { padding: 16px; }
 }

@@ -197,6 +197,12 @@
               <p class="install-hint" id="installHint" hidden></p>
             </div>
 
+            <button class="user-avatar-popover-item" id="adminOpenBtn" type="button" hidden>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.3 7.5 9.5 4.3-1.2 7.5-4.9 7.5-9.5V6Z"/><path d="m9 12 2 2 4-4"/>
+              </svg>
+              <span>Administracija</span>
+            </button>
             <button class="user-avatar-popover-item" id="hardResetAllBtn" type="button" title="Trdo osveži vse aplikacije (počisti predpomnilnike vseh)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 4v5h-5"/>
@@ -236,6 +242,37 @@
     </div>
   </div>
 
+  <!-- Administracija (samo za admine; vsebino zgradi admin.js) -->
+  <div class="modal-overlay" id="adminModal" hidden>
+    <div class="modal admin-modal" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
+      <div class="modal-header">
+        <h2 id="adminTitle">Administracija</h2>
+        <button class="modal-close" id="adminClose" type="button" aria-label="Zapri">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+      <div class="auth-tabs admin-tabs" role="tablist">
+        <button class="auth-tab" id="adminTabUsers" type="button" role="tab" aria-selected="true">Uporabniki</button>
+        <button class="auth-tab" id="adminTabInvites" type="button" role="tab" aria-selected="false">Vabila</button>
+      </div>
+      <div class="admin-body">
+        <section id="adminUsers">
+          <input class="admin-search" id="adminSearch" type="search" placeholder="Išči po imenu ali e-pošti" />
+          <p class="admin-status" id="adminUsersStatus" role="status"></p>
+          <div class="admin-list" id="adminUserList"></div>
+        </section>
+        <section id="adminInvites" hidden>
+          <form class="admin-invite-form" id="adminInviteForm">
+            <input id="adminInviteNote" type="text" placeholder="Za koga (npr. Jernej)" required />
+            <button type="submit" class="admin-btn admin-btn--primary">Novo vabilo</button>
+          </form>
+          <p class="admin-status" id="adminInvitesStatus" role="status"></p>
+          <div class="admin-list" id="adminInviteList"></div>
+        </section>
+      </div>
+    </div>
+  </div>
+
   <!-- Ponudba namestitve aplikacije (PWA) -->
   <div class="modal-overlay" id="installPromoModal" hidden>
     <div class="modal modal--promo" role="dialog" aria-modal="true"
@@ -263,6 +300,7 @@
   <script src="apps-registry.js"></script>
   <script src="auth.js"></script>
   <script src="dashboard.js"></script>
+  <script src="admin.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
