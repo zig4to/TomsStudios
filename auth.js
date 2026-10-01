@@ -41,26 +41,55 @@
     return;
   }
 
+  // Povezava za ponastavitev gesla iz e-pošte pripelje nazaj sem z
+  // "#...type=recovery" v naslovu. Preberemo ga PRED createClient, ker ga
+  // supabase-js po obdelavi pobriše iz naslova. Dokler je recoveryMode
+  // vklopljen, uporabnika ne spustimo na ploščo, ampak mu pokažemo obrazec
+  // za novo geslo (seja iz povezave je sicer že veljavna prijava).
+  var recoveryMode = /type=recovery/.test(location.hash);
+
   var sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
   window.sb = sb;
   window.PTOMSETU_USER = null;
 
-  /* ---------- Zavihka Prijava / Registracija ---------- */
+  /* ---------- Zavihka Prijava / Registracija (+ pozabljeno / novo geslo) ---------- */
 
+  var authTabs = document.querySelector(".auth-tabs");
   var tabLogin = document.getElementById("tabLogin");
   var tabRegister = document.getElementById("tabRegister");
   var loginForm = document.getElementById("loginForm");
   var registerForm = document.getElementById("registerForm");
+  var forgotForm = document.getElementById("forgotForm");
+  var newPasswordForm = document.getElementById("newPasswordForm");
+  var forgotPasswordLink = document.getElementById("forgotPasswordLink");
+  var forgotBackLink = document.getElementById("forgotBackLink");
 
+  // which: "login" | "register" | "forgot" | "newPassword". Zadnja dva nista
+  // zavihka — takrat sta gumba Prijava/Registracija skrita.
   function setTab(which) {
     var isLogin = which === "login";
+    var isRegister = which === "register";
+    if (authTabs) authTabs.hidden = !(isLogin || isRegister);
     if (tabLogin) tabLogin.setAttribute("aria-selected", String(isLogin));
-    if (tabRegister) tabRegister.setAttribute("aria-selected", String(!isLogin));
+    if (tabRegister) tabRegister.setAttribute("aria-selected", String(isRegister));
     if (loginForm) loginForm.hidden = !isLogin;
-    if (registerForm) registerForm.hidden = isLogin;
+    if (registerForm) registerForm.hidden = !isRegister;
+    if (forgotForm) forgotForm.hidden = which !== "forgot";
+    if (newPasswordForm) newPasswordForm.hidden = which !== "newPassword";
   }
   if (tabLogin) tabLogin.addEventListener("click", function () { setTab("login"); });
   if (tabRegister) tabRegister.addEventListener("click", function () { setTab("register"); });
+  if (forgotPasswordLink) {
+    forgotPasswordLink.addEventListener("click", function () {
+      // Prenesi že vpisano e-pošto, da je ni treba tipkati še enkrat.
+      var typed = loginForm.querySelector('input[type="email"]').value.trim();
+      var forgotEmail = forgotForm.querySelector('input[type="email"]');
+      if (typed && !forgotEmail.value) forgotEmail.value = typed;
+      showFormMessage(forgotForm, "", true);
+      setTab("forgot");
+    });
+  }
+  if (forgotBackLink) forgotBackLink.addEventListener("click", function () { setTab("login"); });
 
   function showFormMessage(form, text, isError) {
     var el = form.querySelector(".auth-error");
@@ -141,6 +170,63 @@
           }
         })
         .catch(function () { showFormMessage(registerForm, "Registracija ni uspela. Poskusi znova.", true); })
+        .then(function () { if (btn) btn.disabled = false; });
+    });
+  }
+
+  /* ---------- Pozabljeno geslo ---------- */
+
+  if (forgotForm) {
+    forgotForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      showFormMessage(forgotForm, "", true);
+      var email = forgotForm.querySelector('input[type="email"]').value.trim();
+      var btn = forgotForm.querySelector(".auth-submit");
+      if (btn) btn.disabled = true;
+      // redirectTo: tako kot pri registraciji mora biti ta naslov dodan v
+      // Supabase: Authentication → URL Configuration → Redirect URLs.
+      sb.auth
+        .resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname })
+        .then(function (res) {
+          if (res.error && /rate limit|too many|for security purposes/i.test(res.error.message || "")) {
+            showFormMessage(forgotForm, "Preveč poskusov. Počakaj minuto in poskusi znova.", true);
+          } else if (res.error) {
+            showFormMessage(forgotForm, "Pošiljanje ni uspelo. Poskusi znova.", true);
+          } else {
+            // Namenoma enako sporočilo ne glede na to, ali račun obstaja.
+            showFormMessage(forgotForm, "Če račun s tem naslovom obstaja, smo ti poslali e-pošto s povezavo za novo geslo.", false);
+          }
+        })
+        .catch(function () { showFormMessage(forgotForm, "Pošiljanje ni uspelo. Poskusi znova.", true); })
+        .then(function () { if (btn) btn.disabled = false; });
+    });
+  }
+
+  if (newPasswordForm) {
+    newPasswordForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      showFormMessage(newPasswordForm, "", true);
+      var password = newPasswordForm.querySelector(".auth-password").value;
+      var btn = newPasswordForm.querySelector(".auth-submit");
+      if (btn) btn.disabled = true;
+      sb.auth
+        .updateUser({ password: password })
+        .then(function (res) {
+          if (res.error) {
+            var msg = res.error.message || "";
+            var text = /different from the old/i.test(msg)
+              ? "Novo geslo mora biti drugačno od starega."
+              : /session|jwt|expired/i.test(msg)
+                ? "Povezava je potekla. Zahtevaj novo povezavo za ponastavitev gesla."
+                : "Shranjevanje gesla ni uspelo. Poskusi znova.";
+            showFormMessage(newPasswordForm, text, true);
+            return;
+          }
+          recoveryMode = false;
+          newPasswordForm.reset();
+          return sb.auth.getSession().then(function (r) { onSession(r.data && r.data.session); });
+        })
+        .catch(function () { showFormMessage(newPasswordForm, "Shranjevanje gesla ni uspelo. Poskusi znova.", true); })
         .then(function () { if (btn) btn.disabled = false; });
     });
   }
@@ -297,6 +383,13 @@
   /* ---------- Preverjanje / spremljanje seje ---------- */
 
   function onSession(session) {
+    if (session && recoveryMode) {
+      // PTOMSETU_SESSION namenoma ne nastavimo — dashboard.js bi sicer
+      // naložil ploščo, preden je novo geslo nastavljeno.
+      showAuth();
+      setTab("newPassword");
+      return;
+    }
     if (session) {
       window.PTOMSETU_USER = session.user;
       window.PTOMSETU_SESSION = session;
@@ -346,6 +439,9 @@
     // videti kot odjavljenega, čeprav je prijavljen, in počistilo nadzorno
     // ploščo. Zato tu reagiramo samo na PRAVE naknadne spremembe.
     if (event === "INITIAL_SESSION") return;
+    // Za primer, ko naslov nima "type=recovery" (npr. PKCE "?code=..."),
+    // supabase-js ob prihodu prek povezave za ponastavitev sproži ta dogodek.
+    if (event === "PASSWORD_RECOVERY") recoveryMode = true;
     clearTimeout(initialTimeout);
     onSession(session);
   });

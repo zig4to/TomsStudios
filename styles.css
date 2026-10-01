@@ -210,6 +210,23 @@ body {
   line-height: 1.45;
   color: var(--text-soft);
 }
+.auth-hint.auth-hint--wide { max-width: none; text-align: left; }
+
+.auth-link {
+  align-self: center;
+  padding: 2px 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-soft);
+  font: inherit;
+  font-size: .8rem;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.auth-link:hover { color: var(--text); }
+.auth-link.auth-link--end { align-self: flex-end; margin-top: -4px; }
+.auth-tabs[hidden] { display: none; }
 
 /* #appShell prevzame vlogo, ki jo je prej imel neposredno <body> — glava,
    mreža in noga ostanejo enako razporejene, le da so zdaj ovite v en element,
