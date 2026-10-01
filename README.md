@@ -41,11 +41,11 @@ osebno v Supabase, ne v `localStorage`.
    in `supabase/002_user_dashboard_slots.sql`.
 3. Registracija je namenoma omejena na povabljene. Dve možnosti (zaženi še
    `supabase/004_invite_codes.sql`):
-   - **povezava z vabilom** `https://zig4to.github.io/TomsStudios/?vabilo=<koda>`
-     (deluje tudi na Dogodkih) — kdor jo ima, se lahko registrira. Koda živi
-     samo v bazi, ne v tem (javnem) repozitoriju:
+   - **enkratna povezava z vabilom** `https://zig4to.github.io/TomsStudios/?vabilo=<koda>`
+     (deluje tudi na Dogodkih) — velja za eno registracijo, nato je porabljena.
+     Kode živijo samo v bazi, ne v tem (javnem) repozitoriju. Nova povezava:
      ```sql
-     insert into public.invite_codes (code, note) values ('<koda>', 'opis');
+     select public.new_invite('komu');
      ```
    - **posamezen e-poštni naslov** v `allowed_emails`:
      ```sql

@@ -132,7 +132,7 @@
     var msg = (err && err.message) || "";
     if (/signup_not_allowed/i.test(msg) || /database error saving new user/i.test(msg)) {
       return invite
-        ? "Povezava z vabilom ni več veljavna. Prosi za novo."
+        ? "Povezava z vabilom je že porabljena ali ni veljavna. Prosi za novo."
         : "Za registracijo potrebuješ povezavo z vabilom.";
     }
     if (/already registered/i.test(msg) || /user already exists/i.test(msg)) {
