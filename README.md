@@ -39,11 +39,18 @@ osebno v Supabase, ne v `localStorage`.
    URL** in **anon/public key**, vpiši ju v `supabase-config.js`.
 2. V Supabase SQL editorju po vrsti zaženi `supabase/001_allowed_emails.sql`
    in `supabase/002_user_dashboard_slots.sql`.
-3. Registracija je namenoma omejena na povabljene: v `allowed_emails` dodaj
-   vsak dovoljen e-poštni naslov, npr.:
-   ```sql
-   insert into public.allowed_emails (email) values ('ime@example.com');
-   ```
+3. Registracija je namenoma omejena na povabljene. Dve možnosti (zaženi še
+   `supabase/004_invite_codes.sql`):
+   - **povezava z vabilom** `https://zig4to.github.io/TomsStudios/?vabilo=<koda>`
+     (deluje tudi na Dogodkih) — kdor jo ima, se lahko registrira. Koda živi
+     samo v bazi, ne v tem (javnem) repozitoriju:
+     ```sql
+     insert into public.invite_codes (code, note) values ('<koda>', 'opis');
+     ```
+   - **posamezen e-poštni naslov** v `allowed_emails`:
+     ```sql
+     insert into public.allowed_emails (email) values ('ime@example.com');
+     ```
 4. Po želji v Authentication → Providers → Email izklopi "Confirm email" za
    takojšnjo prijavo brez potrditvenega sporočila (ali pusti vklopljeno).
 

@@ -48,6 +48,25 @@
   // za novo geslo (seja iz povezave je sicer že veljavna prijava).
   var recoveryMode = /type=recovery/.test(location.hash);
 
+  // Koda vabila iz povezave ?vabilo=<koda> (glej supabase/004_invite_codes.sql).
+  // Shranimo jo, ker jo iz naslova takoj odstranimo — da ne obtiči v
+  // zaznamkih ali nameščeni aplikaciji — uporabnik pa se lahko registrira
+  // šele čez nekaj trenutkov. Pošlje se ob registraciji v user_metadata.
+  var INVITE_KEY = "ptomsetu-invite";
+  var invite = null;
+  try {
+    var params = new URLSearchParams(location.search);
+    invite = params.get("vabilo");
+    if (invite) {
+      localStorage.setItem(INVITE_KEY, invite);
+      params.delete("vabilo");
+      var qs = params.toString();
+      history.replaceState(null, "", location.pathname + (qs ? "?" + qs : "") + location.hash);
+    } else {
+      invite = localStorage.getItem(INVITE_KEY);
+    }
+  } catch (e) {}
+
   var sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
   window.sb = sb;
   window.PTOMSETU_USER = null;
@@ -77,6 +96,9 @@
     if (forgotForm) forgotForm.hidden = which !== "forgot";
     if (newPasswordForm) newPasswordForm.hidden = which !== "newPassword";
   }
+  var registerHint = document.getElementById("registerHint");
+  if (registerHint && invite) registerHint.textContent = "Registriraš se s povabilom.";
+
   if (tabLogin) tabLogin.addEventListener("click", function () { setTab("login"); });
   if (tabRegister) tabRegister.addEventListener("click", function () { setTab("register"); });
   if (forgotPasswordLink) {
@@ -109,7 +131,9 @@
   function friendlySignupError(err) {
     var msg = (err && err.message) || "";
     if (/signup_not_allowed/i.test(msg) || /database error saving new user/i.test(msg)) {
-      return "Ta e-poštni naslov ni na seznamu povabljenih.";
+      return invite
+        ? "Povezava z vabilom ni več veljavna. Prosi za novo."
+        : "Za registracijo potrebuješ povezavo z vabilom.";
     }
     if (/already registered/i.test(msg) || /user already exists/i.test(msg)) {
       return "Ta e-poštni naslov je že registriran. Poskusi se prijaviti.";
@@ -159,7 +183,9 @@
           password: password,
           options: {
             emailRedirectTo: location.origin + location.pathname,
-            data: { first_name: firstName, last_name: lastName }
+            data: invite
+              ? { first_name: firstName, last_name: lastName, invite: invite }
+              : { first_name: firstName, last_name: lastName }
           }
         })
         .then(function (res) {
@@ -167,6 +193,9 @@
             showFormMessage(registerForm, friendlySignupError(res.error), true);
           } else if (res.data && res.data.user && !res.data.session) {
             showFormMessage(registerForm, "Račun je ustvarjen. Preveri e-pošto in potrdi račun, nato se prijavi.", false);
+          }
+          if (!res.error) {
+            try { localStorage.removeItem(INVITE_KEY); } catch (e) {}
           }
         })
         .catch(function () { showFormMessage(registerForm, "Registracija ni uspela. Poskusi znova.", true); })
@@ -401,7 +430,8 @@
       window.PTOMSETU_SESSION = null;
       closeAvatarPopover();
       showAuth();
-      setTab("login");
+      // S povezavo z vabilom pride nekdo, da se registrira.
+      setTab(invite ? "register" : "login");
       document.dispatchEvent(new CustomEvent("ptomsetu:signed-out"));
     }
   }
