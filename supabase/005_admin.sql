@@ -251,6 +251,6 @@ on conflict do nothing;
 
 -- Prvi admin (po e-pošti računa). Preveri, da je spodnji select vrnil vrstico.
 insert into public.admins (user_id)
-select id from auth.users where lower(email) = lower('ziga.tomse48@gmail.com')
+select id from auth.users where lower(email) = lower('ziga.skater@gmail.com')
 on conflict do nothing;
 select u.email as admin from public.admins a join auth.users u on u.id = a.user_id;
