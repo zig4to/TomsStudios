@@ -15,6 +15,10 @@
   APPS.forEach(function (a) { APPS_BY_ID[a.id] = a; });
 
   var DEFAULT_SLOT_COUNT = 6;
+  // Aplikacije, ki jih nov uporabnik ob prvi prijavi že najde na plošči (po
+  // vrsti na prvih mestih); ostala mesta so prazna "+". Velja samo za nove —
+  // obstoječih plošč to ne spremeni.
+  var DEFAULT_APP_IDS = ["mascajt"];
   var slots = [];          // { id, app_id, position }
   var session = null;
   var cacheKey = null;
@@ -191,14 +195,16 @@
           ensureEmptySlotAvailable();
           return;
         }
-        // Prva prijava: ni še vrstic — ustvari privzetih 6 praznih mest.
+        // Prva prijava: ni še vrstic — ustvari privzetih 6 mest (prva
+        // zasedena z DEFAULT_APP_IDS, ostala prazna).
         // POZOR: namerno navaden insert, ne upsert z onConflict — unikatna
         // omejitev (user_id, position) je "deferrable" (zaradi vlečenja
         // razporeda spodaj), Postgres pa odložene omejitve ne dovoli kot cilj
         // za ON CONFLICT (klic bi tiho spodletel za vsakega novega uporabnika).
+        var defaultApps = DEFAULT_APP_IDS.filter(function (id) { return APPS_BY_ID[id]; });
         var defaults = [];
         for (var i = 0; i < DEFAULT_SLOT_COUNT; i++) {
-          defaults.push({ user_id: session.user.id, app_id: null, position: i });
+          defaults.push({ user_id: session.user.id, app_id: defaultApps[i] || null, position: i });
         }
         window.sb
           .from("user_dashboard_slots")
