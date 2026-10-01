@@ -1,19 +1,18 @@
-/* TomStudios — administracija (samo za admine).
+/* TomStudios — stran Administracija (admin.html, samo za admine).
    Uporabniki: pravice do aplikacij, ime in priimek, geslo, blokiranje, admin.
    Vabila: nova enkratna povezava, seznam, preklic.
    Vse gre prek admin_* funkcij v bazi (supabase/005_admin.sql), ki same
-   preverijo, ali je klicatelj admin — skrit gumb tu je samo udobje, ne
-   zaščita. Kdo je admin, izve iz dogodka "ptomsetu:access" (dashboard.js). */
+   preverijo, ali je klicatelj admin — preverjanje na tej strani je samo
+   udobje (prijazno sporočilo), ne zaščita. Seja je ista kot na plošči
+   (isti izvor in Supabase projekt), zato tu ni lastne prijave. */
 (function () {
   "use strict";
 
   function $(id) { return document.getElementById(id); }
 
-  var openBtn = $("adminOpenBtn");
-  var modal = $("adminModal");
-  if (!openBtn || !modal) return;
-
-  var closeBtn = $("adminClose");
+  var gate = $("adminGate");
+  var app = $("adminApp");
+  var count = $("adminCount");
   var tabUsers = $("adminTabUsers");
   var tabInvites = $("adminTabInvites");
   var usersSection = $("adminUsers");
@@ -87,29 +86,51 @@
     return Promise.resolve(false);
   }
 
-  /* ---------- Odpiranje / zapiranje ---------- */
+  /* ---------- Vstop: prijava + admin ---------- */
 
-  function applyAccess(a) {
-    var isAdmin = !!(a && a.is_admin && !a.blocked);
-    openBtn.hidden = !isAdmin;
-    if (!isAdmin) closeModal();
+  function showGate(text, withLink) {
+    gate.textContent = text;
+    if (withLink) {
+      gate.appendChild(document.createElement("br"));
+      var a = el("a", "admin-gate-link", "Nazaj na ploščo");
+      a.href = "./";
+      gate.appendChild(a);
+    }
+    gate.hidden = false;
+    app.hidden = true;
   }
-  document.addEventListener("ptomsetu:access", function (e) { applyAccess(e.detail); });
-  applyAccess(window.PTOMSETU_ACCESS);
 
-  function openModal() {
-    if (window.ptomsetuCloseAvatarPopover) window.ptomsetuCloseAvatarPopover();
-    modal.hidden = false;
-    setTab("users");
-    loadUsers();
+  if (!window.SUPABASE_URL || !window.supabase) {
+    showGate("Supabase ni nastavljen.", true);
+    return;
   }
-  function closeModal() { modal.hidden = true; }
+  window.sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
-  openBtn.addEventListener("click", openModal);
-  if (closeBtn) closeBtn.addEventListener("click", closeModal);
-  modal.addEventListener("click", function (e) { if (e.target === modal) closeModal(); });
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape" && !modal.hidden) closeModal();
+  window.sb.auth.getSession().then(function (res) {
+    var session = res.data && res.data.session;
+    if (!session) {
+      // Prijava je na plošči; po njej se lahko vrneš sem.
+      location.replace("./");
+      return;
+    }
+    window.PTOMSETU_USER = session.user;
+    return window.sb.rpc("my_access").then(function (r) {
+      var a = r.data;
+      if (r.error || !a || !a.is_admin || a.blocked) {
+        showGate("Nimaš administratorskih pravic.", true);
+        return;
+      }
+      gate.hidden = true;
+      app.hidden = false;
+      setTab(location.hash === "#vabila" ? "invites" : "users");
+      loadUsers();
+    });
+  }).catch(function () {
+    showGate("Nalaganje ni uspelo. Preveri povezavo in osveži stran.", true);
+  });
+
+  window.sb.auth.onAuthStateChange(function (event) {
+    if (event === "SIGNED_OUT") location.replace("./");
   });
 
   function setTab(which) {
@@ -118,6 +139,7 @@
     tabInvites.setAttribute("aria-selected", String(!isUsers));
     usersSection.hidden = !isUsers;
     invitesSection.hidden = isUsers;
+    history.replaceState(null, "", location.pathname + (isUsers ? "" : "#vabila"));
     if (!isUsers) loadInvites();
   }
   tabUsers.addEventListener("click", function () { setTab("users"); });
@@ -146,6 +168,11 @@
     var shown = users.filter(function (u) {
       return !q || (fullName(u) + " " + u.email).toLowerCase().indexOf(q) !== -1;
     });
+    if (count) {
+      count.textContent = q
+        ? shown.length + " od " + users.length
+        : users.length + (users.length === 1 ? " uporabnik" : users.length === 2 ? " uporabnika" : users.length < 5 ? " uporabniki" : " uporabnikov");
+    }
     if (!shown.length) {
       userList.appendChild(el("p", "admin-empty", users.length ? "Ni zadetkov." : "Ni uporabnikov."));
       return;

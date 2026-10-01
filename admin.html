@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="sl" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Administracija · TomStudios</title>
+<meta name="theme-color" content="#0b1020" />
+<meta name="robots" content="noindex" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+<script>
+  // Ista tema kot na plošči (app.js), nastavljena pred prvim izrisom.
+  (function () {
+    var t;
+    try { t = localStorage.getItem("ptomsetu-theme"); } catch (e) {}
+    if (!t) t = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", t);
+  })();
+</script>
+</head>
+<body class="admin-page">
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <header class="admin-header">
+    <a class="admin-back" href="./">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      <span>Plošča</span>
+    </a>
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.3 7.5 9.5 4.3-1.2 7.5-4.9 7.5-9.5V6Z"/><path d="m9 12 2 2 4-4"/>
+        </svg>
+      </span>
+      <h1>Administracija</h1>
+    </div>
+  </header>
+
+  <main class="admin-main">
+    <p class="admin-gate" id="adminGate">Nalagam …</p>
+
+    <div id="adminApp" hidden>
+      <div class="auth-tabs admin-tabs" role="tablist">
+        <button class="auth-tab" id="adminTabUsers" type="button" role="tab" aria-selected="true">Uporabniki</button>
+        <button class="auth-tab" id="adminTabInvites" type="button" role="tab" aria-selected="false">Vabila</button>
+      </div>
+
+      <section id="adminUsers">
+        <div class="admin-toolbar">
+          <input class="admin-search" id="adminSearch" type="search" placeholder="Išči po imenu ali e-pošti" />
+          <span class="admin-count" id="adminCount"></span>
+        </div>
+        <p class="admin-status" id="adminUsersStatus" role="status"></p>
+        <div class="admin-list admin-list--users" id="adminUserList"></div>
+      </section>
+
+      <section id="adminInvites" hidden>
+        <form class="admin-invite-form" id="adminInviteForm">
+          <input id="adminInviteNote" type="text" placeholder="Za koga (npr. Jernej)" required />
+          <button type="submit" class="admin-btn admin-btn--primary">Novo vabilo</button>
+        </form>
+        <p class="admin-status" id="adminInvitesStatus" role="status"></p>
+        <div class="admin-list" id="adminInviteList"></div>
+      </section>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="apps-registry.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

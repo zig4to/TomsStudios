@@ -189,6 +189,10 @@
   function setAccess(a) {
     access = a;
     window.PTOMSETU_ACCESS = a;
+    // Povezava na admin.html v meniju kroga — samo za admine (prava zaščita
+    // so admin_* funkcije v bazi, ki preverijo is_admin()).
+    var adminLink = document.getElementById("adminOpenBtn");
+    if (adminLink) adminLink.hidden = !(a && a.is_admin && !a.blocked);
     document.dispatchEvent(new CustomEvent("ptomsetu:access", { detail: a }));
   }
 

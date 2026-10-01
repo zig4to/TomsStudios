@@ -1,7 +1,7 @@
 /* Service worker — omogoča namestitev in delovanje brez povezave.
    Ob spremembi datotek povečaj VERZIJO, da se predpomnilnik osveži. */
 
-const VERZIJA = "v35";
+const VERZIJA = "v36";
 const CACHE = "ptomsetu-" + VERZIJA;
 
 const LUPINA = [
@@ -11,6 +11,7 @@ const LUPINA = [
   "./app.js",
   "./auth.js",
   "./dashboard.js",
+  "./admin.html",
   "./admin.js",
   "./apps-registry.js",
   "./supabase-config.js",
@@ -46,15 +47,18 @@ self.addEventListener("fetch", (e) => {
   if (url.origin !== self.location.origin) return; // pisave in tuje povezave prepusti brskalniku
 
   // Navigacija: najprej mreža, ob izpadu predpomnjena stran.
+  // admin.html je ločena stran — shrani se pod svojim imenom, sicer bi brez
+  // povezave namesto plošče odprla administracijo.
   if (req.mode === "navigate") {
+    const stran = url.pathname.endsWith("/admin.html") ? "./admin.html" : "./index.html";
     e.respondWith(
       fetch(req)
         .then((res) => {
           const kopija = res.clone();
-          caches.open(CACHE).then((c) => c.put("./index.html", kopija));
+          caches.open(CACHE).then((c) => c.put(stran, kopija));
           return res;
         })
-        .catch(() => caches.match("./index.html").then((r) => r || caches.match("./")))
+        .catch(() => caches.match(stran).then((r) => r || caches.match("./")))
     );
     return;
   }
