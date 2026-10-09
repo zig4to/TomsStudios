@@ -58,7 +58,7 @@
     } catch (e) {
       return appEntry.url;
     }
-    if (sess && sess.access_token && sess.refresh_token) {
+    if (!appEntry.noToken && sess && sess.access_token && sess.refresh_token) {
       url.hash =
         "sb_at=" + encodeURIComponent(sess.access_token) +
         "&sb_rt=" + encodeURIComponent(sess.refresh_token);
@@ -153,6 +153,9 @@
   }
 
   function canUse(appId) {
+    var entry = APPS_BY_ID[appId];
+    // adminOnly zahteva potrjenega admina — tudi ko my_access() ni na voljo
+    if (entry && entry.adminOnly) return !!(access && access.is_admin && !access.blocked);
     if (!access) return true;
     if (access.blocked) return false;
     return access.is_admin || access.apps.indexOf(appId) !== -1;

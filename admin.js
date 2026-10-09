@@ -209,6 +209,7 @@
       apps.appendChild(el("p", "admin-note", "Admin ima dostop do vseh aplikacij."));
     } else {
       APPS.forEach(function (app) {
+        if (app.adminOnly) return;
         var has = (u.apps || []).indexOf(app.id) !== -1;
         var chip = el("button", "admin-app-chip", app.title);
         chip.type = "button";
