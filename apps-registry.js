@@ -151,7 +151,7 @@
       id: "zaganjalnik",
       title: "Zaganjalnik",
       subtitle: "DevHost na domačem PC",
-      url: "http://192.168.1.200:8000/",
+      url: "https://192.168.1.200:8443/",
       accent: "#10b981",
       accent2: "#0f172a",
       adminOnly: true,
