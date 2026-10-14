@@ -51,10 +51,32 @@
     return document.body.classList.contains("is-reordering");
   }
 
+  // Aplikacije z več možnimi naslovi (urls): prvi, ki se odzove. Odgovor brez CORS
+  // (opaque) je dovolj — pomeni, da strežnik na tem naslovu teče.
+  var reachableUrl = {};
+  var probing = {};
+
+  function probeUrls(appEntry) {
+    if (!appEntry.urls || probing[appEntry.id]) return;
+    probing[appEntry.id] = true;
+    appEntry.urls.forEach(function (u) {
+      var ctl = window.AbortController ? new AbortController() : null;
+      var t = setTimeout(function () { if (ctl) ctl.abort(); }, 3000);
+      fetch(u + "manifest.webmanifest?t=" + Date.now(), { mode: "no-cors", cache: "no-store", signal: ctl && ctl.signal })
+        .then(function () {
+          clearTimeout(t);
+          if (reachableUrl[appEntry.id]) return;
+          reachableUrl[appEntry.id] = u;
+          var card = grid.querySelector('[data-app="' + appEntry.id + '"]');
+          if (card) card.href = buildAppUrl(appEntry, session);
+        }, function () { clearTimeout(t); });
+    });
+  }
+
   function buildAppUrl(appEntry, sess) {
     var url;
     try {
-      url = new URL(appEntry.url);
+      url = new URL(reachableUrl[appEntry.id] || appEntry.url);
     } catch (e) {
       return appEntry.url;
     }
@@ -106,6 +128,7 @@
     a.style.setProperty("--accent", appEntry.accent);
     a.style.setProperty("--accent-2", appEntry.accent2);
     a.href = buildAppUrl(appEntry, session);
+    probeUrls(appEntry);
 
     var icon = document.createElement("span");
     icon.className = "card-icon";

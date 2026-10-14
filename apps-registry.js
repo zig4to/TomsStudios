@@ -152,6 +152,14 @@
       title: "Zaganjalnik",
       subtitle: "DevHost na domačem PC",
       url: "https://192.168.1.200:8443/",
+      // računalnik ima v vsakem omrežju svoj naslov (doma kabel, Kaktus, hotspot, pri Tini);
+      // kartica ob nalaganju poišče dosegljivega, sicer ostane url
+      urls: [
+        "https://192.168.1.200:8443/",
+        "https://192.168.2.200:8443/",
+        "https://10.18.161.200:8443/",
+        "https://192.168.64.200:8443/"
+      ],
       accent: "#10b981",
       accent2: "#0f172a",
       adminOnly: true,
