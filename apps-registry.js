@@ -18,8 +18,19 @@
       accent: "#6366f1",
       accent2: "#a855f7",
       icon:
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' +
-        '<rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/><path d="M7.5 13.5h3M7.5 17h6"/>' +
+        // Poln koledar z izrezanima črtama — enako kot ikona aplikacije masCajt
+        // (polna kot Komadi, da se kartica ujema z nameščeno aplikacijo).
+        '<svg viewBox="56 50 400 400" fill="currentColor">' +
+        '<defs><mask id="mascajt-cut" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512">' +
+        '<rect width="512" height="512" fill="#fff"/><g fill="#000">' +
+        '<rect x="170" y="100" width="52" height="98" rx="26"/><rect x="290" y="100" width="52" height="98" rx="26"/>' +
+        '<rect x="128" y="214" width="256" height="16"/>' +
+        '<rect x="176" y="268" width="70" height="24" rx="12"/><rect x="176" y="320" width="130" height="24" rx="12"/>' +
+        '</g></mask></defs>' +
+        '<g transform="translate(256 256) scale(1.1) translate(-256 -251)">' +
+        '<rect x="128" y="150" width="256" height="240" rx="44" mask="url(#mascajt-cut)"/>' +
+        '<rect x="182" y="112" width="28" height="74" rx="14"/><rect x="302" y="112" width="28" height="74" rx="14"/>' +
+        '</g>' +
         "</svg>"
     },
     {
