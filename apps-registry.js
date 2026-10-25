@@ -68,7 +68,9 @@
       accent2: "#f97316",
       icon:
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' +
-        '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>' +
+        // Trzalica s strelo — isti znak kot ikona aplikacije Komadi.
+        '<path d="M12 3c7.15 0 9.49 3.46 8.13 7.64C18.78 14.84 15.08 19.02 12 21C8.92 19.02 5.22 14.84 3.87 10.64C2.51 6.46 4.85 3 12 3z"/>' +
+        '<path d="M12.38 7 8.58 11.56H12l-.38 3.04 3.8-4.56H12z"/>' +
         "</svg>"
     },
     {
