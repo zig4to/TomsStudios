@@ -64,8 +64,8 @@
       title: "Komadi",
       subtitle: "Priljubljene skladbe",
       url: "https://zig4to.github.io/Komadi/",
-      accent: "#ec4899",
-      accent2: "#f97316",
+      accent: "#a855f7",
+      accent2: "#3b82f6",
       icon:
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' +
         // Trzalica s strelo — isti znak kot ikona aplikacije Komadi.
