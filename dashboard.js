@@ -120,6 +120,12 @@
 
   /* ---------- Izris ---------- */
 
+  function isStandalone() {
+    return (window.matchMedia && (matchMedia("(display-mode: standalone)").matches ||
+      matchMedia("(display-mode: minimal-ui)").matches || matchMedia("(display-mode: fullscreen)").matches)) ||
+      window.navigator.standalone === true;
+  }
+
   function buildFilledCard(slot, appEntry) {
     var a = document.createElement("a");
     a.className = "card";
@@ -128,6 +134,13 @@
     a.style.setProperty("--accent", appEntry.accent);
     a.style.setProperty("--accent-2", appEntry.accent2);
     a.href = buildAppUrl(appEntry, session);
+    // Nameščen hub (standalone): aplikacija je izven njegovega obsega, zato bi se v
+    // istem oknu odprla z vrstico brskalnika. V novem oknu jo Android preda nameščeni
+    // aplikaciji (če obstaja), sicer odpre zavihek brskalnika. V brskalniku ostane isti zavihek.
+    if (isStandalone()) {
+      a.target = "_blank";
+      a.rel = "noopener";
+    }
     probeUrls(appEntry);
 
     var icon = document.createElement("span");
