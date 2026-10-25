@@ -263,7 +263,7 @@ body {
   height: 34px;
   border-radius: 11px;
   color: #fff;
-  background: linear-gradient(140deg, #6366f1, #a855f7 55%, #22d3ee);
+  background: linear-gradient(140deg, #a855f7, #3b82f6);
   box-shadow: 0 6px 16px -6px rgba(99, 102, 241, .7);
 }
 .brand-mark svg { width: 17px; height: 17px; }
@@ -589,7 +589,6 @@ main {
   border-radius: var(--radius-sm);
   color: #fff;
   background: linear-gradient(140deg, var(--accent, #6366f1), var(--accent-2, #a855f7));
-  box-shadow: 0 10px 22px -10px color-mix(in srgb, var(--accent, #6366f1) 85%, transparent);
   transition: transform .28s cubic-bezier(.2, .8, .2, 1);
 }
 .card-icon svg { width: 25px; height: 25px; }
@@ -664,7 +663,6 @@ main {
   background: none;
   border: 1px dashed var(--border-strong);
   color: var(--text-soft);
-  box-shadow: none;
 }
 
 /* velik "+" gumb v sredini praznega mesta — klik odpre izbirnik aplikacij */

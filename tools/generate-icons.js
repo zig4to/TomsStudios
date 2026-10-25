@@ -1,6 +1,7 @@
 /* Generator ikon za PWA — brez odvisnosti.
    Zaženi z: npm run icons
-   Nariše hiško iz glave strani na barvni preliv in zapiše PNG-je v icons/. */
+   Nariše kapsulo s kvadratkom in krogom na barvni preliv in zapiše PNG-je v icons/.
+   Neobvezen argument: druga izhodna mapa (npr. za predogled). */
 
 const fs = require("fs");
 const path = require("path");
@@ -56,9 +57,8 @@ function encodePNG(size, rgba) {
 /* ---------- risanje ---------- */
 
 const STOPS = [
-  { t: 0.0, c: [0x63, 0x66, 0xf1] }, // indigo
-  { t: 0.55, c: [0xa8, 0x55, 0xf7] }, // vijolična
-  { t: 1.0, c: [0x22, 0xd3, 0xee] }, // cian
+  { t: 0.0, c: [0xa8, 0x55, 0xf7] }, // vijolična
+  { t: 1.0, c: [0x3b, 0x82, 0xf6] }, // modra
 ];
 
 function gradient(t) {
@@ -85,22 +85,27 @@ function inRoundRect(x, y, size, r) {
   return dx * dx + dy * dy <= r * r;
 }
 
-function inTriangle(px, py, a, b, c) {
-  const s = (p, q, r) => (p[0] - r[0]) * (q[1] - r[1]) - (q[0] - r[0]) * (p[1] - r[1]);
-  const d1 = s([px, py], a, b);
-  const d2 = s([px, py], b, c);
-  const d3 = s([px, py], c, a);
-  const neg = d1 < 0 || d2 < 0 || d3 < 0;
-  const pos = d1 > 0 || d2 > 0 || d3 > 0;
-  return !(neg && pos);
+function inRect(x, y, w, h, r) {
+  if (x < 0 || y < 0 || x > w || y > h) return false;
+  const dx = Math.max(r - x, x - (w - r), 0);
+  const dy = Math.max(r - y, y - (h - r), 0);
+  return dx * dx + dy * dy <= r * r;
 }
 
-// Hiška v koordinatah 24 x 24 (isti viewBox kot ikona v glavi strani).
-function inHouse(x, y) {
-  const roof = inTriangle(x, y, [12, 2.6], [2.7, 11.2], [21.3, 11.2]);
-  const body = x >= 5.2 && x <= 18.8 && y >= 10.4 && y <= 21.2;
-  const door = x >= 9.9 && x <= 14.1 && y >= 14.8 && y <= 21.2;
-  return (roof || body) && !door;
+// Obroba (črta znotraj oblike), da razmiki med oblikami ostanejo.
+const STROKE = 1.2;
+function inOutline(x, y, w, h, r) {
+  const ri = Math.max(0, Math.min(r - STROKE / 2, (w - 2 * STROKE) / 2, (h - 2 * STROKE) / 2));
+  return inRect(x, y, w, h, r) && !inRect(x - STROKE, y - STROKE, w - 2 * STROKE, h - 2 * STROKE, ri);
+}
+
+// Kapsula v koordinatah 24 x 24: visok stolpec levo, desno kvadratek in poln krog.
+// Ista oblika kot .brand-mark v index.html.
+function inGlyph(x, y) {
+  const capsule = inOutline(x - 3, y - 3, 8, 18, 4);
+  const square = inOutline(x - 13, y - 3, 8, 8, 1.4);
+  const dot = (x - 17) ** 2 + (y - 17) ** 2 <= 16;
+  return capsule || square || dot;
 }
 
 function render(size, { maskable = false } = {}) {
@@ -123,7 +128,7 @@ function render(size, { maskable = false } = {}) {
           const gy = ((py - size / 2) / (size * glyph)) * 24 + 12;
 
           let col;
-          if (inHouse(gx, gy)) {
+          if (inGlyph(gx, gy)) {
             col = [255, 255, 255];
           } else {
             col = gradient((px / size) * 0.62 + (py / size) * 0.38);
@@ -148,7 +153,8 @@ function render(size, { maskable = false } = {}) {
 
 /* ---------- zapis ---------- */
 
-const dir = path.join(__dirname, "..", "icons");
+const outArg = process.argv.slice(2).find((a) => !a.startsWith("--"));
+const dir = outArg ? path.resolve(outArg) : path.join(__dirname, "..", "icons");
 fs.mkdirSync(dir, { recursive: true });
 
 const files = [
@@ -165,4 +171,4 @@ for (const [name, size, opts] of files) {
   fs.writeFileSync(path.join(dir, name), png);
   console.log("  " + name + "  " + size + "x" + size + "  " + (png.length / 1024).toFixed(1) + " kB");
 }
-console.log("\nIkone zapisane v icons/");
+console.log("\nIkone zapisane v " + dir);
