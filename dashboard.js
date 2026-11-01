@@ -194,6 +194,17 @@
         return;
       }
       url.searchParams.set("namesti", "1");
+      if (isStandalone() && /Android/i.test(navigator.userAgent)) {
+        // Iz nameščenega huba se tuja stran odpre v njegovem oknu, kjer velja za
+        // "nameščeno" in Chrome namestitve ne ponudi — zato jo odpremo v pravem
+        // Chromu (intent). Fragment je rezerviran za #Intent, zato brez SSO
+        // žetonov; Chrome ima isto sejo kot nameščene aplikacije.
+        url.hash = "";
+        location.href = "intent://" + url.host + url.pathname + url.search +
+          "#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=" +
+          encodeURIComponent(url.toString()) + ";end";
+        return;
+      }
       if (isStandalone()) window.open(url.toString(), "_blank", "noopener");
       else location.href = url.toString();
     }
