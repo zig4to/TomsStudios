@@ -627,29 +627,6 @@ main {
 }
 .card-arrow svg { width: 17px; height: 17px; }
 
-/* gumb za namestitev (zgornji desni kot) — odpre aplikacijo s ?namesti=1 */
-.card-install {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 1;
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  color: var(--text-soft);
-  cursor: pointer;
-  transition: color .2s ease, background-color .2s ease;
-}
-.card-install svg { width: 18px; height: 18px; }
-.card-install:hover,
-.card-install:focus-visible {
-  color: var(--accent, #6366f1);
-  background: color-mix(in srgb, var(--accent, #6366f1) 14%, transparent);
-  outline: none;
-}
-
 /* hover / fokus */
 .card[href]:hover,
 .card[href]:focus-visible {
@@ -828,8 +805,7 @@ body.is-reordering .card-remove { display: grid; }
 .card-drag-clone .card-remove { display: none; }
 
 /* med urejanjem kartice ne navigirajo in ne poskočijo ob hoverju */
-body.is-reordering .card-arrow,
-body.is-reordering .card-install { display: none; }
+body.is-reordering .card-arrow { display: none; }
 body.is-reordering .card[href]:hover,
 body.is-reordering .card[href]:focus-visible {
   transform: none;
@@ -861,8 +837,7 @@ body.is-reordering .card.is-dragging .card-grip { cursor: grabbing; }
 }
 .card-drag-clone::before,
 .card-drag-clone::after { display: none; }
-.card-drag-clone .card-arrow,
-.card-drag-clone .card-install { display: none; }
+.card-drag-clone .card-arrow { display: none; }
 
 @keyframes card-wiggle {
   0%, 100% { transform: rotate(-0.6deg); }
