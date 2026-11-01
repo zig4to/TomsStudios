@@ -29,6 +29,8 @@
 
   var ARROW_SVG =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>';
+  var INSTALL_SVG =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg>';
   var PLUS_SVG =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>';
   var GRIP_ICON =
@@ -165,8 +167,41 @@
 
     a.appendChild(icon);
     a.appendChild(body);
-    a.appendChild(arrow);
+    a.appendChild(appEntry.noInstall ? arrow : buildInstallButton(appEntry));
     return a;
+  }
+
+  // Gumb za namestitev v zgornjem desnem kotu kartice. Brskalnik ponudi
+  // namestitev samo za stran, ki je odprta, zato aplikacijo odpremo s
+  // ?namesti=1 — njen install-promo.js takoj pokaže okno za namestitev.
+  // Je <span> (ne <button>), ker je znotraj povezave kartice.
+  function buildInstallButton(appEntry) {
+    var btn = document.createElement("span");
+    btn.className = "card-install";
+    btn.setAttribute("role", "button");
+    btn.setAttribute("tabindex", "0");
+    btn.setAttribute("aria-label", "Namesti " + appEntry.title);
+    btn.title = "Namesti aplikacijo";
+    btn.innerHTML = INSTALL_SVG;
+    function go(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (document.body.classList.contains("is-reordering")) return;
+      var url;
+      try {
+        url = new URL(buildAppUrl(appEntry, session));
+      } catch (err) {
+        return;
+      }
+      url.searchParams.set("namesti", "1");
+      if (isStandalone()) window.open(url.toString(), "_blank", "noopener");
+      else location.href = url.toString();
+    }
+    btn.addEventListener("click", go);
+    btn.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") go(e);
+    });
+    return btn;
   }
 
   function buildEmptyCard(slot) {

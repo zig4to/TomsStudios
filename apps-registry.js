@@ -5,7 +5,9 @@
    ničesar, kartica se izriše samodejno prek dashboard.js.
    adminOnly: true = vidna samo adminu (ni v izbirniku ne v admin.html).
    noToken: true = povezavi se ne doda Supabase seja (za aplikacije, ki je ne
-   rabijo ali tečejo prek http v lokalnem omrežju). */
+   rabijo ali tečejo prek http v lokalnem omrežju).
+   noInstall: true = kartica nima gumba za namestitev (aplikacija nima
+   install-promo.js, ki razume ?namesti=1). */
 (function () {
   "use strict";
 
@@ -190,6 +192,7 @@
       accent2: "#0f172a",
       adminOnly: true,
       noToken: true,
+      noInstall: true,
       icon:
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' +
         '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="m7 11 2-2-2-2M11 13h4"/>' +
