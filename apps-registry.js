@@ -176,7 +176,7 @@
     {
       id: "kvit",
       title: "Kvit",
-      subtitle: "Obračun stroškov za mamo",
+      subtitle: "Obračun mesečnih stroškov",
       url: "https://kvit-pearl.vercel.app/",
       accent: "#f43f5e",
       accent2: "#8b5cf6",
