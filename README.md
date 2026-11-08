@@ -60,6 +60,21 @@ aplikacije dobijo prijavo samodejno (si že delijo izvor s hubom na GitHub
 Pages) in katere potrebujejo dodaten korak (tiste na Vercelu), ter obvezen
 vzorec `user_id` + RLS za lastne tabele vsake aplikacije.
 
+## Šeri — pošiljanje datotek
+
+Gumb **Šeri** (letalce v glavi, ob avatarju) odpre `seri.html`: zgoraj izbereš
+prejemnika (prvi je „Jaz“ za prenos na svojo drugo napravo), tapneš velik „+“
+in izbereš datoteko. Nalaganje se začne takoj, v izvirni kvaliteti in formatu
+(vsi formati, **do 50 MB**). Kartico datoteke povlečeš gor (ali „Pošlji“) →
+prejemnik jo v živo vidi na vrhu plošče pod glavo (`inbox.js`, Supabase
+Realtime) in jo prenese z izvirnim imenom.
+
+- Baza: `supabase/007_seri.sql` — RPC `seri_users()`, tabela `seri_transfers`,
+  zasebni bucket `seri` (ključi `<sender_id>/<uuid>`, izvirno ime je v tabeli).
+- Hramba **24 ur**: po poteku datoteke ni več mogoče prenesti (RLS na
+  `storage.objects`); potekle prenose in osirotele datoteke leno pobriše
+  odjemalec ob odprtju plošče/Šerija (`seri-common.js` → `cleanup`).
+
 ## Namestitev na telefon
 
 Stran je PWA. Na **Androidu (Chrome)** odpri objavljeno povezavo → **Nastavitve → Namesti

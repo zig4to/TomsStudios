@@ -1,0 +1,448 @@
+/* =========================================================
+   Šeri — pošiljanje datotek med uporabniki huba
+   ========================================================= */
+
+body.seri-page {
+  min-height: 100dvh;
+  padding: clamp(18px, 4vw, 40px) clamp(16px, 4vw, 40px) 24px;
+  gap: clamp(16px, 3vw, 28px);
+  overflow-x: hidden;
+}
+
+/* ---------- Ozadje: lebdeči barvni mehurčki ---------- */
+.seri-bg { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.seri-blob {
+  position: absolute;
+  width: 60vmax;
+  height: 60vmax;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: calc(var(--glow-alpha) * 1.25);
+  animation: seri-float 18s ease-in-out infinite alternate;
+}
+.seri-blob--1 { top: -25vmax; left: -20vmax; background: #a855f7; }
+.seri-blob--2 { top: 10vmax; right: -28vmax; background: #22d3ee; animation-delay: -6s; animation-duration: 22s; }
+.seri-blob--3 { bottom: -32vmax; left: 10vmax; background: #f472b6; animation-delay: -11s; animation-duration: 26s; }
+@keyframes seri-float {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(6vmax, 4vmax) scale(1.08); }
+  100% { transform: translate(-4vmax, 7vmax) scale(.95); }
+}
+
+/* ---------- Glava ---------- */
+.seri-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 900px;
+  min-height: 40px;
+  margin: 0 auto;
+}
+.seri-logo {
+  margin: 0;
+  font-size: clamp(1.8rem, 5vw, 2.4rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  background: linear-gradient(100deg, #a855f7, #ec4899 45%, #22d3ee);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.seri-logo-dot { color: #22d3ee; -webkit-text-fill-color: #22d3ee; }
+
+.seri-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.seri-gate { margin: 20vh auto 0; color: var(--text-soft); }
+.seri-app { display: flex; flex: 1; flex-direction: column; gap: clamp(14px, 3vh, 28px); }
+
+/* ---------- Prejemniki ---------- */
+.seri-people { position: relative; }
+.seri-people-track {
+  display: flex;
+  gap: 14px;
+  justify-content: safe center;
+  overflow-x: auto;
+  padding: 12px 6px 10px;
+  scrollbar-width: none;
+}
+.seri-people-track::-webkit-scrollbar { display: none; }
+.seri-person {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  width: 74px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-soft);
+  font: inherit;
+  cursor: pointer;
+  transition: color .2s ease, transform .25s cubic-bezier(.2, .8, .2, 1);
+}
+.seri-avatar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: .02em;
+  background: linear-gradient(140deg, var(--pa), var(--pb));
+  box-shadow: 0 8px 20px -10px var(--pb);
+  transition: transform .3s cubic-bezier(.2, .8, .2, 1), box-shadow .3s ease;
+}
+.seri-avatar svg { width: 24px; height: 24px; }
+/* žareč obroč okoli izbranega */
+.seri-avatar::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background: conic-gradient(from var(--seri-angle, 0deg), var(--pa), var(--pb), var(--pa)) border-box;
+  -webkit-mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity .25s ease;
+  animation: seri-spin 3s linear infinite;
+}
+.seri-person-name {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: .76rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.seri-person:hover .seri-avatar { transform: translateY(-2px); }
+.seri-person[aria-selected="true"] { color: var(--text); }
+.seri-person[aria-selected="true"] .seri-avatar { transform: scale(1.12); box-shadow: 0 10px 30px -6px var(--pb); }
+.seri-person[aria-selected="true"] .seri-avatar::after { opacity: 1; }
+.seri-person.is-target .seri-avatar { transform: scale(1.3); }
+.seri-person.is-hit .seri-avatar { animation: seri-pop .6s cubic-bezier(.2, .8, .2, 1); }
+@keyframes seri-pop {
+  0% { transform: scale(1.12); }
+  35% { transform: scale(1.45); }
+  100% { transform: scale(1.12); }
+}
+.seri-person-check {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 3px var(--bg);
+  animation: seri-check-in .4s cubic-bezier(.2, .8, .2, 1);
+}
+.seri-person-check svg { width: 13px; height: 13px; }
+@keyframes seri-check-in { from { transform: scale(0); } to { transform: scale(1); } }
+
+@property --seri-angle { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+@keyframes seri-spin { to { --seri-angle: 360deg; } }
+
+/* ---------- Oder ---------- */
+.seri-stage {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  min-height: 420px;
+}
+.seri-to {
+  margin: 0;
+  font-size: .95rem;
+  color: var(--text-soft);
+  text-align: center;
+}
+.seri-to strong {
+  display: block;
+  font-size: clamp(1.5rem, 5vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+/* ---------- Ogromen plus ---------- */
+.seri-plus {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: clamp(180px, 50vw, 240px);
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.seri-plus-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(from var(--seri-angle), #a855f7, #ec4899, #f59e0b, #22d3ee, #a855f7);
+  animation: seri-spin 4s linear infinite;
+  filter: saturate(1.2);
+}
+.seri-plus-ring::after {
+  content: "";
+  position: absolute;
+  inset: -18%;
+  border-radius: 50%;
+  background: inherit;
+  filter: blur(36px);
+  opacity: .55;
+  z-index: -1;
+  animation: seri-breathe 2.8s ease-in-out infinite;
+}
+@keyframes seri-breathe { 50% { opacity: .85; transform: scale(1.06); } }
+.seri-plus-core {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: calc(100% - 14px);
+  height: calc(100% - 14px);
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--text);
+  transition: transform .3s cubic-bezier(.2, .8, .2, 1), background .3s ease;
+}
+.seri-plus-core svg { width: 42%; height: 42%; transition: transform .45s cubic-bezier(.2, .8, .2, 1); }
+.seri-plus:hover .seri-plus-core svg,
+.seri-plus:focus-visible .seri-plus-core svg { transform: rotate(90deg); }
+.seri-plus:active .seri-plus-core { transform: scale(.94); }
+.seri-plus:focus-visible { outline: none; }
+.seri-plus-hint { margin: 0; color: var(--text-soft); font-size: .9rem; text-align: center; }
+.seri-plus-hint span { opacity: .7; }
+
+/* ---------- Kartica datoteke ---------- */
+.seri-file {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  width: 100%;
+}
+.seri-file-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: min(280px, 80vw);
+  padding: 26px 20px 20px;
+  border: 1px solid var(--border-strong);
+  border-radius: 32px;
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  box-shadow: var(--shadow-lift);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+  animation: seri-card-in .5s cubic-bezier(.2, .8, .2, 1);
+  will-change: transform;
+}
+.seri-file-card.is-dragging { cursor: grabbing; transition: none; }
+.seri-file-card.is-returning { transition: transform .45s cubic-bezier(.34, 1.56, .64, 1), opacity .3s ease; }
+.seri-file-card.is-flying { transition: transform .55s cubic-bezier(.5, 0, .75, 0), opacity .55s ease; }
+@keyframes seri-card-in {
+  from { opacity: 0; transform: translateY(30px) scale(.85) rotate(-4deg); }
+  to { opacity: 1; transform: none; }
+}
+
+.seri-doc { position: relative; width: 104px; height: 130px; }
+.seri-doc-svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 14px 22px color-mix(in srgb, var(--doc-b) 45%, transparent)); }
+.seri-doc {
+  --doc-paper: color-mix(in srgb, var(--surface-solid) 85%, var(--doc-a));
+  --doc-edge: color-mix(in srgb, var(--doc-a) 55%, transparent);
+  --doc-fold: color-mix(in srgb, var(--doc-b) 55%, #fff);
+}
+.seri-liquid { transition: transform .35s ease-out; }
+.seri-wave { animation: seri-wave 2.2s linear infinite; }
+.seri-wave--back { animation-duration: 3.4s; animation-direction: reverse; }
+@keyframes seri-wave { from { transform: translateX(0); } to { transform: translateX(-60px); } }
+.seri-doc-ext {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  max-width: 86px;
+  padding: 3px 8px;
+  overflow: hidden;
+  border-radius: 8px;
+  color: #fff;
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  background: rgba(0, 0, 0, .18);
+  backdrop-filter: blur(4px);
+}
+.seri-file-name {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-align: center;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.seri-file-meta { color: var(--text-soft); font-size: .82rem; }
+
+/* orbitirajoče pike med nalaganjem */
+.seri-orbit { position: absolute; inset: -10px; pointer-events: none; opacity: 0; transition: opacity .3s ease; }
+.seri-file-card.is-uploading .seri-orbit { opacity: 1; }
+.seri-orbit i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 9px;
+  height: 9px;
+  margin: -4.5px;
+  border-radius: 50%;
+  background: var(--doc-a, #a855f7);
+  box-shadow: 0 0 12px var(--doc-a, #a855f7);
+  animation: seri-orbit 2.4s linear infinite;
+}
+.seri-orbit i:nth-child(2) { animation-delay: -.8s; background: var(--doc-b, #22d3ee); box-shadow: 0 0 12px var(--doc-b, #22d3ee); }
+.seri-orbit i:nth-child(3) { animation-delay: -1.6s; width: 6px; height: 6px; margin: -3px; }
+@keyframes seri-orbit {
+  from { transform: rotate(0deg) translateX(min(158px, 46vw)) rotate(0deg) scaleY(.6); }
+  to { transform: rotate(360deg) translateX(min(158px, 46vw)) rotate(-360deg) scaleY(.6); }
+}
+
+/* napredek */
+.seri-progress { display: flex; align-items: center; gap: 10px; width: 100%; margin-top: 4px; }
+.seri-progress-bar {
+  position: relative;
+  flex: 1;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 10%, transparent);
+}
+.seri-progress-bar span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, .55), transparent) 0 0 / 60% 100% no-repeat,
+    linear-gradient(90deg, var(--doc-a, #a855f7), var(--doc-b, #22d3ee));
+  animation: seri-sheen 1.2s linear infinite;
+  transition: width .25s ease-out;
+}
+@keyframes seri-sheen { from { background-position: -120% 0, 0 0; } to { background-position: 260% 0, 0 0; } }
+.seri-progress-pct { min-width: 44px; font-size: .8rem; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+
+/* namig za poteg */
+.seri-swipe-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  color: var(--text-soft);
+  order: -1;
+}
+.seri-chev {
+  width: 14px;
+  height: 14px;
+  margin-bottom: -5px;
+  border-left: 3px solid currentColor;
+  border-top: 3px solid currentColor;
+  transform: rotate(45deg);
+  opacity: .2;
+  animation: seri-chev 1.4s ease-in-out infinite;
+}
+.seri-chev:nth-child(1) { animation-delay: .4s; }
+.seri-chev:nth-child(2) { animation-delay: .2s; }
+@keyframes seri-chev { 0%, 100% { opacity: .15; } 50% { opacity: 1; color: #ec4899; } }
+.seri-swipe-hint em { margin-top: 10px; font-style: normal; font-size: .8rem; font-weight: 600; letter-spacing: .04em; }
+
+.seri-file-actions { display: flex; gap: 10px; }
+.seri-btn {
+  padding: 10px 20px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: .9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform .2s ease, background .2s ease;
+}
+.seri-btn:active { transform: scale(.95); }
+.seri-btn--ghost { color: var(--text-soft); }
+.seri-btn--go {
+  border-color: transparent;
+  color: #fff;
+  background: linear-gradient(100deg, #a855f7, #ec4899);
+  box-shadow: 0 8px 20px -10px #ec4899;
+}
+.seri-btn:disabled { opacity: .5; cursor: default; }
+
+/* spust datoteke (računalnik) */
+.seri-drop {
+  position: fixed;
+  inset: 12px;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  border: 3px dashed #ec4899;
+  border-radius: 32px;
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  backdrop-filter: blur(6px);
+  font-size: 1.4rem;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+/* delci ob uspešnem pošiljanju */
+.seri-spark {
+  position: fixed;
+  z-index: 60;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: seri-spark .8s cubic-bezier(.2, .8, .2, 1) forwards;
+}
+@keyframes seri-spark {
+  from { transform: translate(0, 0) scale(1); opacity: 1; }
+  to { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
+}
+
+@media (max-width: 560px) {
+  .seri-header { justify-content: flex-end; }
+  .seri-stage { min-height: 380px; }
+  .seri-swipe-hint em { font-size: .76rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .seri-blob, .seri-plus-ring, .seri-wave, .seri-orbit i { animation: none !important; }
+}
