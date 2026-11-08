@@ -30,6 +30,10 @@
   var sendBtn = $("seriSend");
   var cancelBtn = $("seriCancel");
   var dropEl = $("seriDrop");
+  var galleryBtn = $("seriGallery");
+  var galleryInput = $("seriGalleryInput");
+  var searchEl = $("seriSearch");
+  var searchEmpty = $("seriSearchEmpty");
 
   if (!window.SUPABASE_URL || !window.supabase) {
     gate.textContent = "Supabase ni nastavljen.";
@@ -134,9 +138,40 @@
   /* ---------- Izbira datoteke ---------- */
 
   plusBtn.addEventListener("click", function () { input.click(); });
-  input.addEventListener("change", function () {
-    if (input.files && input.files[0]) pickFile(input.files[0]);
-    input.value = "";
+  // „Galerija“: accept=image/*,video/* → telefon odpre izbirnik fotografij namesto datotek
+  galleryBtn.addEventListener("click", function () { galleryInput.click(); });
+  [input, galleryInput].forEach(function (inp) {
+    inp.addEventListener("change", function () {
+      if (inp.files && inp.files[0]) pickFile(inp.files[0]);
+      inp.value = "";
+    });
+  });
+
+  /* ---------- Iskanje osebe ---------- */
+  function norm(s) {
+    return (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  }
+  searchEl.addEventListener("input", filterPeople);
+  function filterPeople() {
+    var q = norm(searchEl.value.trim());
+    var btns = peopleEl.querySelectorAll(".seri-person");
+    var shown = 0, first = null;
+    for (var i = 0; i < btns.length; i++) {
+      var p = personById(btns[i].getAttribute("data-id"));
+      var hay = norm((p.me ? "jaz druga naprava " : "") + p.name);
+      var ok = !q || q.split(/s+/).every(function (w) { return hay.indexOf(w) !== -1; });
+      btns[i].hidden = !ok;
+      if (ok) { shown++; if (!first) first = btns[i]; }
+    }
+    searchEmpty.hidden = shown > 0;
+    // en sam zadetek → izberi ga
+    if (q && shown === 1) selectRecipient(first.getAttribute("data-id"));
+  }
+  searchEl.addEventListener("keydown", function (e) {
+    if (e.key !== "Enter") return;
+    var first = peopleEl.querySelector(".seri-person:not([hidden])");
+    if (first) selectRecipient(first.getAttribute("data-id"));
+    searchEl.blur();
   });
 
   // Spust datoteke na računalniku.
@@ -191,6 +226,7 @@
 
     plusBtn.hidden = true;
     plusHint.hidden = true;
+    galleryBtn.hidden = true;
     fileWrap.hidden = false;
     swipeHint.hidden = false;
     sendBtn.disabled = false;
@@ -412,6 +448,7 @@
     fileWrap.hidden = true;
     plusBtn.hidden = false;
     plusHint.hidden = false;
+    galleryBtn.hidden = false;
     toEl.hidden = true;
     card.classList.remove("is-uploading", "is-flying", "is-returning", "is-dragging", "is-beaming");
     card.style.transform = "";

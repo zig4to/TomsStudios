@@ -43,6 +43,12 @@
 
     <div class="seri-app" id="seriApp" hidden>
       <!-- Prejemniki -->
+      <label class="seri-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="search" id="seriSearch" placeholder="Poišči osebo …" autocomplete="off" enterkeyhint="search" aria-label="Poišči osebo" />
+      </label>
+      <p class="seri-search-empty" id="seriSearchEmpty" hidden>Ni zadetkov.</p>
+
       <section class="seri-people" aria-label="Komu pošlješ">
         <div class="seri-people-track" id="seriPeople" role="listbox" aria-label="Uporabniki"></div>
       </section>
@@ -58,6 +64,10 @@
           </span>
         </button>
         <p class="seri-plus-hint" id="seriPlusHint">Tapni in izberi datoteko <span>· do 50 MB · vsi formati</span></p>
+        <button class="seri-gallery" id="seriGallery" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.09-3.09a2 2 0 0 0-2.82 0L6 21"/></svg>
+          <span>Galerija</span>
+        </button>
 
         <div class="seri-file" id="seriFile" hidden>
           <div class="seri-file-card" id="seriFileCard">
@@ -101,6 +111,7 @@
         </div>
 
         <input type="file" id="seriInput" hidden />
+        <input type="file" id="seriGalleryInput" accept="image/*,video/*" hidden />
       </section>
 
       <div class="seri-drop" id="seriDrop" hidden><span>Spusti datoteko</span></div>
