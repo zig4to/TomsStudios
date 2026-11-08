@@ -1077,9 +1077,9 @@ body.is-reordering .card.is-dragging .card-grip { cursor: grabbing; }
   isolation: isolate;
   display: flex;
   align-items: center;
-  gap: 20px;
-  min-height: 150px;
-  padding: 22px 24px;
+  gap: 14px;
+  min-height: 0;
+  padding: 14px 18px;
   border-radius: calc(var(--radius) + 4px);
   color: #fff;
   text-decoration: none;
@@ -1115,17 +1115,17 @@ body.is-reordering .card.is-dragging .card-grip { cursor: grabbing; }
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  width: 76px;
-  height: 76px;
-  border-radius: 22px;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
   background: rgba(255, 255, 255, .2);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .3);
   transition: transform .28s cubic-bezier(.2, .8, .2, 1);
 }
-.featured-icon svg { width: 40px; height: 40px; }
+.featured-icon svg { width: 28px; height: 28px; }
 .featured-card:hover .featured-icon { transform: scale(1.06) rotate(-4deg); }
-.featured-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.featured-title { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
+.featured-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.featured-title { font-size: 1.2rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
 .featured-text { display: none; font-size: .88rem; line-height: 1.4; color: rgba(255, 255, 255, .9); }
 .featured-card.is-info-open .featured-text { display: block; animation: featured-fade .2s ease; }
 @keyframes featured-fade { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: none; } }
@@ -1155,7 +1155,7 @@ body.is-reordering .card.is-dragging .card-grip { cursor: grabbing; }
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin-top: 6px;
+  margin-top: 2px;
   font-size: .82rem;
   font-weight: 600;
 }
@@ -1198,10 +1198,10 @@ body.is-reordering .featured { display: none; }
   .card { min-height: 148px; padding: 16px; }
   .card-icon { width: 42px; height: 42px; }
   .card-icon svg { width: 22px; height: 22px; }
-  .featured-card { min-height: 0; padding: 18px; gap: 16px; }
-  .featured-icon { width: 60px; height: 60px; border-radius: 18px; }
-  .featured-icon svg { width: 32px; height: 32px; }
-  .featured-title { font-size: 1.25rem; }
+  .featured-card { min-height: 0; padding: 12px 14px; gap: 14px; }
+  .featured-icon { width: 46px; height: 46px; border-radius: 14px; }
+  .featured-icon svg { width: 24px; height: 24px; }
+  .featured-title { font-size: 1.1rem; }
   .featured-text { font-size: .82rem; }
 
   /* naslov na telefonu poravnan levo (prostor za krog uporabnika desno) in manjši */
