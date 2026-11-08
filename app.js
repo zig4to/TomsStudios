@@ -1,4 +1,4 @@
-/* TomStudios — hub aplikacij */
+/* Bitneverse — hub aplikacij */
 (function () {
   "use strict";
 
@@ -43,7 +43,7 @@
   // Trd reset: pobriše service worker + predpomnilnik in stran naloži znova
   // neposredno s strežnika (kot Ctrl+F5). getRegistrations()/caches.keys() brez
   // scope filtra zajameta VSE aplikacije na istem izvoru (zig4to.github.io), ne
-  // le TomStudios - zato ta gumb dejansko osveži vse aplikacije naenkrat.
+  // le Bitneverse - zato ta gumb dejansko osveži vse aplikacije naenkrat.
   function hardReset(btn) {
     btn.disabled = true;
     btn.classList.add("is-spinning");

@@ -362,7 +362,7 @@
     if (!last.length) {
       var empty = document.createElement("span");
       empty.className = "chat-mini-empty";
-      empty.textContent = "Še tiho. Pozdravi vse v TomStudios 👋";
+      empty.textContent = "Še tiho. Pozdravi vse v Bitneverse 👋";
       els.list.appendChild(empty);
       return;
     }

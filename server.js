@@ -52,6 +52,6 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log("\n  TomStudios dev strežnik");
+  console.log("\n  Bitneverse dev strežnik");
   console.log("  → http://localhost:" + PORT + "\n");
 });

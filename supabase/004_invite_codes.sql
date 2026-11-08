@@ -1,4 +1,4 @@
--- TomStudios — registracija z enkratno kodo vabila v povezavi.
+-- Bitneverse — registracija z enkratno kodo vabila v povezavi.
 -- Zaženi enkrat v Supabase nadzorni plošči: SQL Editor → New query → Run.
 --
 -- Kdor odpre povezavo ?vabilo=<koda> (hub ali Dogodki), pošlje kodo ob

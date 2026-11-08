@@ -1,4 +1,4 @@
-/* TomStudios — osebna nadzorna plošča.
+/* Bitneverse — osebna nadzorna plošča.
    Posluša "ptomsetu:signed-in"/"ptomsetu:signed-out" (sproženo v auth.js).
    Vsako mesto (slot) je ena vrstica v Supabase tabeli user_dashboard_slots:
    app_id = null pomeni prazno "+" mesto. Razpored kartic (vlečenje, dodajanje

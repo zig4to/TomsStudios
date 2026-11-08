@@ -1,4 +1,4 @@
-/* TomStudios — seznam vseh aplikacij.
+/* Bitneverse — seznam vseh aplikacij.
    Vsaka aplikacija je en zapis: id (ujema se z app_id v Supabase), naslov,
    podnaslov, povezava, barvni preliv ikone in SVG ikona (v slogu Lucide).
    Ko dodajaš novo aplikacijo, ji tu dodaj zapis — v index.html se ne dotikaš
@@ -230,7 +230,7 @@
     // Izpostavljeno 2 tedna od objave; po tem datumu (vključno) se razdelek
     // in značke NOVO ne prikazujejo več.
     until: "2026-11-22",
-    title: "Novo v TomStudios",
+    title: "Novo v Bitneverse",
     apps: [
       { id: "bingo", text: "Letni bingo ciljev in števec — npr. 2000 km na kolesu, 50× plezanja. Kljukaj in odštevaj skozi leto." },
       { id: "cekar", text: "Skupni nakupovalni seznami po trgovinah — dodaš izdelek, ostali ga vidijo takoj." }

@@ -1,4 +1,4 @@
--- TomStudios — dodajanje povabljenih e-poštnih naslovov na seznam, ki sme
+-- Bitneverse — dodajanje povabljenih e-poštnih naslovov na seznam, ki sme
 -- dokončati registracijo (glej 001_allowed_emails.sql). Zaženi v Supabase
 -- SQL editorju. "on conflict do nothing" naredi skript varen za ponovni zagon.
 

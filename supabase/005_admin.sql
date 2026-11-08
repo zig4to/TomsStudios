@@ -1,4 +1,4 @@
--- TomStudios — administracija: pravice do aplikacij, blokiranje, admini.
+-- Bitneverse — administracija: pravice do aplikacij, blokiranje, admini.
 -- Zaženi enkrat v Supabase nadzorni plošči: SQL Editor → New query → Run.
 -- Predpogoj: 001–004.
 --

@@ -1,4 +1,4 @@
-/* TomStudios — prijava, registracija, odjava, preverjanje seje.
+/* Bitneverse — prijava, registracija, odjava, preverjanje seje.
    Sproža dogodka "ptomsetu:signed-in" (detail.session) in "ptomsetu:signed-out"
    na document, na katera posluša dashboard.js. Ne uvaža dashboard.js in ne ve
    zanj — samo skrbi za sejo in preklop med zaslonoma. */

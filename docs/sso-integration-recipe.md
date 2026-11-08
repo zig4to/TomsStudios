@@ -1,7 +1,7 @@
-# Recept: povezava pod-aplikacije s prijavo v TomStudios
+# Recept: povezava pod-aplikacije s prijavo v Bitneverse
 
 Ta dokument opisuje, kaj je treba dodati v posamezno pod-aplikacijo (Piši,
-Dogodki, Računi, ...), ko jo povežemo z isto prijavo kot hub. TomStudios repo
+Dogodki, Računi, ...), ko jo povežemo z isto prijavo kot hub. Bitneverse (repo TomsStudios)
 tega ne implementira namesto njih — vsaka pod-aplikacija živi v svojem
 repozitoriju.
 

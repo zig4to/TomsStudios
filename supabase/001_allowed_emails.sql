@@ -1,4 +1,4 @@
--- TomStudios — seznam e-poštnih naslovov, ki smejo dokončati registracijo.
+-- Bitneverse — seznam e-poštnih naslovov, ki smejo dokončati registracijo.
 -- Zaženi enkrat v Supabase nadzorni plošči: SQL Editor → New query → Run.
 
 create table if not exists public.allowed_emails (

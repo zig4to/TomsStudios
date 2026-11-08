@@ -1,4 +1,6 @@
-# TomStudios
+# Bitneverse
+
+> Prej TomStudios. Repozitorij in naslov ostajata `TomsStudios` (`https://zig4to.github.io/TomsStudios/`).
 
 Domača stran (hub) s povezavami do vseh mojih aplikacij. Prijava in osebna
 nadzorna plošča tečeta prek [Supabase](https://supabase.com).
@@ -127,7 +129,7 @@ nadzorni plošči — vsak uporabnik si jo sam doda na svoje mesto.
 ## Objava na GitHub Pages
 
 ```bash
-git init && git add . && git commit -m "Hub TomStudios"
+git init && git add . && git commit -m "Hub Bitneverse"
 git branch -M main
 git remote add origin https://github.com/zig4to/<ime-repota>.git
 git push -u origin main

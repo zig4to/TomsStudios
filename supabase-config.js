@@ -1,4 +1,4 @@
-/* TomStudios — nastavitve Supabase projekta.
+/* Bitneverse — nastavitve Supabase projekta.
    anon/publishable ključ je varen za javno kodo, ker je dostop do vsake
    tabele omejen z Row Level Security (glej supabase/*.sql). */
 window.SUPABASE_URL = "https://abjnxhfxjolwwxlckkje.supabase.co";

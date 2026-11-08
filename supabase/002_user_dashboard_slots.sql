@@ -1,4 +1,4 @@
--- TomStudios — osebna postavitev kartic na nadzorni plošči, ena vrstica na
+-- Bitneverse — osebna postavitev kartic na nadzorni plošči, ena vrstica na
 -- mesto (prazno "+" ali dodeljena aplikacija). Zaženi enkrat v Supabase SQL
 -- editorju, po 001_allowed_emails.sql.
 

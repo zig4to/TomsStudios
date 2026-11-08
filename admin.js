@@ -1,4 +1,4 @@
-/* TomStudios — stran Administracija (admin.html, samo za admine).
+/* Bitneverse — stran Administracija (admin.html, samo za admine).
    Uporabniki: pravice do aplikacij, ime in priimek, geslo, blokiranje, admin.
    Vabila: nova enkratna povezava, seznam, preklic.
    Vse gre prek admin_* funkcij v bazi (supabase/005_admin.sql), ki same
@@ -352,7 +352,7 @@
         acts.appendChild(button("Kopiraj", "", function () { shareOrCopy(link, invitesStatus); }));
         if (navigator.share) {
           acts.appendChild(button("Deli", "", function () {
-            navigator.share({ title: "Vabilo v TomStudios", text: "Vabilo v TomStudios", url: link }).catch(function () {});
+            navigator.share({ title: "Vabilo v Bitneverse", text: "Vabilo v Bitneverse", url: link }).catch(function () {});
           }));
         }
         var del = button("Prekliči", "admin-btn--danger", function () {
