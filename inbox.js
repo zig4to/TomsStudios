@@ -19,6 +19,8 @@
 
   var DL_ICON =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>';
+  var EYE_ICON =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>';
   var X_ICON =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>';
 
@@ -106,6 +108,16 @@
 
     el.appendChild(icon);
     el.appendChild(body);
+    if (isImage(t)) {
+      var eye = document.createElement("button");
+      eye.type = "button";
+      eye.className = "seri-in-eye";
+      eye.setAttribute("aria-label", "Predogled slike");
+      eye.title = "Predogled";
+      eye.innerHTML = EYE_ICON;
+      eye.addEventListener("click", function () { preview(t, eye); });
+      el.appendChild(eye);
+    }
     el.appendChild(dl);
     el.appendChild(rm);
     return el;
@@ -129,6 +141,89 @@
           sb().from("seri_transfers").update({ downloaded_at: t.downloaded_at }).eq("id", t.id).then(function () {});
         }
       });
+  }
+
+  /* ---------- Predogled slike ---------- */
+  var IMG_EXT = /^(jpe?g|png|gif|webp|avif|svg|bmp|heic|heif)$/;
+  function isImage(t) {
+    return /^image\//.test(t.mime || "") || IMG_EXT.test(S.ext(t.name));
+  }
+
+  var lightbox = null;
+  function closePreview() {
+    if (!lightbox) return;
+    var lb = lightbox;
+    lightbox = null;
+    lb.classList.remove("is-open");
+    document.removeEventListener("keydown", onPreviewKey);
+    setTimeout(function () { lb.remove(); }, 220);
+  }
+  function onPreviewKey(e) { if (e.key === "Escape") closePreview(); }
+
+  function preview(t, btn) {
+    if (lightbox) closePreview();
+    btn.disabled = true;
+    // brez {download}: brskalnik sliko prikaže; predogled ne šteje kot prenos
+    sb().storage.from(S.BUCKET).createSignedUrl(t.path, 600).then(function (res) {
+      btn.disabled = false;
+      if (res.error || !res.data) { alertFail(); return; }
+
+      var lb = document.createElement("div");
+      lb.className = "seri-lightbox";
+      lb.setAttribute("role", "dialog");
+      lb.setAttribute("aria-modal", "true");
+      lb.setAttribute("aria-label", "Predogled: " + t.name);
+
+      var fig = document.createElement("figure");
+      fig.className = "seri-lightbox-fig";
+      var spinner = document.createElement("span");
+      spinner.className = "seri-lightbox-spin";
+      var img = document.createElement("img");
+      img.alt = t.name;
+      img.decoding = "async";
+      img.onload = function () { spinner.remove(); fig.classList.add("is-loaded"); };
+      img.onerror = function () {
+        spinner.remove();
+        img.remove();
+        var p = document.createElement("p");
+        p.className = "seri-lightbox-err";
+        p.textContent = "Te vrste slike brskalnik ne zna prikazati. Prenesi jo.";
+        fig.insertBefore(p, cap);
+      };
+      img.src = res.data.signedUrl;
+
+      var cap = document.createElement("figcaption");
+      var nm = document.createElement("span");
+      nm.textContent = t.name;
+      var get = document.createElement("button");
+      get.type = "button";
+      get.className = "seri-in-dl";
+      get.style.setProperty("--doc-a", S.kindColors(t.name, t.mime)[0]);
+      get.style.setProperty("--doc-b", S.kindColors(t.name, t.mime)[1]);
+      get.innerHTML = DL_ICON + "<span>Prenesi</span>";
+      get.addEventListener("click", function (e) { e.stopPropagation(); download(t, get); });
+      cap.appendChild(nm);
+      cap.appendChild(get);
+
+      var close = document.createElement("button");
+      close.type = "button";
+      close.className = "seri-lightbox-x";
+      close.setAttribute("aria-label", "Zapri predogled");
+      close.innerHTML = X_ICON;
+      close.addEventListener("click", closePreview);
+
+      fig.appendChild(spinner);
+      fig.appendChild(img);
+      fig.appendChild(cap);
+      lb.appendChild(fig);
+      lb.appendChild(close);
+      // klik na ozadje zapre, klik na sliko/napis ne
+      lb.addEventListener("click", function (e) { if (e.target === lb || e.target === fig) closePreview(); });
+      document.body.appendChild(lb);
+      document.addEventListener("keydown", onPreviewKey);
+      lightbox = lb;
+      requestAnimationFrame(function () { lb.classList.add("is-open"); close.focus(); });
+    });
   }
 
   function alertFail() {

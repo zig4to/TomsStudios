@@ -1559,7 +1559,103 @@ body.is-reordering .featured { display: none; }
 }
 .seri-in-x:hover { color: var(--text); background: var(--border-strong); }
 .seri-in-x svg { width: 16px; height: 16px; }
+/* predogled slike (oko) */
+.seri-in-eye {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--doc-a) 14%, transparent);
+  color: var(--text);
+  cursor: pointer;
+  transition: transform .15s ease, border-color .2s ease;
+}
+.seri-in-eye:hover, .seri-in-eye:focus-visible { transform: translateY(-1px); border-color: var(--doc-a); outline: none; }
+.seri-in-eye:disabled { opacity: .6; cursor: progress; }
+.seri-in-eye svg { width: 18px; height: 18px; }
+
+.seri-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: grid;
+  place-items: center;
+  padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+  background: rgba(5, 8, 20, .82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  opacity: 0;
+  transition: opacity .22s ease;
+}
+.seri-lightbox.is-open { opacity: 1; }
+.seri-lightbox-fig {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  justify-content: center;
+}
+.seri-lightbox-fig img {
+  max-width: 100%;
+  max-height: calc(100% - 70px);
+  object-fit: contain;
+  border-radius: 14px;
+  box-shadow: 0 30px 80px -20px rgba(0, 0, 0, .8);
+  opacity: 0;
+  transform: scale(.94);
+  transition: opacity .3s ease, transform .4s cubic-bezier(.2, 1.3, .4, 1);
+}
+.seri-lightbox-fig.is-loaded img { opacity: 1; transform: none; }
+.seri-lightbox-fig figcaption {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 100%;
+  color: #f1f5f9;
+  font-size: .9rem;
+  font-weight: 600;
+}
+.seri-lightbox-fig figcaption > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.seri-lightbox-x {
+  position: absolute;
+  top: max(14px, env(safe-area-inset-top));
+  right: 14px;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .12);
+  color: #fff;
+  cursor: pointer;
+}
+.seri-lightbox-x:hover, .seri-lightbox-x:focus-visible { background: rgba(255, 255, 255, .22); outline: none; }
+.seri-lightbox-x svg { width: 20px; height: 20px; }
+.seri-lightbox-spin {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, .15);
+  border-top-color: #ec4899;
+  border-right-color: #a855f7;
+  animation: seri-lb-spin .8s linear infinite;
+}
+@keyframes seri-lb-spin { to { transform: rotate(360deg); } }
+.seri-lightbox-err { margin: 0; color: #e2e8f0; text-align: center; }
+/* v predogledu napis „Prenesi“ ostane tudi na telefonu */
+.seri-lightbox .seri-in-dl { flex: none; padding: 9px 14px; }
+.seri-lightbox .seri-in-dl span { display: inline; }
+
 /* prihod: ikono riše platno (SERI.transfer), gumbi se pokažejo ob pristanku */
+.seri-in.is-arriving .seri-in-eye,
 .seri-in.is-arriving .seri-in-icon,
 .seri-in.is-arriving .seri-in-dl,
 .seri-in.is-arriving .seri-in-x { visibility: hidden; }
