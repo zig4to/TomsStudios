@@ -1471,9 +1471,11 @@ body.is-reordering .featured { display: none; }
 .chat-launch svg { margin: 0; }
 @keyframes seri-badge-pop { from { transform: scale(0); } }
 
-/* ---------- Mini klepet pod glavo (chat-mini.js) ---------- */
+/* ---------- Mini klepet pod glavo (chat-mini.js) — videz kot Messenger ---------- */
 .chat-mini[hidden] { display: none; }
+.chat-mini [hidden] { display: none !important; }
 .chat-mini {
+  --mini-other: color-mix(in srgb, var(--text) 9%, var(--surface-solid));
   position: relative;
   display: flex;
   flex-direction: column;
@@ -1484,17 +1486,6 @@ body.is-reordering .featured { display: none; }
   background: var(--surface-solid);
   border: 1px solid var(--border-strong);
   box-shadow: var(--shadow);
-  overflow: hidden;
-  isolation: isolate;
-}
-.chat-mini::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background:
-    radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, #6366f1 16%, transparent), transparent 55%),
-    radial-gradient(120% 140% at 100% 100%, color-mix(in srgb, #ec4899 12%, transparent), transparent 55%);
 }
 .chat-mini-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .chat-mini-title { display: inline-flex; align-items: center; gap: 8px; color: var(--text); text-decoration: none; font-size: .92rem; }
@@ -1516,8 +1507,9 @@ body.is-reordering .featured { display: none; }
   font-size: .68rem;
   font-weight: 800;
 }
-.chat-mini-count[hidden] { display: none; }
-.chat-mini-toggle {
+.chat-mini-tools { display: flex; align-items: center; gap: 2px; }
+.chat-mini-toggle,
+.chat-mini-expand {
   display: grid;
   place-items: center;
   width: 30px;
@@ -1527,29 +1519,42 @@ body.is-reordering .featured { display: none; }
   background: transparent;
   color: var(--text-soft);
   cursor: pointer;
-  transition: transform .25s ease, background .15s ease;
+  transition: transform .25s ease, background .15s ease, color .15s ease;
 }
-.chat-mini-toggle:hover { background: var(--surface); color: var(--text); }
+.chat-mini-toggle:hover, .chat-mini-expand:hover,
+.chat-mini-toggle:focus-visible, .chat-mini-expand:focus-visible { background: var(--mini-other); color: var(--text); outline: none; }
 .chat-mini-toggle svg { width: 18px; height: 18px; }
+.chat-mini-expand svg { width: 17px; height: 17px; }
 .chat-mini.is-collapsed .chat-mini-toggle { transform: rotate(-90deg); }
 .chat-mini.is-collapsed .chat-mini-list,
 .chat-mini.is-collapsed .chat-mini-form { display: none; }
 .chat-mini.is-collapsed { padding-bottom: 12px; }
 
-.chat-mini-list { display: flex; flex-direction: column; gap: 2px; color: inherit; text-decoration: none; text-align: left; }
-.chat-mini-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  padding: 5px 6px;
-  border-radius: 10px;
-  font-size: .86rem;
-  transition: background .15s ease;
+/* sporočila: oblački levo/desno */
+.chat-mini-list { display: flex; flex-direction: column; gap: 2px; text-align: left; cursor: pointer; }
+.chat-mini-row { display: flex; align-items: flex-end; gap: 6px; min-width: 0; margin-top: 6px; }
+.chat-mini-row:first-child,
+.chat-mini-row.is-gprev { margin-top: 0; }
+.chat-mini-row.is-me { justify-content: flex-end; }
+.chat-mini-row.is-new { animation: seri-in-arrive .45s cubic-bezier(.2, 1.3, .4, 1); }
+.chat-mini-av {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin-bottom: 16px;
+  border-radius: 50%;
+  color: #fff;
+  font-style: normal;
+  font-size: .6rem;
+  font-weight: 800;
 }
-.chat-mini-list:hover .chat-mini-row { background: color-mix(in srgb, var(--text) 3%, transparent); }
-.chat-mini-row.is-new { animation: seri-in-arrive .5s cubic-bezier(.2, 1.3, .4, 1); }
-.chat-mini-row.is-unread b::after {
+.chat-mini-row.is-gnext .chat-mini-av { visibility: hidden; margin-bottom: 0; }
+.chat-mini-col { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; max-width: 80%; }
+.chat-mini-row.is-me .chat-mini-col { align-items: flex-end; }
+.chat-mini-col b { margin: 0 0 2px 12px; font-size: .7rem; font-weight: 700; color: var(--text-soft); }
+.chat-mini-row.is-unread .chat-mini-col b::after {
   content: "";
   display: inline-block;
   width: 6px;
@@ -1557,35 +1562,40 @@ body.is-reordering .featured { display: none; }
   margin-left: 5px;
   border-radius: 50%;
   background: #f43f5e;
-  vertical-align: 2px;
+  vertical-align: 1px;
 }
-.chat-mini-av {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
+.chat-mini-bub {
+  max-width: 100%;
+  padding: 7px 13px;
+  border-radius: 18px;
+  background: var(--mini-other);
+  color: var(--text);
+  font-size: .9rem;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chat-mini-row:not(.is-me).is-gprev .chat-mini-bub { border-top-left-radius: 6px; }
+.chat-mini-row:not(.is-me).is-gnext .chat-mini-bub { border-bottom-left-radius: 6px; }
+.chat-mini-row.is-me .chat-mini-bub {
+  background: linear-gradient(140deg, #ec4899, #a855f7 60%, #6366f1);
   color: #fff;
-  font-style: normal;
-  font-size: .6rem;
-  font-weight: 800;
 }
-.chat-mini-row b { flex: none; font-weight: 700; color: var(--text); }
-.chat-mini-row.is-me b { color: var(--text-soft); }
-.chat-mini-txt { flex: 1; min-width: 0; color: var(--text-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.chat-mini-row.is-unread .chat-mini-txt { color: var(--text); }
-.chat-mini-row em { flex: none; font-style: normal; font-size: .7rem; color: var(--text-soft); opacity: .8; }
+.chat-mini-row.is-me.is-gprev .chat-mini-bub { border-top-right-radius: 6px; }
+.chat-mini-row.is-me.is-gnext .chat-mini-bub { border-bottom-right-radius: 6px; }
+.chat-mini-col em { margin: 2px 10px 0; font-style: normal; font-size: .64rem; color: var(--text-soft); }
 .chat-mini-empty { padding: 4px 6px; font-size: .86rem; color: var(--text-soft); }
 
+/* hiter odgovor */
 .chat-mini-form {
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 4px 4px 4px 14px;
   border-radius: 999px;
-  background: var(--bg);
-  border: 1px solid var(--border-strong);
+  background: var(--mini-other);
+  border: 1px solid transparent;
   transition: border-color .2s ease, box-shadow .2s ease;
 }
 .chat-mini-form:focus-within { border-color: #a855f7; box-shadow: 0 0 0 3px color-mix(in srgb, #a855f7 18%, transparent); }
@@ -1598,7 +1608,7 @@ body.is-reordering .featured { display: none; }
   background: transparent;
   color: var(--text);
   font: inherit;
-  font-size: 1rem; /* ≥16 px: iOS ne poveča strani ob fokusu */
+  font-size: 1rem; /* vsaj 16 px: iOS ne poveča strani ob fokusu */
 }
 .chat-mini-input::placeholder { color: var(--text-soft); }
 .chat-mini-send {
@@ -1617,6 +1627,53 @@ body.is-reordering .featured { display: none; }
 .chat-mini-send:disabled { opacity: .35; cursor: default; }
 .chat-mini-send:not(:disabled):hover { transform: rotate(-10deg); }
 .chat-mini-send svg { width: 16px; height: 16px; margin: 1px 1px 0 0; }
+
+/* razširjeno čez cel zaslon: enobarvno polje */
+body.chat-mini-open { overflow: hidden; }
+.chat-mini.is-expanded {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 900;
+  height: 100dvh;
+  margin: 0;
+  padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right))
+    calc(max(12px, env(safe-area-inset-bottom)) + 6px) max(14px, env(safe-area-inset-left));
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  animation: chat-mini-grow .3s cubic-bezier(.2, 1.1, .4, 1);
+}
+@keyframes chat-mini-grow { from { opacity: 0; transform: translateY(16px) scale(.98); } }
+.chat-mini.is-expanded .chat-mini-head,
+.chat-mini.is-expanded .chat-mini-list,
+.chat-mini.is-expanded .chat-mini-form { width: 100%; max-width: 760px; margin-left: auto; margin-right: auto; }
+.chat-mini.is-expanded .chat-mini-head { padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.chat-mini.is-expanded .chat-mini-title { font-size: 1.05rem; }
+.chat-mini.is-expanded .chat-mini-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  cursor: auto;
+  padding: 8px 0;
+}
+.chat-mini.is-expanded .chat-mini-list > :first-child { margin-top: auto; } /* sporočila prilepljena na dno */
+.chat-mini.is-expanded .chat-mini-col { max-width: 78%; }
+.chat-mini.is-expanded .chat-mini-bub {
+  padding: 8px 14px;
+  font-size: .95rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  overflow: visible;
+}
+.chat-mini.is-expanded .chat-mini-av { width: 28px; height: 28px; font-size: .66rem; }
+.chat-mini.is-expanded .chat-mini-input { height: 42px; }
+.chat-mini.is-expanded .chat-mini-send { width: 42px; height: 42px; }
+@media (prefers-reduced-motion: reduce) {
+  .chat-mini.is-expanded, .chat-mini-row.is-new { animation: none; }
+}
 
 .seri-inbox[hidden] { display: none; }
 .seri-inbox {

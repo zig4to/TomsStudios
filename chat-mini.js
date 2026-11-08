@@ -8,7 +8,9 @@
   var badge = document.getElementById("chatBadge");
   if (!S || !box) return;
 
-  var SHOW = 3;
+  var SHOW = 3;          // strnjeno na plošči
+  var SHOW_FULL = 50;    // razširjeno čez cel zaslon
+  var expanded = false;
   var COLLAPSE_KEY = "chat-mini-collapsed";
   var MSG_COLS = "id, sender_id, body, file_path, file_name, file_mime, created_at";
 
@@ -89,6 +91,10 @@
 
   var SEND_ICON =
     '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>';
+  var EXPAND_ICON =
+    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>';
+  var SHRINK_ICON =
+    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6"/><path d="M20 10h-6V4"/><path d="M14 10l7-7"/><path d="M3 21l7-7"/></svg>';
   var CHEV_ICON =
     '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
   var CHAT_ICON =
@@ -118,13 +124,22 @@
       tog.setAttribute("aria-expanded", String(!c));
       tog.setAttribute("aria-label", c ? "Razširi klepet" : "Strni klepet");
     });
+    var exp = document.createElement("button");
+    exp.type = "button";
+    exp.className = "chat-mini-expand";
+    exp.innerHTML = EXPAND_ICON;
+    exp.addEventListener("click", function () { setExpanded(!expanded); });
+    var tools = document.createElement("div");
+    tools.className = "chat-mini-tools";
+    tools.appendChild(exp);
+    tools.appendChild(tog);
     head.appendChild(title);
-    head.appendChild(tog);
+    head.appendChild(tools);
 
-    var list = document.createElement("a");
+    // strnjeno: klik na sporočila odpre cel klepet; razširjeno: samo drsenje
+    var list = document.createElement("div");
     list.className = "chat-mini-list";
-    list.href = "chat.html";
-    list.setAttribute("aria-label", "Odpri klepet");
+    list.addEventListener("click", function () { if (!expanded) location.href = "chat.html"; });
 
     var form = document.createElement("form");
     form.className = "chat-mini-form";
@@ -162,15 +177,72 @@
     box.classList.toggle("is-collapsed", c);
     tog.setAttribute("aria-expanded", String(!c));
     tog.setAttribute("aria-label", c ? "Razširi klepet" : "Strni klepet");
-    els = { list: list, count: count };
+    els = { list: list, count: count, exp: exp, tog: tog, inp: inp };
+    syncExpandBtn();
   }
+
+  /* ---------- Razširitev čez cel zaslon ---------- */
+
+  function syncExpandBtn() {
+    if (!els) return;
+    els.exp.innerHTML = expanded ? SHRINK_ICON : EXPAND_ICON;
+    els.exp.setAttribute("aria-label", expanded ? "Pomanjšaj klepet" : "Razširi klepet čez cel zaslon");
+    els.exp.title = expanded ? "Pomanjšaj" : "Čez cel zaslon";
+    els.tog.hidden = expanded;
+  }
+
+  // višina = vidni del zaslona (tipkovnica na telefonu ne prekrije polja)
+  function fit() {
+    if (!expanded) return;
+    var vv = window.visualViewport;
+    box.style.height = Math.round(vv ? vv.height : window.innerHeight) + "px";
+    box.style.top = Math.round(vv ? vv.offsetTop : 0) + "px";
+  }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", function () { fit(); if (expanded) listToBottom(); });
+    window.visualViewport.addEventListener("scroll", fit);
+  }
+  window.addEventListener("resize", fit);
+
+  function listToBottom() {
+    if (els) els.list.scrollTop = els.list.scrollHeight;
+  }
+
+  function setExpanded(v, fromHistory) {
+    if (v === expanded || !els) return;
+    expanded = v;
+    if (v) {
+      box.classList.remove("is-collapsed");
+      box.classList.add("is-expanded");
+      document.body.classList.add("chat-mini-open");
+      fit();
+      // sistemski „nazaj“ na telefonu zapre razširjen klepet
+      if (!fromHistory) { try { history.pushState({ chatMini: 1 }, ""); } catch (e) {} }
+    } else {
+      box.classList.remove("is-expanded");
+      document.body.classList.remove("chat-mini-open");
+      box.style.height = "";
+      box.style.top = "";
+      box.classList.toggle("is-collapsed", collapsed());
+      if (!fromHistory && history.state && history.state.chatMini) { try { history.back(); } catch (e) {} }
+    }
+    syncExpandBtn();
+    render();
+    if (v) listToBottom();
+  }
+
+  window.addEventListener("popstate", function () { if (expanded) setExpanded(false, true); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && expanded) setExpanded(false);
+  });
 
   function render(animateId) {
     if (!els) return;
     els.list.innerHTML = "";
     els.count.textContent = unread ? unread + " novih" : "";
     els.count.hidden = !unread;
-    var last = msgs.slice(-SHOW);
+    var stick = expanded && els.list.scrollHeight - els.list.scrollTop - els.list.clientHeight < 80;
+    var last = msgs.slice(-(expanded ? SHOW_FULL : SHOW));
     if (!last.length) {
       var empty = document.createElement("span");
       empty.className = "chat-mini-empty";
@@ -178,29 +250,46 @@
       els.list.appendChild(empty);
       return;
     }
-    last.forEach(function (m) {
-      var row = document.createElement("span");
-      var isNew = lastRead && m.sender_id !== uid && m.created_at > lastRead;
-      row.className = "chat-mini-row" + (isNew ? " is-unread" : "") + (m.id === animateId ? " is-new" : "") +
-        (m.sender_id === uid ? " is-me" : "");
-      var c = S.personColors(m.sender_id);
-      var av = document.createElement("i");
-      av.className = "chat-mini-av";
-      av.style.background = "linear-gradient(140deg," + c[0] + "," + c[1] + ")";
-      av.textContent = S.initials(names[m.sender_id] || "?").charAt(0);
-      var who = document.createElement("b");
-      who.textContent = firstName(m.sender_id);
-      var txt = document.createElement("span");
-      txt.className = "chat-mini-txt";
-      txt.textContent = preview(m);
-      var when = document.createElement("em");
-      when.textContent = ago(m.created_at);
-      row.appendChild(av);
-      row.appendChild(who);
-      row.appendChild(txt);
-      row.appendChild(when);
+    // Messenger: moja desno (preliv), ostala levo (siv oblaček + avatar);
+    // zaporedna sporočila iste osebe združena (ime/avatar samo enkrat)
+    last.forEach(function (m, i) {
+      var me = m.sender_id === uid;
+      var prev = last[i - 1], next = last[i + 1];
+      var gPrev = prev && prev.sender_id === m.sender_id;
+      var gNext = next && next.sender_id === m.sender_id;
+      var isNew = lastRead && !me && m.created_at > lastRead;
+      var row = document.createElement("div");
+      row.className = "chat-mini-row" + (me ? " is-me" : "") + (isNew ? " is-unread" : "") +
+        (m.id === animateId ? " is-new" : "") + (gPrev ? " is-gprev" : "") + (gNext ? " is-gnext" : "");
+      if (!me) {
+        var c = S.personColors(m.sender_id);
+        var av = document.createElement("i");
+        av.className = "chat-mini-av";
+        av.style.background = "linear-gradient(140deg," + c[0] + "," + c[1] + ")";
+        av.textContent = S.initials(names[m.sender_id] || "?").charAt(0);
+        row.appendChild(av);
+      }
+      var col = document.createElement("div");
+      col.className = "chat-mini-col";
+      if (!me && !gPrev) {
+        var who = document.createElement("b");
+        who.textContent = firstName(m.sender_id);
+        col.appendChild(who);
+      }
+      var bub = document.createElement("span");
+      bub.className = "chat-mini-bub";
+      bub.textContent = preview(m);
+      bub.title = ago(m.created_at);
+      col.appendChild(bub);
+      if (!gNext) {
+        var when = document.createElement("em");
+        when.textContent = ago(m.created_at);
+        col.appendChild(when);
+      }
+      row.appendChild(col);
       els.list.appendChild(row);
     });
+    if (stick || (expanded && animateId)) listToBottom();
   }
 
   /* ---------- Podatki ---------- */
@@ -212,7 +301,7 @@
   }
 
   function loadLast() {
-    return sb().from("chat_messages").select(MSG_COLS).order("created_at", { ascending: false }).limit(SHOW)
+    return sb().from("chat_messages").select(MSG_COLS).order("created_at", { ascending: false }).limit(SHOW_FULL)
       .then(function (res) {
         if (res.error) throw res.error;
         msgs = (res.data || []).reverse();
@@ -241,7 +330,7 @@
     if (msgs.some(function (x) { return x.id === m.id; })) return;
     msgs.push(m);
     msgs.sort(function (a, b) { return a.created_at < b.created_at ? -1 : 1; });
-    if (msgs.length > 20) msgs = msgs.slice(-20);
+    if (msgs.length > SHOW_FULL + 10) msgs = msgs.slice(-SHOW_FULL);
     render(m.id);
   }
 
@@ -291,6 +380,7 @@
   }
 
   function stop() {
+    if (expanded) setExpanded(false);
     if (channel && window.sb) window.sb.removeChannel(channel);
     channel = null;
     uid = null;
