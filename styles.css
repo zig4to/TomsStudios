@@ -1464,11 +1464,6 @@ body.is-reordering .featured { display: none; }
   animation: seri-badge-pop .5s cubic-bezier(.3, 1.6, .5, 1);
 }
 .seri-launch-badge[hidden] { display: none; }
-.chat-launch {
-  background: linear-gradient(140deg, #6366f1, #8b5cf6 50%, #ec4899);
-  box-shadow: 0 6px 16px -6px rgba(99, 102, 241, .7);
-}
-.chat-launch svg { margin: 0; }
 @keyframes seri-badge-pop { from { transform: scale(0); } }
 
 /* ---------- Mini klepet pod glavo (chat-mini.js) — videz kot Messenger ---------- */
@@ -1907,8 +1902,7 @@ body.chat-mini-open { overflow: hidden; }
 .seri-in.is-landed .seri-in-dl { animation: seri-badge-pop .45s cubic-bezier(.3, 1.6, .5, 1); }
 @keyframes seri-land { 40% { transform: scale(1.18); } }
 @media (max-width: 560px) {
-  .site-header { padding-right: 150px; }
-  .user-avatar-wrap { gap: 8px; }
+  .site-header { padding-right: 104px; }
   .seri-in { gap: 10px; padding: 10px; }
   .seri-in-dl span { display: none; }
   .seri-in-dl { padding: 10px; }

@@ -77,7 +77,7 @@ Realtime) in jo prenese z izvirnim imenom.
 
 ## Klepet — skupna soba
 
-Gumb **Klepet** v glavi plošče (ob Šeriju, z značko neprebranih) odpre
+Mini klepet na vrhu plošče (zadnja sporočila, hiter odgovor, razširitev čez cel zaslon; naslov „Klepet“) odpre
 `chat.html`: ena skupna soba za vse uporabnike huba, v živo (Supabase Realtime).
 
 - Sporočila ostanejo za vedno; priponke (datoteke, slike iz galerije, prilepljene
