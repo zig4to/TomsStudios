@@ -5,7 +5,7 @@
   "lang": "sl",
   "dir": "ltr",
   "start_url": "./",
-  "scope": "./",
+  "scope": "../",
   "id": "prtomsetu-hub",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],

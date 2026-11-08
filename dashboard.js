@@ -100,7 +100,7 @@
       a.style.setProperty("--accent", app.accent);
       a.style.setProperty("--accent-2", app.accent2);
       a.href = buildAppUrl(app, session);
-      if (isStandalone()) { a.target = "_blank"; a.rel = "noopener"; }
+      if (isStandalone() && !inHubScope(a.href)) { a.target = "_blank"; a.rel = "noopener"; }
 
       // Vrstica: ikona | ime + NOVO, podnaslov | i, Odpri.
       // Opis (f.text) je pod vrstico, viden šele po kliku na „i“.
@@ -244,6 +244,12 @@
 
   /* ---------- Izris ---------- */
 
+  function inHubScope(href) {
+    try { return new URL(href, location.href).origin === location.origin; } catch (e) { return false; }
+  }
+  // oznaka okna plošče: hub-back.js v aplikacijah pokaže gumb nazaj samo v tem oknu
+  try { if (isStandalone()) sessionStorage.setItem("bitneverse-hub", "1"); } catch (e) {}
+
   function isStandalone() {
     return (window.matchMedia && (matchMedia("(display-mode: standalone)").matches ||
       matchMedia("(display-mode: minimal-ui)").matches || matchMedia("(display-mode: fullscreen)").matches)) ||
@@ -261,7 +267,9 @@
     // Nameščen hub (standalone): aplikacija je izven njegovega obsega, zato bi se v
     // istem oknu odprla z vrstico brskalnika. V novem oknu jo Android preda nameščeni
     // aplikaciji (če obstaja), sicer odpre zavihek brskalnika. V brskalniku ostane isti zavihek.
-    if (isStandalone()) {
+    // Aplikacije na istem izvoru (zig4to.github.io) so v obsegu nameščene plošče
+    // (manifest scope "../") → odprejo se v istem oknu brez vrstice; nazaj vodi hub-back.js.
+    if (isStandalone() && !inHubScope(a.href)) {
       a.target = "_blank";
       a.rel = "noopener";
     }
