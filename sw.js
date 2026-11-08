@@ -1,7 +1,7 @@
 /* Service worker — omogoča namestitev in delovanje brez povezave.
    Ob spremembi datotek povečaj VERZIJO, da se predpomnilnik osveži. */
 
-const VERZIJA = "v66";
+const VERZIJA = "v67";
 const CACHE = "ptomsetu-" + VERZIJA;
 
 const LUPINA = [
@@ -35,7 +35,9 @@ self.addEventListener("install", (e) => {
   e.waitUntil(
     caches.open(CACHE)
       // posamezne napake (npr. manjkajoča ikona) ne smejo podreti namestitve
-      .then((c) => Promise.allSettled(LUPINA.map((u) => c.add(u))))
+      // cache: "reload" → mimo HTTP predpomnilnika (GitHub Pages: max-age 10 min),
+      // sicer bi nova verzija lahko dobila star styles.css ob nove skripte
+      .then((c) => Promise.allSettled(LUPINA.map((u) => c.add(new Request(u, { cache: "reload" })))))
       .then(() => self.skipWaiting())
   );
 });
@@ -75,19 +77,18 @@ self.addEventListener("fetch", (e) => {
     return;
   }
 
-  // Ostalo: iz predpomnilnika takoj, v ozadju osveži.
+  // Ostalo: najprej mreža (no-cache = preverjanje z ETag, 304 je poceni), ob izpadu
+  // predpomnilnik. Prej je bilo „iz predpomnilnika takoj“ — po objavi se je nova
+  // stran zmešala s starim styles.css (nove skripte, stari stili).
   e.respondWith(
-    caches.match(req).then((zadetek) => {
-      const mreza = fetch(req)
-        .then((res) => {
-          if (res && res.ok) {
-            const kopija = res.clone();
-            caches.open(CACHE).then((c) => c.put(req, kopija));
-          }
-          return res;
-        })
-        .catch(() => zadetek);
-      return zadetek || mreza;
-    })
+    fetch(req, { cache: "no-cache" })
+      .then((res) => {
+        if (res && res.ok) {
+          const kopija = res.clone();
+          caches.open(CACHE).then((c) => c.put(req, kopija));
+        }
+        return res;
+      })
+      .catch(() => caches.match(req).then((r) => r || Response.error()))
   );
 });
