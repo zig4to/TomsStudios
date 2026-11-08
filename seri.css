@@ -32,6 +32,16 @@ body.seri-page {
   letter-spacing: -0.04em;
   color: var(--text);
 }
+/* preliv samo na besedi (inline-block) in izrezan na črke; na naslovu kot bloku
+   so ga nekateri mobilni brskalniki risali kot pravokotnik za črkami */
+.seri-logo-txt {
+  display: inline-block;
+  background-image: linear-gradient(100deg, #a855f7, #ec4899 45%, #22d3ee);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
 .seri-logo-dot { color: #22d3ee; }
 
 .seri-main {
