@@ -52,17 +52,21 @@
       <section class="seri-stage" id="seriStage">
         <p class="seri-to" id="seriTo" hidden></p>
 
-        <button class="seri-plus" id="seriPlus" type="button" aria-label="Izberi datoteko">
+        <div class="seri-plus" id="seriPlus">
           <span class="seri-plus-ring" aria-hidden="true"></span>
-          <span class="seri-plus-core" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-          </span>
-        </button>
-        <p class="seri-plus-hint" id="seriPlusHint">Tapni in izberi datoteko <span>· do 50 MB · vsi formati</span></p>
-        <button class="seri-gallery" id="seriGallery" type="button">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.09-3.09a2 2 0 0 0-2.82 0L6 21"/></svg>
-          <span>Galerija</span>
-        </button>
+          <div class="seri-plus-core">
+            <button class="seri-plus-half is-img" id="seriGallery" type="button" aria-label="Slika ali video iz galerije">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.09-3.09a2 2 0 0 0-2.82 0L6 21"/></svg>
+              <span>Slika</span>
+            </button>
+            <span class="seri-plus-div" aria-hidden="true"></span>
+            <button class="seri-plus-half is-doc" id="seriPickFile" type="button" aria-label="Pripni dokument ali datoteko">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+              <span>Dokument</span>
+            </button>
+          </div>
+        </div>
+        <p class="seri-plus-hint" id="seriPlusHint">Slika ali dokument <span>· do 50 MB · vsi formati</span></p>
 
         <div class="seri-file" id="seriFile" hidden>
           <div class="seri-file-card" id="seriFileCard">

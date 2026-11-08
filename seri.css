@@ -180,14 +180,9 @@ body.seri-page {
   position: relative;
   display: grid;
   place-items: center;
-  width: clamp(180px, 50vw, 240px);
+  width: clamp(200px, 56vw, 260px);
   aspect-ratio: 1;
-  padding: 0;
-  border: 0;
   border-radius: 50%;
-  background: none;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
 }
 .seri-plus-ring {
   position: absolute;
@@ -209,22 +204,63 @@ body.seri-page {
   animation: seri-breathe 2.8s ease-in-out infinite;
 }
 @keyframes seri-breathe { 50% { opacity: .85; transform: scale(1.06); } }
+/* jedro razdeljeno na dve polovici: levo slika (galerija), desno dokument */
 .seri-plus-core {
   position: relative;
-  display: grid;
-  place-items: center;
+  display: flex;
   width: calc(100% - 14px);
   height: calc(100% - 14px);
   border-radius: 50%;
   background: var(--bg);
-  color: var(--text);
-  transition: transform .3s cubic-bezier(.2, .8, .2, 1), background .3s ease;
+  overflow: hidden;
 }
-.seri-plus-core svg { width: 42%; height: 42%; transition: transform .45s cubic-bezier(.2, .8, .2, 1); }
-.seri-plus:hover .seri-plus-core svg,
-.seri-plus:focus-visible .seri-plus-core svg { transform: rotate(90deg); }
-.seri-plus:active .seri-plus-core { transform: scale(.94); }
-.seri-plus:focus-visible { outline: none; }
+.seri-plus-half {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .25s ease, color .25s ease;
+}
+.seri-plus-half.is-img { padding-left: 10px; --half: #ec4899; }
+.seri-plus-half.is-doc { padding-right: 10px; --half: #22d3ee; }
+.seri-plus-half svg {
+  width: clamp(38px, 12vw, 50px);
+  height: clamp(38px, 12vw, 50px);
+  color: var(--half);
+  transition: transform .35s cubic-bezier(.2, 1.4, .4, 1);
+}
+.seri-plus-half span { color: var(--text-soft); transition: color .25s ease; }
+.seri-plus-half:hover, .seri-plus-half:focus-visible {
+  background: color-mix(in srgb, var(--half) 14%, transparent);
+  outline: none;
+}
+.seri-plus-half:hover span, .seri-plus-half:focus-visible span { color: var(--text); }
+.seri-plus-half:hover svg, .seri-plus-half:focus-visible svg { transform: scale(1.1) rotate(-4deg); }
+.seri-plus-half:active svg { transform: scale(.88); }
+.seri-plus-div {
+  position: absolute;
+  left: 50%;
+  top: 22%;
+  bottom: 22%;
+  width: 2px;
+  transform: translateX(-50%);
+  border-radius: 2px;
+  background: linear-gradient(#ec4899, #a855f7, #22d3ee);
+  opacity: .7;
+  pointer-events: none;
+}
 .seri-plus-hint { margin: 0; color: var(--text-soft); font-size: .9rem; text-align: center; }
 .seri-plus-hint span { opacity: .7; }
 

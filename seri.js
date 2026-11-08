@@ -165,7 +165,7 @@
 
   /* ---------- Izbira datoteke ---------- */
 
-  plusBtn.addEventListener("click", function () { input.click(); });
+  $("seriPickFile").addEventListener("click", function () { input.click(); });
   // „Galerija“: accept=image/*,video/* → telefon odpre izbirnik fotografij namesto datotek
   galleryBtn.addEventListener("click", function () { galleryInput.click(); });
   [input, galleryInput].forEach(function (inp) {
@@ -254,7 +254,6 @@
 
     plusBtn.hidden = true;
     plusHint.hidden = true;
-    galleryBtn.hidden = true;
     fileWrap.hidden = false;
     swipeHint.hidden = false;
     sendBtn.disabled = false;
@@ -475,7 +474,6 @@
     fileWrap.hidden = true;
     plusBtn.hidden = false;
     plusHint.hidden = false;
-    galleryBtn.hidden = false;
     toEl.hidden = true;
     card.classList.remove("is-uploading", "is-flying", "is-returning", "is-dragging", "is-beaming");
     card.style.transform = "";
