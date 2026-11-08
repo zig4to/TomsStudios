@@ -244,8 +244,20 @@
 
   /* ---------- Izris ---------- */
 
+  // V oknu plošče odpri samo aplikacije na istem izvoru, ki niso nameščene posebej.
+  // Nameščeno aplikacijo (oznaka iz hub-back.js, zadnji zagon < 60 dni) odpri v
+  // novem oknu, da jo Android preda nameščeni aplikaciji. iPhone tega ne zna → vedno v plošči.
+  var IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   function inHubScope(href) {
-    try { return new URL(href, location.href).origin === location.origin; } catch (e) { return false; }
+    var u;
+    try { u = new URL(href, location.href); } catch (e) { return false; }
+    if (u.origin !== location.origin) return false;
+    if (IOS) return true;
+    var seg = (u.pathname.split("/")[1] || "").toLowerCase();
+    var t = 0;
+    try { t = +localStorage.getItem("bitneverse-installed:" + seg) || 0; } catch (e) {}
+    return !(t && Date.now() - t < 60 * 86400000);
   }
   // oznaka okna plošče: hub-back.js v aplikacijah pokaže gumb nazaj samo v tem oknu
   try { if (isStandalone()) sessionStorage.setItem("bitneverse-hub", "1"); } catch (e) {}

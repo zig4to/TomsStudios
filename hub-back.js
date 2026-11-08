@@ -15,9 +15,21 @@
     window.navigator.standalone === true;
   var fromHub = false;
   try { fromHub = sessionStorage.getItem("bitneverse-hub") === "1"; } catch (e) {}
-  // samo iPhone/iPad: Android ima sistemski gumb/potezo nazaj
   var ios = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
     (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+  // Aplikacija teče v svojem nameščenem oknu (ne v oknu plošče) → zapiši, da je
+  // nameščena. Plošča (dashboard.js) jo potem odpre v novem oknu, ki ga Android
+  // preda nameščeni aplikaciji. localStorage je skupen vsem na zig4to.github.io.
+  var seg = (location.pathname.split("/")[1] || "").toLowerCase();
+  function markInstalled() {
+    if (!seg) return;
+    try { localStorage.setItem("bitneverse-installed:" + seg, String(Date.now())); } catch (e) {}
+  }
+  if (standalone && !fromHub) markInstalled();
+  window.addEventListener("appinstalled", markInstalled);
+
+  // gumb nazaj samo na iPhonu/iPadu (Android ima sistemski gumb/potezo nazaj)
   if (!ios || !standalone || !fromHub) return;
 
   var POS_KEY = "bitneverse-back-y";
