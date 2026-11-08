@@ -12,7 +12,7 @@
   var SHOW_FULL = 50;    // razširjeno čez cel zaslon
   var expanded = false;
   var COLLAPSE_KEY = "chat-mini-collapsed";
-  var MSG_COLS = "id, sender_id, body, file_path, file_name, file_mime, created_at";
+  var MSG_COLS = "id, sender_id, body, file_path, file_name, file_mime, game_id, created_at";
 
   var uid = null;
   var names = {};
@@ -278,8 +278,22 @@
     photo.innerHTML = PHOTO_ICON;
     photo.addEventListener("click", function () { galInp.click(); });
 
+    var game = document.createElement("button");
+    game.type = "button";
+    game.className = "chat-mini-attach chat-mini-game";
+    game.setAttribute("aria-label", "Izzovi na igro");
+    game.title = "Igra";
+    game.innerHTML = window.BITGAMES ? window.BITGAMES.ICON : "🎮";
+    game.addEventListener("click", function () {
+      if (!window.BITGAMES) return;
+      window.BITGAMES.challenge(Object.keys(names).filter(function (id) { return id !== uid; })
+        .map(function (id) { return { id: id, name: names[id] }; })
+        .sort(function (a, b) { return a.name.localeCompare(b.name, "sl"); }));
+    });
+
     form.appendChild(attach);
     form.appendChild(photo);
+    form.appendChild(game);
     form.appendChild(inp);
     form.appendChild(send);
     form.appendChild(fileInp);
@@ -395,7 +409,8 @@
       var bub = document.createElement("span");
       bub.className = "chat-mini-bub";
       bub.title = ago(m.created_at);
-      if (showsImage(m)) fillImage(bub, m, stick);
+      if (m.game_id && window.BITGAMES) { bub.classList.add("is-game"); bub.title = ""; bub.appendChild(window.BITGAMES.card(m.game_id)); }
+      else if (showsImage(m)) fillImage(bub, m, stick);
       else bub.textContent = preview(m);
       col.appendChild(bub);
       if (!gNext) {
@@ -555,6 +570,7 @@
     stop();
     uid = session.user.id;
     var me = uid;
+    if (window.BITGAMES) window.BITGAMES.init({ sb: sb, uid: function () { return uid; }, name: function (id) { return names[id]; }, toast: toast });
     loadNames()
       .then(loadLast)
       .then(function () {

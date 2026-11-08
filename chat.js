@@ -6,6 +6,7 @@
   "use strict";
 
   var S = window.SERI;
+  var G = window.BITGAMES;
   var $ = function (id) { return document.getElementById(id); };
 
   var gate = $("chatGate");
@@ -40,7 +41,7 @@
   var FILE_DAYS = 30;
   var GROUP_MS = 5 * 60 * 1000;
   var EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "🔥"];
-  var MSG_COLS = "id, sender_id, body, file_path, file_name, file_size, file_mime, created_at";
+  var MSG_COLS = "id, sender_id, body, file_path, file_name, file_size, file_mime, game_id, created_at";
 
   var sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
   var uid = null;
@@ -239,6 +240,11 @@
   function bubble(m) {
     var b = document.createElement("div");
     b.className = "chat-bubble";
+    if (m.game_id && G) {
+      b.classList.add("is-game");
+      b.appendChild(G.card(m.game_id));
+      return b;
+    }
     if (m.file_path) {
       if (S.isImage(m.file_name, m.file_mime) && !fileExpired(m)) {
         b.classList.add("is-media");
@@ -704,6 +710,12 @@
     if (coarse) input.focus();
   });
 
+  if ($("chatGame")) $("chatGame").addEventListener("click", function () {
+    if (!G) return;
+    G.challenge(Object.keys(names).filter(function (id) { return id !== uid; })
+      .map(function (id) { return { id: id, name: names[id] }; })
+      .sort(function (a, b) { return a.name.localeCompare(b.name, "sl"); }));
+  });
   $("chatAttach").addEventListener("click", function () { fileInput.click(); });
   $("chatPhoto").addEventListener("click", function () { galleryInput.click(); });
   [fileInput, galleryInput].forEach(function (inp) {
@@ -887,6 +899,7 @@
 
   function start(session) {
     uid = session.user.id;
+    if (G) G.init({ sb: function () { return sb; }, uid: function () { return uid; }, name: function (id) { return names[id]; }, toast: toast });
     loadNames()
       .then(loadLatest)
       .then(function () {

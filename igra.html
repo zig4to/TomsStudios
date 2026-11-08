@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="sl" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Štiri v vrsto · Bitneverse</title>
+<meta name="theme-color" content="#0b1020" />
+<meta name="robots" content="noindex" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="games.css" />
+<script>
+  // Ista tema kot na plošči (app.js), nastavljena pred prvim izrisom.
+  (function () {
+    var t;
+    try { t = localStorage.getItem("ptomsetu-theme"); } catch (e) {}
+    if (!t) t = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", t);
+  })();
+</script>
+</head>
+<body class="igra-page">
+
+  <header class="igra-header">
+    <a class="admin-back" href="./" id="igraBack">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      <span>Plošča</span>
+    </a>
+    <h1 id="igraTitle">Štiri v vrsto</h1>
+    <a class="igra-trophy" href="igra.html" id="igraTrophy" aria-label="Lestvica" title="Lestvica" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+    </a>
+  </header>
+
+  <main class="igra-main">
+    <p class="igra-gate" id="igraGate">Nalagam …</p>
+
+    <!-- Tekma -->
+    <div id="igraGame" hidden>
+      <div class="c4-banner" id="c4Banner" hidden></div>
+
+      <div class="c4-players">
+        <div class="c4-player is-a" id="c4PlayerA">
+          <span class="c4-disc-ico" aria-hidden="true"></span>
+          <span class="c4-player-name"><strong id="c4NameA"></strong><span id="c4SubA"></span></span>
+        </div>
+        <span class="c4-vs">VS</span>
+        <div class="c4-player is-b" id="c4PlayerB">
+          <span class="c4-disc-ico" aria-hidden="true"></span>
+          <span class="c4-player-name"><strong id="c4NameB"></strong><span id="c4SubB"></span></span>
+        </div>
+      </div>
+
+      <div class="c4-status" id="c4Status" aria-live="polite"></div>
+
+      <div class="c4-timer is-off" id="c4Timer" aria-hidden="true">
+        <div class="c4-timer-bar"><span id="c4TimerFill"></span></div>
+        <span class="c4-timer-num" id="c4TimerNum">8</span>
+      </div>
+
+      <div class="c4-panel" id="c4Panel" hidden></div>
+
+      <div class="c4-wrap" id="c4Wrap">
+        <div class="c4-ghosts" id="c4Ghosts" aria-hidden="true"></div>
+        <div class="c4-board" id="c4Board" role="grid" aria-label="Plošča Štiri v vrsto"></div>
+      </div>
+
+      <p class="c4-spectate" id="c4Spectate" hidden>Gledaš tekmo v živo 👀</p>
+      <div class="c4-foot"><button class="c4-btn is-danger" id="c4Resign" type="button" hidden>Predaj se</button></div>
+    </div>
+
+    <!-- Lestvica in moje igre -->
+    <div id="igraLobby" hidden>
+      <div class="c4-actions" style="margin-bottom:14px">
+        <button class="c4-btn is-go" id="lbChallenge" type="button">⚔️ Izzovi nekoga</button>
+        <a class="c4-btn" href="chat.html">Klepet</a>
+      </div>
+      <section class="lb-card">
+        <h2>🏆 Lestvica · Štiri v vrsto</h2>
+        <div id="lbList"><p class="lb-empty">Nalagam …</p></div>
+      </section>
+      <section class="lb-card" style="margin-top:14px">
+        <h2>Moje igre</h2>
+        <div class="lb-games" id="lbGames"><p class="lb-empty">Nalagam …</p></div>
+      </section>
+    </div>
+  </main>
+
+  <div class="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="seri-common.js"></script>
+  <script src="games.js"></script>
+  <script src="igra.js"></script>
+</body>
+</html>

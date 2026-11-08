@@ -1,7 +1,7 @@
 /* Service worker — omogoča namestitev in delovanje brez povezave.
    Ob spremembi datotek povečaj VERZIJO, da se predpomnilnik osveži. */
 
-const VERZIJA = "v79";
+const VERZIJA = "v80";
 const CACHE = "ptomsetu-" + VERZIJA;
 
 const LUPINA = [
@@ -22,6 +22,10 @@ const LUPINA = [
   "./chat.js",
   "./chat.css",
   "./chat-mini.js",
+  "./games.js",
+  "./games.css",
+  "./igra.html",
+  "./igra.js",
   "./apps-registry.js",
   "./supabase-config.js",
   "./manifest.json",
@@ -64,6 +68,7 @@ self.addEventListener("fetch", (e) => {
     const stran = url.pathname.endsWith("/admin.html") ? "./admin.html"
       : url.pathname.endsWith("/seri.html") ? "./seri.html"
       : url.pathname.endsWith("/chat.html") ? "./chat.html"
+      : url.pathname.endsWith("/igra.html") ? "./igra.html"
       : "./index.html";
     e.respondWith(
       fetch(req)
