@@ -215,11 +215,11 @@ body.chat-page {
   border-radius: 16px;
   overflow: hidden;
   cursor: zoom-in;
-  min-width: 140px;
-  min-height: 110px;
+  min-width: 80px;
+  min-height: 60px;
 }
-.chat-img img { display: block; max-width: min(260px, 62vw); max-height: 320px; object-fit: cover; }
-.chat-img.is-loading { width: 220px; height: 160px; background: linear-gradient(100deg, var(--border) 30%, var(--border-strong), var(--border) 70%); background-size: 200% 100%; animation: chat-shimmer 1.2s linear infinite; }
+.chat-img img { display: block; max-width: min(200px, 52vw); max-height: 220px; object-fit: cover; }
+.chat-img.is-loading { width: 180px; height: 130px; background: linear-gradient(100deg, var(--border) 30%, var(--border-strong), var(--border) 70%); background-size: 200% 100%; animation: chat-shimmer 1.2s linear infinite; }
 @keyframes chat-shimmer { to { background-position: -200% 0; } }
 .chat-caption { padding: 6px 9px 4px; white-space: pre-wrap; }
 
