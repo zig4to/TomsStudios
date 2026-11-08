@@ -1,8 +1,9 @@
 /* Šeri — stran za pošiljanje datotek (seri.html).
-   1) izberi prejemnika (zgoraj), 2) tapni velik „+“ in izberi datoteko —
+   1) tapni prejemnike (zgoraj; lahko več), 2) tapni velik „+“ in izberi datoteko —
    nalaganje v Supabase Storage se začne takoj, v izvirni obliki,
-   3) povleci kartico datoteke gor (ali „Pošlji“) → vrstica v seri_transfers,
-   prejemnik jo v živo vidi na vrhu plošče (inbox.js). */
+   3) povleci kartico datoteke gor (ali „Pošlji“) → vrstica v seri_transfers za
+   vsakega prejemnika (vsak dobi svojo kopijo datoteke), prejemniki jo v živo
+   vidijo na vrhu plošče (inbox.js). */
 (function () {
   "use strict";
 
@@ -42,8 +43,9 @@
   var sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
   var session = null;
   var people = [];
-  var recipientId = null;
-  var RECIPIENT_KEY = "seri-recipient";
+  var recipients = [];     // izbrani prejemniki (vrstni red izbire)
+  var RECIPIENTS_KEY = "seri-recipients";
+  var OLD_RECIPIENT_KEY = "seri-recipient"; // prej en sam prejemnik
 
   // Trenutna datoteka: { file, path, up (SERI.upload), done, failed, promise, pct, sending }
   var cur = null;
@@ -85,7 +87,7 @@
       btn.className = "seri-person";
       btn.setAttribute("role", "option");
       btn.setAttribute("data-id", p.id);
-      btn.setAttribute("aria-selected", p.id === recipientId ? "true" : "false");
+      btn.setAttribute("aria-selected", isPicked(p.id) ? "true" : "false");
       var c = S.personColors(p.id);
       var av = document.createElement("span");
       av.className = "seri-avatar";
@@ -99,36 +101,66 @@
       btn.title = p.me ? "Jaz — na drugo napravo" : p.name;
       btn.appendChild(av);
       btn.appendChild(nm);
-      btn.addEventListener("click", function () { selectRecipient(p.id); });
+      btn.addEventListener("click", function () { toggleRecipient(p.id); });
       peopleEl.appendChild(btn);
     });
   }
 
-  function selectRecipient(id) {
-    recipientId = id;
-    try { localStorage.setItem(RECIPIENT_KEY, id); } catch (e) {}
+  function isPicked(id) { return recipients.indexOf(id) !== -1; }
+
+  function saveRecipients() {
+    try { localStorage.setItem(RECIPIENTS_KEY, JSON.stringify(recipients)); } catch (e) {}
+  }
+
+  // tap = dodaj / odstrani (več prejemnikov hkrati)
+  function toggleRecipient(id) {
+    if (cur && cur.sending) return;
+    if (isPicked(id)) recipients = recipients.filter(function (x) { return x !== id; });
+    else recipients.push(id);
+    saveRecipients();
+    syncPicked();
+    if (navigator.vibrate) navigator.vibrate(6);
+  }
+
+  function syncPicked() {
     var btns = peopleEl.querySelectorAll(".seri-person");
     for (var i = 0; i < btns.length; i++) {
-      var on = btns[i].getAttribute("data-id") === id;
-      btns[i].setAttribute("aria-selected", on ? "true" : "false");
-      if (on && btns[i].scrollIntoView) btns[i].scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+      btns[i].setAttribute("aria-selected", isPicked(btns[i].getAttribute("data-id")) ? "true" : "false");
     }
     renderTo();
   }
 
+  function shortName(p) { return p.me ? "Jaz" : p.name.split(/\s+/)[0]; }
+
   function renderTo() {
-    var p = personById(recipientId);
-    if (!cur || !p) { toEl.hidden = true; return; }
+    var list = recipients.map(personById).filter(Boolean);
+    if (!cur || !list.length) {
+      toEl.hidden = !cur;
+      toEl.textContent = cur ? "Izberi, komu pošlješ — lahko več oseb" : "";
+      return;
+    }
     toEl.hidden = false;
     toEl.innerHTML = "";
-    toEl.appendChild(document.createTextNode(p.me ? "na tvojo drugo napravo" : "za"));
+    if (list.length === 1 && list[0].me) {
+      toEl.appendChild(document.createTextNode("na tvojo drugo napravo"));
+      var s0 = document.createElement("strong");
+      s0.textContent = "Jaz";
+      toEl.appendChild(s0);
+      return;
+    }
+    toEl.appendChild(document.createTextNode("za"));
     var strong = document.createElement("strong");
-    strong.textContent = p.me ? "Jaz" : p.name;
+    var names = list.map(function (p) { return list.length === 1 ? (p.me ? "Jaz" : p.name) : shortName(p); });
+    strong.textContent = names.length <= 3
+      ? names.slice(0, -1).join(", ") + (names.length > 1 ? " in " : "") + names[names.length - 1]
+      : names.slice(0, 2).join(", ") + " in še " + (names.length - 2);
     toEl.appendChild(strong);
   }
 
-  function recipientButton() {
-    return peopleEl.querySelector('.seri-person[data-id="' + recipientId + '"]');
+  function pickedButtons() {
+    return recipients.map(function (id) {
+      return peopleEl.querySelector('.seri-person[data-id="' + id + '"]');
+    }).filter(Boolean);
   }
 
   /* ---------- Izbira datoteke ---------- */
@@ -160,14 +192,15 @@
       if (ok) { shown++; if (!first) first = btns[i]; }
     }
     searchEmpty.hidden = shown > 0;
-    // en sam zadetek → izberi ga
-    if (q && shown === 1) selectRecipient(first.getAttribute("data-id"));
   }
+  // Enter = dodaj/odstrani prvi zadetek in počisti iskanje (za naslednjo osebo)
   searchEl.addEventListener("keydown", function (e) {
     if (e.key !== "Enter") return;
+    e.preventDefault();
     var first = peopleEl.querySelector(".seri-person:not([hidden])");
-    if (first) selectRecipient(first.getAttribute("data-id"));
-    searchEl.blur();
+    if (first) toggleRecipient(first.getAttribute("data-id"));
+    searchEl.value = "";
+    filterPeople();
   });
 
   // Spust datoteke na računalniku.
@@ -202,7 +235,6 @@
       toast("Datoteka je prevelika (" + S.formatSize(file.size) + "). Največ 50 MB.");
       return;
     }
-    if (!recipientId) { toast("Najprej izberi, komu pošlješ."); return; }
 
     cur = { file: file, path: session.user.id + "/" + S.uuid(), done: false, failed: false, pct: 0, sending: false };
 
@@ -285,8 +317,8 @@
   function send() {
     var c = cur;
     if (!c || c.sending) return;
-    var to = recipientId;
-    if (!to) { toast("Izberi, komu pošlješ."); springBack(); return; }
+    var to = recipients.filter(personById);
+    if (!to.length) { toast("Izberi, komu pošlješ — lahko več oseb."); springBack(); return; }
     c.sending = true;
     sendBtn.disabled = true;
     sendBtn.textContent = "Pošiljam …";
@@ -298,15 +330,32 @@
       card.classList.add("is-uploading");
     }
 
+    // Datoteka je naložena enkrat (c.path, za prvega prejemnika); za vsakega
+    // naslednjega naredi kopijo na strežniku (brez ponovnega nalaganja), da lahko
+    // vsak prejemnik svojo pobriše, ne da bi jo drugim.
     c.promise
       .then(function () {
-        return sb.from("seri_transfers").insert({
-          recipient_id: to,
-          path: c.path,
-          name: c.file.name || "datoteka",
-          size: c.file.size,
-          mime: c.file.type || null
+        var paths = [c.path];
+        var copies = to.slice(1).map(function () {
+          var p = session.user.id + "/" + S.uuid();
+          paths.push(p);
+          return sb.storage.from(S.BUCKET).copy(c.path, p).then(function (r) {
+            if (r.error) throw new Error("Kopiranje za prejemnika ni uspelo.");
+          });
         });
+        c.copies = paths.slice(1);
+        return Promise.all(copies).then(function () { return paths; });
+      })
+      .then(function (paths) {
+        return sb.from("seri_transfers").insert(to.map(function (id, i) {
+          return {
+            recipient_id: id,
+            path: paths[i],
+            name: c.file.name || "datoteka",
+            size: c.file.size,
+            mime: c.file.type || null
+          };
+        }));
       })
       .then(function (res) {
         if (res && res.error) throw new Error("Pošiljanje ni uspelo.");
@@ -314,6 +363,9 @@
         flyTo(to);
       })
       .catch(function (err) {
+        // pobriši morebitne že narejene kopije (vrstice niso bile vstavljene)
+        if (c.copies && c.copies.length) sb.storage.from(S.BUCKET).remove(c.copies).catch(function () {});
+        c.copies = null;
         if (cur !== c) return;
         c.sending = false;
         sendBtn.disabled = false;
@@ -326,10 +378,12 @@
   // Ikona razpade v delce, ki odletijo v avatar prejemnika; prejemnik isto
   // animacijo (enako dolgo) predvaja v obratni smeri — glej SERI.transfer.
   var beam = null;
-  function flyTo(id) {
+  function flyTo(ids) {
     var c = cur;
-    var avatar = function () {
-      return peopleEl.querySelector('.seri-person[data-id="' + id + '"] .seri-avatar');
+    var avatars = function () {
+      return ids.map(function (id) {
+        return peopleEl.querySelector('.seri-person[data-id="' + id + '"] .seri-avatar');
+      }).filter(Boolean);
     };
     var svg = doc.querySelector("svg");
     swipeHint.hidden = true;
@@ -340,25 +394,26 @@
     card.style.transform = "";
     progress.hidden = false;
     setBar(0);
-    var btn = avatar() && avatar().parentNode;
-    if (btn) btn.classList.add("is-target");
+    avatars().forEach(function (a) { a.parentNode.classList.add("is-target"); });
 
     beam = S.transfer({
       icon: S.makeIcon(c.file.name, c.file.type),
       mode: "out",
       rect: function () { return cur === c ? svg.getBoundingClientRect() : null; },
-      point: function () {
-        var a = avatar();
-        if (!a) return { x: innerWidth / 2, y: -40 };
-        var r = a.getBoundingClientRect();
-        return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+      // delci se razdelijo med vse izbrane avatarje
+      points: function () {
+        var list = avatars().map(function (a) {
+          var r = a.getBoundingClientRect();
+          return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+        });
+        return list.length ? list : [{ x: innerWidth / 2, y: -40 }];
       },
       onProgress: function (k) { setBar(k * 100); },
       onDone: function () {
         beam = null;
         if (cur !== c) return;
-        var a = avatar();
-        if (a) {
+        var ca = card.style.getPropertyValue("--doc-a"), cb = card.style.getPropertyValue("--doc-b");
+        avatars().forEach(function (a) {
           var b = a.parentNode;
           b.classList.remove("is-target");
           b.classList.add("is-hit");
@@ -368,10 +423,14 @@
           a.appendChild(check);
           setTimeout(function () { b.classList.remove("is-hit"); check.remove(); }, 1600);
           var r = a.getBoundingClientRect();
-          burst(r.left + r.width / 2, r.top + r.height / 2, card.style.getPropertyValue("--doc-a"), card.style.getPropertyValue("--doc-b"));
+          burst(r.left + r.width / 2, r.top + r.height / 2, ca, cb);
+        });
+        var list = ids.map(personById).filter(Boolean);
+        if (list.length === 1) {
+          toast(list[0].me ? "Poslano na tvojo drugo napravo ✓" : "Poslano: " + list[0].name + " ✓");
+        } else {
+          toast("Poslano " + list.length + (list.length === 2 ? " osebama" : " osebam") + " ✓");
         }
-        var p = personById(id);
-        toast(p && p.me ? "Poslano na tvojo drugo napravo ✓" : "Poslano: " + (p ? p.name : "") + " ✓");
         cur = null;
         reset();
       }
@@ -436,8 +495,8 @@
   }
 
   function clearTarget() {
-    var t = peopleEl.querySelector(".seri-person.is-target");
-    if (t) t.classList.remove("is-target");
+    var t = peopleEl.querySelectorAll(".seri-person.is-target");
+    for (var i = 0; i < t.length; i++) t[i].classList.remove("is-target");
   }
 
   card.addEventListener("pointerdown", function (e) {
@@ -458,8 +517,7 @@
     var k = Math.min(1, Math.max(0, -drag.dy / drag.th));
     card.style.transform =
       "translate(" + drag.dx + "px," + drag.dy + "px) scale(" + (1 - k * .12) + ") rotate(" + drag.dx * .05 + "deg)";
-    var btn = recipientButton();
-    if (btn) btn.classList.toggle("is-target", k >= 1);
+    pickedButtons().forEach(function (btn) { btn.classList.toggle("is-target", k >= 1); });
     swipeHint.style.opacity = String(1 - k);
   });
 
@@ -499,13 +557,18 @@
         else others.push({ id: u.id, name: u.name || "Uporabnik" });
       });
       people = (me ? [me] : [{ id: s.user.id, name: "Jaz", me: true }]).concat(others);
-      var saved = null;
-      try { saved = localStorage.getItem(RECIPIENT_KEY); } catch (e) {}
-      recipientId = personById(saved) ? saved : people[0].id;
+      // zapomnjena izbira (prej en sam prejemnik pod starim ključem)
+      var saved = [];
+      try {
+        saved = JSON.parse(localStorage.getItem(RECIPIENTS_KEY) || "null") ||
+          [localStorage.getItem(OLD_RECIPIENT_KEY)];
+      } catch (e) {}
+      recipients = (Array.isArray(saved) ? saved : []).filter(function (id) { return id && personById(id); });
+      if (!recipients.length) recipients = [people[0].id];
       renderPeople();
       gate.hidden = true;
       appEl.hidden = false;
-      selectRecipient(recipientId);
+      syncPicked();
       S.cleanup(sb, s.user.id);
     });
   }

@@ -40,12 +40,12 @@
       <!-- Prejemniki -->
       <label class="seri-search">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-        <input type="search" id="seriSearch" placeholder="Poišči osebo …" autocomplete="off" enterkeyhint="search" aria-label="Poišči osebo" />
+        <input type="search" id="seriSearch" placeholder="Poišči osebo · tapni več oseb" autocomplete="off" enterkeyhint="search" aria-label="Poišči osebo" />
       </label>
       <p class="seri-search-empty" id="seriSearchEmpty" hidden>Ni zadetkov.</p>
 
       <section class="seri-people" aria-label="Komu pošlješ">
-        <div class="seri-people-track" id="seriPeople" role="listbox" aria-label="Uporabniki"></div>
+        <div class="seri-people-track" id="seriPeople" role="listbox" aria-multiselectable="true" aria-label="Uporabniki (izbereš lahko več)"></div>
       </section>
 
       <!-- Oder: velik plus ali kartica datoteke -->

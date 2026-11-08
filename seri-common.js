@@ -124,7 +124,8 @@
 
   function ease(k) { return k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; }
 
-  // opts: { icon, mode, rect: () => DOMRect|null (kje je ikona), point: () => {x,y} (cilj/vir),
+  // opts: { icon, mode, rect: () => DOMRect|null (kje je ikona), point: () => {x,y} (cilj/vir)
+  //         ali points: () => [{x,y}, …] (več ciljev),
   //         onProgress(0..1), onDone(), duration }
   function transfer(opts) {
     var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -167,11 +168,13 @@
       // ikona 120×150 umeščena (contain) v pravokotnik
       var s = Math.min(r.width / IW, r.height / IH);
       var ox = r.left + (r.width - IW * s) / 2, oy = r.top + (r.height - IH * s) / 2;
-      var pt = opts.point();
+      // en cilj (point) ali več (points: delci se enakomerno razdelijo)
+      var pts = opts.points ? opts.points() : [opts.point()];
       var out = opts.mode === "out";
 
       for (var i = 0; i < cells.length; i++) {
         var c = cells[i];
+        var pt = pts[i % pts.length];
         var a = reduce ? (p >= 1 ? 1 : -1) : (p - c.t) / TRAIL; // <0 čaka, 0..1 leti, >1 končano
         var hx = ox + (c.x + CELL / 2) * s, hy = oy + (c.y + CELL / 2) * s;
         if (out) {
