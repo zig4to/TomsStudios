@@ -21,6 +21,81 @@
   var unread = 0;
   var channel = null;
   var ready = false;
+  var urls = {};          // file_path → podpisan URL (ali objectURL med nalaganjem)
+  var signing = false;
+  var FILE_DAYS = 30;     // priponke v klepetu so dostopne 30 dni
+
+  /* ---------- Slike v oblačkih ---------- */
+
+  function showsImage(m) {
+    return m.file_path && !m._failed && S.isImage(m.file_name, m.file_mime) &&
+      Date.now() - Date.parse(m.created_at) < FILE_DAYS * 86400000 && !m._noUrl;
+  }
+
+  function fillImage(bub, m, stick) {
+    bub.classList.add("is-img");
+    var src = urls[m.file_path];
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "chat-mini-img" + (src ? "" : " is-loading");
+    btn.setAttribute("aria-label", "Odpri sliko " + m.file_name);
+    if (src) {
+      var img = document.createElement("img");
+      img.alt = m.file_name;
+      img.decoding = "async";
+      img.onload = function () { if (stick) listToBottom(); };
+      img.onerror = function () { m._noUrl = true; render(); };
+      img.src = src;
+      btn.appendChild(img);
+    }
+    if (m._pending) {
+      var pct = document.createElement("span");
+      pct.className = "chat-mini-img-pct";
+      pct.textContent = Math.round(m._pct || 0) + " %";
+      btn.appendChild(pct);
+    }
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation(); // strnjeno: klik na sliko ne odpre celega klepeta
+      if (m._pending || !urls[m.file_path]) return;
+      S.lightbox({
+        url: urls[m.file_path],
+        name: m.file_name,
+        mime: m.file_mime,
+        onDownload: function (b) {
+          b.disabled = true;
+          S.downloadSigned(sb(), "chat", m.file_path, m.file_name)
+            .catch(function (err) { toast(err.message); })
+            .then(function () { b.disabled = false; });
+        }
+      });
+    });
+    bub.appendChild(btn);
+    if (m.body) {
+      var cap = document.createElement("span");
+      cap.className = "chat-mini-cap";
+      cap.textContent = m.body;
+      bub.appendChild(cap);
+    }
+  }
+
+  // podpisani URL-ji za vidne slike, v enem klicu
+  function signImages() {
+    if (signing || !uid) return;
+    var need = msgs.slice(-(expanded ? SHOW_FULL : SHOW)).filter(function (m) {
+      return showsImage(m) && !m._pending && !urls[m.file_path];
+    });
+    if (!need.length) return;
+    signing = true;
+    sb().storage.from("chat").createSignedUrls(need.map(function (m) { return m.file_path; }), 3600)
+      .then(function (res) {
+        signing = false;
+        (res.data || []).forEach(function (r, i) {
+          if (r && r.signedUrl) urls[need[i].file_path] = r.signedUrl;
+          else need[i]._noUrl = true;
+        });
+        render();
+      }, function () { signing = false; });
+  }
 
   function sb() { return window.sb; }
 
@@ -319,8 +394,9 @@
       }
       var bub = document.createElement("span");
       bub.className = "chat-mini-bub";
-      bub.textContent = preview(m);
       bub.title = ago(m.created_at);
+      if (showsImage(m)) fillImage(bub, m, stick);
+      else bub.textContent = preview(m);
       col.appendChild(bub);
       if (!gNext) {
         var when = document.createElement("em");
@@ -331,6 +407,7 @@
       els.list.appendChild(row);
     });
     if (stick || (expanded && animateId)) listToBottom();
+    signImages();
   }
 
   /* ---------- Podatki ---------- */
@@ -369,6 +446,10 @@
       _pending: true,
       _pct: 0
     };
+    // takojšen predogled lastne slike med nalaganjem
+    if (S.isImage(file.name, file.type)) {
+      try { urls[m.file_path] = URL.createObjectURL(file); } catch (e) {}
+    }
     add(m);
     markRead();
     var shown = 0;

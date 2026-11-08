@@ -1579,6 +1579,56 @@ body.is-reordering .featured { display: none; }
 }
 .chat-mini-row.is-me.is-gprev .chat-mini-bub { border-top-right-radius: 6px; }
 .chat-mini-row.is-me.is-gnext .chat-mini-bub { border-bottom-right-radius: 6px; }
+/* slike v oblačkih: strnjeno majhne, razširjeno srednje */
+.chat-mini-bub.is-img {
+  display: flex;
+  flex-direction: column;
+  padding: 3px;
+  white-space: normal;
+  overflow: hidden;
+}
+.chat-mini-img {
+  position: relative;
+  display: block;
+  padding: 0;
+  border: none;
+  border-radius: 15px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+  cursor: zoom-in;
+  line-height: 0;
+}
+.chat-mini-img img {
+  display: block;
+  max-width: 140px;
+  max-height: 100px;
+  width: auto;
+  height: auto;
+  object-fit: cover;
+}
+.chat-mini-img.is-loading {
+  width: 120px;
+  height: 84px;
+  background: linear-gradient(100deg, var(--border) 30%, var(--border-strong), var(--border) 70%);
+  background-size: 200% 100%;
+  animation: seri-bar-flow 1.2s linear infinite;
+}
+.chat-mini-img-pct {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, .45);
+  color: #fff;
+  font-size: .78rem;
+  font-weight: 800;
+  line-height: 1;
+}
+.chat-mini-cap { padding: 5px 10px 4px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.chat-mini.is-expanded .chat-mini-img img { max-width: min(240px, 60vw); max-height: 240px; }
+.chat-mini.is-expanded .chat-mini-img.is-loading { width: 200px; height: 150px; }
+.chat-mini.is-expanded .chat-mini-bub.is-img { padding: 3px; }
+
 .chat-mini-col em { margin: 2px 10px 0; font-style: normal; font-size: .64rem; color: var(--text-soft); }
 .chat-mini-empty { padding: 4px 6px; font-size: .86rem; color: var(--text-soft); }
 
