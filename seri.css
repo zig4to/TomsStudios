@@ -30,12 +30,9 @@ body.seri-page {
   font-size: clamp(1.8rem, 5vw, 2.4rem);
   font-weight: 800;
   letter-spacing: -0.04em;
-  background: linear-gradient(100deg, #a855f7, #ec4899 45%, #22d3ee);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--text);
 }
-.seri-logo-dot { color: #22d3ee; -webkit-text-fill-color: #22d3ee; }
+.seri-logo-dot { color: #22d3ee; }
 
 .seri-main {
   display: flex;
