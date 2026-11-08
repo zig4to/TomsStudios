@@ -186,6 +186,18 @@
         "</svg>"
     },
     {
+      id: "bingo",
+      title: "Bingo",
+      subtitle: "Letni cilji in dogodivščine",
+      url: "https://bingo-zig4to.vercel.app/",
+      accent: "#f97316",
+      accent2: "#dc2626",
+      icon:
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' +
+        '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>' +
+        "</svg>"
+    },
+    {
       id: "zaganjalnik",
       title: "Zaganjalnik",
       subtitle: "DevHost na domačem PC",
