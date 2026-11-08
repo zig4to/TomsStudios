@@ -222,7 +222,157 @@
     return { cancel: function () { if (!finished) stop(); } };
   }
 
+  /* ---------- Nalaganje z napredkom (XHR; izvirna datoteka, brez stiskanja) ----------
+     Vrne { promise, abort }. promise se zavrne z Error("abort") ob preklicu. */
+  function upload(sb, bucket, path, file, onProgress) {
+    var xhr = null, aborted = false;
+    var promise = sb.auth.getSession().then(function (res) {
+      var s = res && res.data && res.data.session;
+      if (!s) throw new Error("Nisi prijavljen.");
+      if (aborted) throw new Error("abort");
+      return new Promise(function (resolve, reject) {
+        xhr = new XMLHttpRequest();
+        xhr.open("POST", window.SUPABASE_URL + "/storage/v1/object/" + bucket + "/" + path);
+        xhr.setRequestHeader("Authorization", "Bearer " + s.access_token);
+        xhr.setRequestHeader("apikey", window.SUPABASE_ANON_KEY);
+        xhr.setRequestHeader("x-upsert", "false");
+        xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
+        xhr.upload.onprogress = function (e) {
+          if (e.lengthComputable && onProgress) onProgress(Math.min(99, (e.loaded / e.total) * 100));
+        };
+        xhr.onload = function () {
+          if (xhr.status >= 200 && xhr.status < 300) { if (onProgress) onProgress(100); resolve(); }
+          else reject(new Error(uploadError(xhr)));
+        };
+        xhr.onerror = function () { reject(new Error("Nalaganje ni uspelo. Preveri povezavo.")); };
+        xhr.onabort = function () { reject(new Error("abort")); };
+        xhr.send(file);
+      });
+    });
+    return {
+      promise: promise,
+      abort: function () { aborted = true; if (xhr) { try { xhr.abort(); } catch (e) {} } }
+    };
+  }
+
+  function uploadError(xhr) {
+    try {
+      var j = JSON.parse(xhr.responseText);
+      var msg = (j && (j.message || j.error)) || "";
+      if (/size|large/i.test(msg) || xhr.status === 413) return "Datoteka je prevelika (največ 50 MB).";
+      if (msg) return "Nalaganje ni uspelo: " + msg;
+    } catch (e) {}
+    return "Nalaganje ni uspelo (" + xhr.status + ").";
+  }
+
+  function uuid() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 12);
+  }
+
+  var IMG_EXT = /^(jpe?g|png|gif|webp|avif|svg|bmp|heic|heif)$/;
+  function isImage(name, mime) {
+    return /^image\//.test(mime || "") || IMG_EXT.test(ext(name));
+  }
+
+  /* ---------- Predogled slike čez cel zaslon (CSS .seri-lightbox v styles.css) ----------
+     opts: { url, name, mime, onDownload(btn) } → vrne funkcijo za zapiranje. */
+  var LB_DL =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>';
+  var LB_X =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+  var openLb = null;
+
+  function lightbox(opts) {
+    if (openLb) openLb();
+    var lb = document.createElement("div");
+    lb.className = "seri-lightbox";
+    lb.setAttribute("role", "dialog");
+    lb.setAttribute("aria-modal", "true");
+    lb.setAttribute("aria-label", "Predogled: " + opts.name);
+
+    var fig = document.createElement("figure");
+    fig.className = "seri-lightbox-fig";
+    var spinner = document.createElement("span");
+    spinner.className = "seri-lightbox-spin";
+    var cap = document.createElement("figcaption");
+    var img = document.createElement("img");
+    img.alt = opts.name;
+    img.decoding = "async";
+    img.onload = function () { spinner.remove(); fig.classList.add("is-loaded"); };
+    img.onerror = function () {
+      spinner.remove();
+      img.remove();
+      var p = document.createElement("p");
+      p.className = "seri-lightbox-err";
+      p.textContent = "Te vrste slike brskalnik ne zna prikazati. Prenesi jo.";
+      fig.insertBefore(p, cap);
+    };
+    img.src = opts.url;
+
+    var nm = document.createElement("span");
+    nm.textContent = opts.name;
+    cap.appendChild(nm);
+    if (opts.onDownload) {
+      var colors = kindColors(opts.name, opts.mime);
+      var get = document.createElement("button");
+      get.type = "button";
+      get.className = "seri-in-dl";
+      get.style.setProperty("--doc-a", colors[0]);
+      get.style.setProperty("--doc-b", colors[1]);
+      get.innerHTML = LB_DL + "<span>Prenesi</span>";
+      get.addEventListener("click", function (e) { e.stopPropagation(); opts.onDownload(get); });
+      cap.appendChild(get);
+    }
+
+    var x = document.createElement("button");
+    x.type = "button";
+    x.className = "seri-lightbox-x";
+    x.setAttribute("aria-label", "Zapri predogled");
+    x.innerHTML = LB_X;
+
+    fig.appendChild(spinner);
+    fig.appendChild(img);
+    fig.appendChild(cap);
+    lb.appendChild(fig);
+    lb.appendChild(x);
+    document.body.appendChild(lb);
+
+    function onKey(e) { if (e.key === "Escape") close(); }
+    function close() {
+      if (openLb !== close) return;
+      openLb = null;
+      document.removeEventListener("keydown", onKey);
+      lb.classList.remove("is-open");
+      setTimeout(function () { lb.remove(); }, 220);
+    }
+    x.addEventListener("click", close);
+    lb.addEventListener("click", function (e) { if (e.target === lb || e.target === fig) close(); });
+    document.addEventListener("keydown", onKey);
+    openLb = close;
+    requestAnimationFrame(function () { lb.classList.add("is-open"); x.focus(); });
+    return close;
+  }
+
+  // Prenos z izvirnim imenom prek podpisanega URL-ja.
+  function downloadSigned(sb, bucket, path, name) {
+    return sb.storage.from(bucket).createSignedUrl(path, 600, { download: name }).then(function (res) {
+      if (res.error || !res.data) throw new Error("Datoteke ni bilo mogoče prenesti.");
+      var a = document.createElement("a");
+      a.href = res.data.signedUrl;
+      a.rel = "noopener";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    });
+  }
+
   window.SERI = {
+    upload: upload,
+    uuid: uuid,
+    isImage: isImage,
+    lightbox: lightbox,
+    downloadSigned: downloadSigned,
     makeIcon: makeIcon,
     transfer: transfer,
     TRANSFER_MS: DURATION,

@@ -45,7 +45,7 @@
   var recipientId = null;
   var RECIPIENT_KEY = "seri-recipient";
 
-  // Trenutna datoteka: { file, path, xhr, done, failed, promise, pct, sending }
+  // Trenutna datoteka: { file, path, up (SERI.upload), done, failed, promise, pct, sending }
   var cur = null;
 
   /* ---------- Pomožno ---------- */
@@ -64,10 +64,6 @@
     toast._t = setTimeout(function () { t.classList.remove("is-visible"); }, 3200);
   }
 
-  function uuid() {
-    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
-    return Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 12);
-  }
 
   function personById(id) {
     for (var i = 0; i < people.length; i++) if (people[i].id === id) return people[i];
@@ -208,7 +204,7 @@
     }
     if (!recipientId) { toast("Najprej izberi, komu pošlješ."); return; }
 
-    cur = { file: file, path: session.user.id + "/" + uuid(), done: false, failed: false, pct: 0, sending: false };
+    cur = { file: file, path: session.user.id + "/" + S.uuid(), done: false, failed: false, pct: 0, sending: false };
 
     var colors = S.kindColors(file.name, file.type);
     doc.style.setProperty("--doc-a", colors[0]);
@@ -255,30 +251,12 @@
       }
     }, 350);
 
-    c.promise = sb.auth.getSession().then(function (res) {
-      var s = (res && res.data && res.data.session) || session;
-      return new Promise(function (resolve, reject) {
-        var xhr = new XMLHttpRequest();
-        c.xhr = xhr;
-        xhr.open("POST", window.SUPABASE_URL + "/storage/v1/object/" + S.BUCKET + "/" + c.path);
-        xhr.setRequestHeader("Authorization", "Bearer " + s.access_token);
-        xhr.setRequestHeader("apikey", window.SUPABASE_ANON_KEY);
-        xhr.setRequestHeader("x-upsert", "false");
-        xhr.setRequestHeader("Content-Type", c.file.type || "application/octet-stream");
-        xhr.upload.onprogress = function (e) {
-          if (!e.lengthComputable || cur !== c) return;
-          c.pct = Math.min(99, (e.loaded / e.total) * 100);
-          setFill(c.pct);
-        };
-        xhr.onload = function () {
-          if (xhr.status >= 200 && xhr.status < 300) resolve();
-          else reject(new Error(uploadError(xhr)));
-        };
-        xhr.onerror = function () { reject(new Error("Nalaganje ni uspelo. Preveri povezavo.")); };
-        xhr.onabort = function () { reject(new Error("abort")); };
-        xhr.send(c.file);
-      });
-    }).then(function () {
+    c.up = S.upload(sb, S.BUCKET, c.path, c.file, function (pct) {
+      if (cur !== c) return;
+      c.pct = pct;
+      setFill(pct);
+    });
+    c.promise = c.up.promise.then(function () {
       clearTimeout(slowTimer);
       c.done = true;
       if (cur !== c) return;
@@ -297,16 +275,6 @@
       throw err;
     });
     c.promise.catch(function () {});
-  }
-
-  function uploadError(xhr) {
-    try {
-      var j = JSON.parse(xhr.responseText);
-      var msg = (j && (j.message || j.error)) || "";
-      if (/size|large/i.test(msg) || xhr.status === 413) return "Datoteka je prevelika (največ 50 MB).";
-      if (msg) return "Nalaganje ni uspelo: " + msg;
-    } catch (e) {}
-    return "Nalaganje ni uspelo (" + xhr.status + ").";
   }
 
   /* ---------- Pošiljanje ---------- */
@@ -437,7 +405,7 @@
     var c = cur;
     if (!c) return;
     cur = null;
-    if (c.xhr && !c.done) { try { c.xhr.abort(); } catch (e) {} }
+    if (c.up && !c.done) c.up.abort();
     else if (c.done && !c.sending) sb.storage.from(S.BUCKET).remove([c.path]).catch(function () {});
   }
 

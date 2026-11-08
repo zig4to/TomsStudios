@@ -75,6 +75,19 @@ Realtime) in jo prenese z izvirnim imenom.
   `storage.objects`); potekle prenose in osirotele datoteke leno pobriše
   odjemalec ob odprtju plošče/Šerija (`seri-common.js` → `cleanup`).
 
+## Klepet — skupna soba
+
+Gumb **Klepet** v glavi plošče (ob Šeriju, z značko neprebranih) odpre
+`chat.html`: ena skupna soba za vse uporabnike huba, v živo (Supabase Realtime).
+
+- Sporočila ostanejo za vedno; priponke (datoteke, slike iz galerije, prilepljene
+  slike, do 50 MB) so dostopne **30 dni**, nato jih pošiljatelj leno pobriše.
+- Odzivi z emoji (dolg pritisk na telefonu, gumb/desni klik na računalniku),
+  „… tipka“ (broadcast), kdo je na spletu (presence), brisanje svojih sporočil.
+- Baza: `supabase/008_chat.sql` — `chat_messages`, `chat_reactions`,
+  `chat_reads` (značka, `chat-badge.js`), bucket `chat`, pomočnik
+  `hub_is_blocked()` (popravi tudi preverjanje blokade v Šeriju).
+
 ## Namestitev na telefon
 
 Stran je PWA. Na **Androidu (Chrome)** odpri objavljeno povezavo → **Nastavitve → Namesti

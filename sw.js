@@ -1,7 +1,7 @@
 /* Service worker — omogoča namestitev in delovanje brez povezave.
    Ob spremembi datotek povečaj VERZIJO, da se predpomnilnik osveži. */
 
-const VERZIJA = "v64";
+const VERZIJA = "v65";
 const CACHE = "ptomsetu-" + VERZIJA;
 
 const LUPINA = [
@@ -18,6 +18,10 @@ const LUPINA = [
   "./seri.css",
   "./seri-common.js",
   "./inbox.js",
+  "./chat.html",
+  "./chat.js",
+  "./chat.css",
+  "./chat-badge.js",
   "./apps-registry.js",
   "./supabase-config.js",
   "./manifest.json",
@@ -52,11 +56,12 @@ self.addEventListener("fetch", (e) => {
   if (url.origin !== self.location.origin) return; // pisave in tuje povezave prepusti brskalniku
 
   // Navigacija: najprej mreža, ob izpadu predpomnjena stran.
-  // admin.html in seri.html sta ločeni strani — shrani se pod svojim imenom, sicer bi brez
+  // admin.html, seri.html in chat.html so ločene strani — shrani se pod svojim imenom, sicer bi brez
   // povezave namesto plošče odprla drugo stran.
   if (req.mode === "navigate") {
     const stran = url.pathname.endsWith("/admin.html") ? "./admin.html"
       : url.pathname.endsWith("/seri.html") ? "./seri.html"
+      : url.pathname.endsWith("/chat.html") ? "./chat.html"
       : "./index.html";
     e.respondWith(
       fetch(req)
