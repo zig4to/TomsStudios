@@ -1559,6 +1559,48 @@ body.is-reordering .featured { display: none; }
 }
 .seri-in-x:hover { color: var(--text); background: var(--border-strong); }
 .seri-in-x svg { width: 16px; height: 16px; }
+/* prihod: ikono riše platno (SERI.transfer), gumbi se pokažejo ob pristanku */
+.seri-in.is-arriving .seri-in-icon,
+.seri-in.is-arriving .seri-in-dl,
+.seri-in.is-arriving .seri-in-x { visibility: hidden; }
+.seri-in.is-arriving .seri-in-meta { display: none; }
+.seri-in-bar { position: relative; height: 16px; margin-top: 4px; }
+.seri-in-bar::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 44px;
+  top: 5px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--border-strong);
+}
+.seri-in-bar span {
+  position: absolute;
+  left: 0;
+  top: 5px;
+  height: 6px;
+  max-width: calc(100% - 44px);
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--doc-a), var(--doc-b), #22d3ee);
+  background-size: 200% 100%;
+  box-shadow: 0 0 12px var(--doc-b);
+  animation: seri-bar-flow 1.2s linear infinite;
+}
+.seri-in-bar em {
+  position: absolute;
+  right: 0;
+  top: 0;
+  font-style: normal;
+  font-size: .72rem;
+  line-height: 16px;
+  color: var(--text-soft);
+  font-variant-numeric: tabular-nums;
+}
+@keyframes seri-bar-flow { to { background-position: -200% 0; } }
+.seri-in.is-landed .seri-in-icon { animation: seri-land .5s cubic-bezier(.3, 1.6, .5, 1); }
+.seri-in.is-landed .seri-in-dl { animation: seri-badge-pop .45s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes seri-land { 40% { transform: scale(1.18); } }
 @media (max-width: 560px) {
   .site-header { padding-right: 104px; }
   .seri-in { gap: 10px; padding: 10px; }

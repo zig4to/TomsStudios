@@ -449,3 +449,8 @@ body.seri-page {
 @media (prefers-reduced-motion: reduce) {
   .seri-blob, .seri-plus-ring, .seri-wave, .seri-orbit i { animation: none !important; }
 }
+
+/* Prenos: ikono riše platno (SERI.transfer), izvirna ikona in gumbi se skrijejo */
+.seri-file-card.is-beaming .seri-doc { visibility: hidden; }
+.seri-file-card.is-beaming .seri-orbit { display: none; }
+.seri-file.is-beaming .seri-file-actions { visibility: hidden; }

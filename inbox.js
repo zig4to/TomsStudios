@@ -31,9 +31,9 @@
   }
 
   function senderLabel(t) {
-    if (t.sender_id === uid) return "S tvoje druge naprave";
-    var n = names[t.sender_id] || "Nekdo";
-    return n.split(/\s+/)[0] + " ti je poslal";
+    if (t.sender_id === uid) return t._arrive ? "Prihaja s tvoje druge naprave" : "S tvoje druge naprave";
+    var n = (names[t.sender_id] || "Nekdo").split(/\s+/)[0];
+    return n + (t._arrive ? " ti pošilja" : " ti je poslal");
   }
 
   function updateBadge() {
@@ -54,8 +54,11 @@
 
   function card(t) {
     var el = document.createElement("article");
-    el.className = "seri-in" + (t.downloaded_at ? " is-done" : "") + (t._new ? " is-new" : "");
+    el.className = "seri-in" + (t.downloaded_at ? " is-done" : "") + (t._new ? " is-new" : "") +
+      (t._arrive ? " is-arriving" : "") + (t._landed ? " is-landed" : "");
+    el.setAttribute("data-id", t.id);
     t._new = false;
+    t._landed = false;
     var c = S.kindColors(t.name, t.mime);
     el.style.setProperty("--doc-a", c[0]);
     el.style.setProperty("--doc-b", c[1]);
@@ -79,6 +82,14 @@
     body.appendChild(from);
     body.appendChild(name);
     body.appendChild(meta);
+    if (t._arrive) {
+      var bar = document.createElement("div");
+      bar.className = "seri-in-bar";
+      bar.innerHTML = "<span></span><em></em>";
+      bar.firstChild.style.width = (t._pct || 0) + "%";
+      bar.lastChild.textContent = Math.round(t._pct || 0) + " %";
+      body.appendChild(bar);
+    }
 
     var dl = document.createElement("button");
     dl.type = "button";
@@ -144,6 +155,41 @@
       .catch(function () {});
   }
 
+  // Ikona se sestavi iz delcev (zrcalno pošiljateljevemu razpadu). Če je plošča
+  // v ozadju, počakaj, da jo odpreš — sicer bi animacija „pretekla“ neopažena.
+  function arrive(t) {
+    if (document.hidden) {
+      var wait = function () {
+        if (document.hidden) return;
+        document.removeEventListener("visibilitychange", wait);
+        arrive(t);
+      };
+      document.addEventListener("visibilitychange", wait);
+      return;
+    }
+    var sel = function (q) { return box.querySelector('.seri-in[data-id="' + t.id + '"] ' + q); };
+    S.transfer({
+      icon: S.makeIcon(t.name, t.mime),
+      mode: "in",
+      rect: function () { var el = sel(".seri-in-icon"); return el ? el.getBoundingClientRect() : null; },
+      point: function () { return { x: innerWidth / 2, y: -40 }; },
+      onProgress: function (k) {
+        t._pct = k * 100;
+        var bar = sel(".seri-in-bar");
+        if (bar) {
+          bar.firstChild.style.width = t._pct + "%";
+          bar.lastChild.textContent = Math.round(t._pct) + " %";
+        }
+      },
+      onDone: function () {
+        if (!t._arrive) return;
+        t._arrive = false;
+        t._landed = true;
+        render();
+      }
+    });
+  }
+
   function loadNames() {
     return sb().rpc("seri_users").then(function (res) {
       (res.data || []).forEach(function (u) { names[u.id] = u.name; });
@@ -171,7 +217,9 @@
           var t = payload.new;
           if (!t || items.some(function (x) { return x.id === t.id; })) return;
           t._new = true;
-          var show = function () { items.unshift(t); render(); };
+          t._arrive = true;
+          t._pct = 0;
+          var show = function () { items.unshift(t); render(); arrive(t); };
           if (t.sender_id !== uid && !names[t.sender_id]) loadNames().then(show, show);
           else show();
         })

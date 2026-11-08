@@ -319,37 +319,65 @@
       });
   }
 
+  // Ikona razpade v delce, ki odletijo v avatar prejemnika; prejemnik isto
+  // animacijo (enako dolgo) predvaja v obratni smeri — glej SERI.transfer.
+  var beam = null;
   function flyTo(id) {
-    var target = peopleEl.querySelector('.seri-person[data-id="' + id + '"] .seri-avatar');
-    var cr = card.getBoundingClientRect();
-    var tr = target ? target.getBoundingClientRect() : { left: cr.left, top: -100, width: 0, height: 0 };
-    var dx = tr.left + tr.width / 2 - (cr.left + cr.width / 2);
-    var dy = tr.top + tr.height / 2 - (cr.top + cr.height / 2);
+    var c = cur;
+    var avatar = function () {
+      return peopleEl.querySelector('.seri-person[data-id="' + id + '"] .seri-avatar');
+    };
+    var svg = doc.querySelector("svg");
     swipeHint.hidden = true;
-    card.classList.remove("is-dragging", "is-returning");
-    card.classList.add("is-flying");
-    // naslednji okvir, da prehod začne iz trenutnega položaja
-    requestAnimationFrame(function () {
-      card.style.transform = "translate(" + dx + "px," + dy + "px) scale(.08) rotate(-18deg)";
-      card.style.opacity = "0";
-    });
-    setTimeout(function () {
-      var btn = peopleEl.querySelector('.seri-person[data-id="' + id + '"]');
-      if (btn) {
-        btn.classList.remove("is-target");
-        btn.classList.add("is-hit");
-        var check = document.createElement("span");
-        check.className = "seri-person-check";
-        check.innerHTML = CHECK_ICON;
-        btn.querySelector(".seri-avatar").appendChild(check);
-        setTimeout(function () { btn.classList.remove("is-hit"); check.remove(); }, 1600);
+    clearTarget();
+    card.classList.remove("is-dragging", "is-uploading");
+    card.classList.add("is-returning", "is-beaming");
+    fileWrap.classList.add("is-beaming");
+    card.style.transform = "";
+    progress.hidden = false;
+    setBar(0);
+    var btn = avatar() && avatar().parentNode;
+    if (btn) btn.classList.add("is-target");
+
+    beam = S.transfer({
+      icon: S.makeIcon(c.file.name, c.file.type),
+      mode: "out",
+      rect: function () { return cur === c ? svg.getBoundingClientRect() : null; },
+      point: function () {
+        var a = avatar();
+        if (!a) return { x: innerWidth / 2, y: -40 };
+        var r = a.getBoundingClientRect();
+        return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+      },
+      onProgress: function (k) { setBar(k * 100); },
+      onDone: function () {
+        beam = null;
+        if (cur !== c) return;
+        var a = avatar();
+        if (a) {
+          var b = a.parentNode;
+          b.classList.remove("is-target");
+          b.classList.add("is-hit");
+          var check = document.createElement("span");
+          check.className = "seri-person-check";
+          check.innerHTML = CHECK_ICON;
+          a.appendChild(check);
+          setTimeout(function () { b.classList.remove("is-hit"); check.remove(); }, 1600);
+          var r = a.getBoundingClientRect();
+          burst(r.left + r.width / 2, r.top + r.height / 2, card.style.getPropertyValue("--doc-a"), card.style.getPropertyValue("--doc-b"));
+        }
+        var p = personById(id);
+        toast(p && p.me ? "Poslano na tvojo drugo napravo ✓" : "Poslano: " + (p ? p.name : "") + " ✓");
+        cur = null;
+        reset();
       }
-      if (target) burst(tr.left + tr.width / 2, tr.top + tr.height / 2, card.style.getPropertyValue("--doc-a"), card.style.getPropertyValue("--doc-b"));
-      var p = personById(id);
-      toast(p && p.me ? "Poslano na tvojo drugo napravo ✓" : "Poslano: " + (p ? p.name : "") + " ✓");
-      cur = null;
-      reset();
-    }, 560);
+    });
+  }
+
+  // samo vrstica napredka (brez tekočine v ikoni)
+  function setBar(pct) {
+    progressFill.style.width = pct + "%";
+    progressPct.textContent = Math.round(pct) + " %";
   }
 
   function burst(x, y, a, b) {
@@ -379,11 +407,13 @@
 
   function reset() {
     cur = null;
+    if (beam) { beam.cancel(); beam = null; }
+    fileWrap.classList.remove("is-beaming");
     fileWrap.hidden = true;
     plusBtn.hidden = false;
     plusHint.hidden = false;
     toEl.hidden = true;
-    card.classList.remove("is-uploading", "is-flying", "is-returning", "is-dragging");
+    card.classList.remove("is-uploading", "is-flying", "is-returning", "is-dragging", "is-beaming");
     card.style.transform = "";
     card.style.opacity = "";
     clearTarget();
