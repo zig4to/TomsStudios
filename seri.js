@@ -159,7 +159,7 @@
     for (var i = 0; i < btns.length; i++) {
       var p = personById(btns[i].getAttribute("data-id"));
       var hay = norm((p.me ? "jaz druga naprava " : "") + p.name);
-      var ok = !q || q.split(/s+/).every(function (w) { return hay.indexOf(w) !== -1; });
+      var ok = !q || q.split(/\s+/).every(function (w) { return hay.indexOf(w) !== -1; });
       btns[i].hidden = !ok;
       if (ok) { shown++; if (!first) first = btns[i]; }
     }
