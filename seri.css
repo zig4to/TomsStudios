@@ -1,3 +1,6 @@
+/* hidden mora vedno skriti (pravila display spodaj bi ga sicer povozila) */
+.seri-page [hidden] { display: none !important; }
+
 /* =========================================================
    Šeri — pošiljanje datotek med uporabniki huba
    ========================================================= */

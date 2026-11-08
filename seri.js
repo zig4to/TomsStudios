@@ -160,6 +160,11 @@
     if (f && !appEl.hidden) pickFile(f);
   });
 
+  function hideDrop() { dragDepth = 0; dropEl.hidden = true; }
+  dropEl.addEventListener("click", hideDrop);
+  window.addEventListener("keydown", function (e) { if (e.key === "Escape") hideDrop(); });
+  window.addEventListener("dragend", hideDrop);
+
   function pickFile(file) {
     if (cur) discard();
     if (file.size > S.MAX_BYTES) {
