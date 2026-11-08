@@ -12,7 +12,7 @@ body.seri-page {
   overflow-x: hidden;
 }
 
-/* Ozadje: isti .bg-glow kot na plošči (styles.css) — brez lastnih mehurčkov. */
+/* Ozadje: enobarvno (var(--bg)), brez barvnih žarkov in mehurčkov. */
 
 /* ---------- Glava ---------- */
 .seri-header {
