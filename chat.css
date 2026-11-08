@@ -175,7 +175,7 @@ body.chat-page {
 .chat-bubble {
   position: relative;
   max-width: 100%;
-  padding: 10px 15px;
+  padding: 11px 25px;
   border-radius: 20px;
   background: color-mix(in srgb, var(--text) 9%, var(--surface-solid));
   border: 1px solid transparent;

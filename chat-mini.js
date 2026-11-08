@@ -8,7 +8,11 @@
   var badge = document.getElementById("chatBadge");
   if (!S || !box) return;
 
-  var SHOW = 3;          // strnjeno na plošči
+  var SHOW = 3;          // strnjeno na plošči (telefon)
+  var SHOW_WIDE = 10;    // strnjeno na računalniku (klepet na desni polovici)
+  var wideMq = window.matchMedia ? window.matchMedia("(min-width: 1000px)") : null;
+  if (wideMq && wideMq.addEventListener) wideMq.addEventListener("change", function () { if (els) render(); });
+  function shown() { return expanded ? SHOW_FULL : (wideMq && wideMq.matches ? SHOW_WIDE : SHOW); }
   var SHOW_FULL = 50;    // razširjeno čez cel zaslon
   var expanded = false;
   var COLLAPSE_KEY = "chat-mini-collapsed";
@@ -81,7 +85,7 @@
   // podpisani URL-ji za vidne slike, v enem klicu
   function signImages() {
     if (signing || !uid) return;
-    var need = msgs.slice(-(expanded ? SHOW_FULL : SHOW)).filter(function (m) {
+    var need = msgs.slice(-shown()).filter(function (m) {
       return showsImage(m) && !m._pending && !urls[m.file_path];
     });
     if (!need.length) return;
@@ -371,8 +375,9 @@
     els.list.innerHTML = "";
     els.count.textContent = unread ? unread + " novih" : "";
     els.count.hidden = !unread;
-    var stick = expanded && els.list.scrollHeight - els.list.scrollTop - els.list.clientHeight < 80;
-    var last = msgs.slice(-(expanded ? SHOW_FULL : SHOW));
+    var wideList = !expanded && wideMq && wideMq.matches; // računalnik: drsni seznam na desni
+    var stick = wideList || (expanded && els.list.scrollHeight - els.list.scrollTop - els.list.clientHeight < 80);
+    var last = msgs.slice(-shown());
     if (!last.length) {
       var empty = document.createElement("span");
       empty.className = "chat-mini-empty";
@@ -568,6 +573,7 @@
     if (!session || !session.user || !window.sb) return;
     if (uid === session.user.id) return;
     stop();
+    document.documentElement.classList.add("hub-session");
     uid = session.user.id;
     var me = uid;
     if (window.BITGAMES) window.BITGAMES.init({ sb: sb, uid: function () { return uid; }, name: function (id) { return names[id]; }, toast: toast });
@@ -586,6 +592,7 @@
   }
 
   function stop() {
+    document.documentElement.classList.remove("hub-session");
     if (expanded) setExpanded(false);
     if (channel && window.sb) window.sb.removeChannel(channel);
     channel = null;

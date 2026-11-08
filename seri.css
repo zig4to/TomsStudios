@@ -195,15 +195,15 @@ body.seri-page {
 .seri-plus-ring::after {
   content: "";
   position: absolute;
-  inset: -18%;
+  inset: -7%;
   border-radius: 50%;
   background: inherit;
-  filter: blur(36px);
-  opacity: .55;
+  filter: blur(20px);
+  opacity: .35;
   z-index: -1;
   animation: seri-breathe 2.8s ease-in-out infinite;
 }
-@keyframes seri-breathe { 50% { opacity: .85; transform: scale(1.06); } }
+@keyframes seri-breathe { 50% { opacity: .5; transform: scale(1.03); } }
 /* jedro razdeljeno na dve polovici: levo slika (galerija), desno dokument */
 .seri-plus-core {
   position: relative;
@@ -261,7 +261,7 @@ body.seri-page {
   opacity: .7;
   pointer-events: none;
 }
-.seri-plus-hint { margin: 0; color: var(--text-soft); font-size: .9rem; text-align: center; }
+.seri-plus-hint { margin: 14px 0 0; color: var(--text-soft); font-size: .9rem; text-align: center; }
 .seri-plus-hint span { opacity: .7; }
 
 /* ---------- Kartica datoteke ---------- */

@@ -27,6 +27,12 @@
     try { t = localStorage.getItem("ptomsetu-theme"); } catch (e) {}
     if (!t) t = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
     document.documentElement.setAttribute("data-theme", t);
+    // prijavljen (seja Supabase v localStorage) → postavitev levo/desno že ob prvem izrisu
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        if (/^sb-.+-auth-token$/.test(localStorage.key(i))) { document.documentElement.classList.add("hub-session"); break; }
+      }
+    } catch (e) {}
   })();
 </script>
 </head>
@@ -143,7 +149,7 @@
 
       <div class="user-avatar-wrap">
         <a class="seri-launch" href="seri.html" title="Šeri — pošlji datoteko" aria-label="Šeri — pošlji datoteko">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M12 18v-6"/><path d="m9 15 3-3 3 3"/></svg>
           <span class="seri-launch-badge" id="seriBadge" hidden>0</span>
         </a>
         <button class="user-avatar" id="userAvatarBtn" type="button" aria-haspopup="true" aria-expanded="false" title="Kdo je prijavljen">
@@ -225,11 +231,16 @@
       </div>
     </header>
 
-    <main>
-      <section class="chat-mini" id="chatMini" aria-label="Klepet" hidden></section>
-      <section class="seri-inbox" id="seriInbox" aria-label="Prejete datoteke (Šeri)" aria-live="polite" hidden></section>
-      <section class="featured" id="featured" aria-label="Nove aplikacije" hidden></section>
-      <nav class="grid" id="appGrid" aria-label="Aplikacije"></nav>
+    <main class="hub-layout">
+      <!-- računalnik: desno klepet in pod njim datoteke; telefon: na vrhu -->
+      <aside class="hub-side">
+        <section class="chat-mini" id="chatMini" aria-label="Klepet" hidden></section>
+        <section class="seri-inbox" id="seriInbox" aria-label="Prejete datoteke (Šeri)" aria-live="polite" hidden></section>
+      </aside>
+      <div class="hub-apps">
+        <section class="featured" id="featured" aria-label="Nove aplikacije" hidden></section>
+        <nav class="grid" id="appGrid" aria-label="Aplikacije"></nav>
+      </div>
     </main>
 
     <footer class="site-footer">

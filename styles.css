@@ -1444,8 +1444,10 @@ body.is-reordering .featured { display: none; }
   box-shadow: 0 6px 16px -6px rgba(236, 72, 153, .7);
   transition: transform .2s ease;
 }
-.seri-launch:hover, .seri-launch:focus-visible { transform: translateY(-1px) rotate(-8deg); outline: none; }
-.seri-launch svg { width: 18px; height: 18px; margin: 1px 1px 0 0; }
+.seri-launch:hover, .seri-launch:focus-visible { transform: translateY(-2px); outline: none; }
+.seri-launch svg path:nth-child(n+3) { transition: transform .25s cubic-bezier(.2, 1.4, .4, 1); }
+.seri-launch:hover svg path:nth-child(n+3), .seri-launch:focus-visible svg path:nth-child(n+3) { transform: translateY(-2px); }
+.seri-launch svg { width: 19px; height: 19px; }
 .seri-launch-badge {
   position: absolute;
   top: -4px;
@@ -1561,7 +1563,7 @@ body.is-reordering .featured { display: none; }
 }
 .chat-mini-bub {
   max-width: 100%;
-  padding: 8px 14px;
+  padding: 9px 24px;
   border-radius: 18px;
   background: var(--mini-other);
   color: var(--text);
@@ -1727,7 +1729,7 @@ body.chat-mini-open { overflow: hidden; }
 .chat-mini.is-expanded .chat-mini-list > :first-child { margin-top: auto; } /* sporočila prilepljena na dno */
 .chat-mini.is-expanded .chat-mini-col { max-width: 78%; }
 .chat-mini.is-expanded .chat-mini-bub {
-  padding: 8px 14px;
+  padding: 10px 24px;
   font-size: .95rem;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -1979,4 +1981,65 @@ body.chat-mini-open { overflow: hidden; }
 }
 @media (prefers-reduced-motion: reduce) {
   .seri-in.is-new, .seri-in.is-new::after, .seri-launch-badge { animation: none; }
+}
+
+/* ---------- Računalnik: aplikacije levo, klepet + datoteke desno ---------- */
+.hub-side, .hub-apps { min-width: 0; }
+@media (min-width: 1000px) {
+  html.hub-session .hub-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(20px, 2.2vw, 32px);
+    align-items: start;
+  }
+  html.hub-session .hub-layout .hub-side {
+    grid-column: 2;
+    grid-row: 1;
+    position: sticky;
+    top: 16px;
+  }
+  html.hub-session .hub-layout .hub-apps { grid-column: 1; grid-row: 1; }
+  html.hub-session .hub-layout .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  html.hub-session .hub-layout .featured-row { grid-template-columns: minmax(0, 1fr); }
+  /* medtem ko se klepet nalaga: prazen okvir, da se postavitev ne premakne */
+  html.hub-session .hub-side:not(:has(.chat-mini:not([hidden])))::before {
+    content: "";
+    display: block;
+    height: 380px;
+    border-radius: var(--radius-sm);
+    background: var(--surface-solid);
+    border: 1px solid var(--border-strong);
+    box-shadow: var(--shadow);
+    opacity: .6;
+  }
+  /* klepet na desni: več prostora za sporočila */
+  .hub-side .chat-mini:not(.is-expanded) .chat-mini-list { max-height: min(56vh, 520px); overflow-y: auto; }
+  .hub-side .chat-mini:not(.is-expanded) .chat-mini-bub:not(.is-img):not(.is-game) { white-space: normal; }
+}
+@media (min-width: 1500px) {
+  html.hub-session .hub-layout .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* klepet: brez vidnega drsnika (drsenje deluje naprej) */
+.chat-mini-list, .chat-scroll { scrollbar-width: none; -ms-overflow-style: none; }
+.chat-mini-list::-webkit-scrollbar, .chat-scroll::-webkit-scrollbar { display: none; width: 0; height: 0; }
+
+/* računalnik: večji klepet na desni polovici */
+@media (min-width: 1000px) {
+  .hub-side .chat-mini:not(.is-expanded) { padding: 16px 16px 14px; gap: 12px; }
+  .hub-side .chat-mini:not(.is-expanded) .chat-mini-title { font-size: 1.05rem; }
+  .hub-side .chat-mini:not(.is-expanded) .chat-mini-mark { width: 32px; height: 32px; border-radius: 11px; }
+  .hub-side .chat-mini:not(.is-expanded) .chat-mini-mark svg { width: 17px; height: 17px; }
+  .hub-side .chat-mini:not(.is-expanded) .chat-mini-bub { font-size: 1.02rem; line-height: 1.4; }
+  .hub-side .chat-mini:not(.is-expanded) .chat-mini-bub:not(.is-img):not(.is-game) { padding: 10px 24px; }
+  .hub-side .chat-mini:not(.is-expanded) .chat-mini-av { width: 32px; height: 32px; font-size: .75rem; margin-bottom: 18px; }
+  .hub-side .chat-mini:not(.is-expanded) .chat-mini-row { gap: 8px; }
+  .hub-side .chat-mini:not(.is-expanded) .chat-mini-col b { font-size: .8rem; margin-left: 14px; }
+  .hub-side .chat-mini:not(.is-expanded) .chat-mini-col em { font-size: .72rem; }
+  .hub-side .chat-mini:not(.is-expanded) .chat-mini-form { padding: 5px 5px 5px 6px; }
+  .hub-side .chat-mini:not(.is-expanded) .chat-mini-input { height: 42px; font-size: 1rem; }
+  .hub-side .chat-mini:not(.is-expanded) .chat-mini-attach { width: 40px; height: 40px; }
+  .hub-side .chat-mini:not(.is-expanded) .chat-mini-attach svg { width: 20px; height: 20px; }
+  .hub-side .chat-mini:not(.is-expanded) .chat-mini-send { width: 42px; height: 42px; }
+  .hub-side .chat-mini:not(.is-expanded) .chat-mini-empty { font-size: 1rem; }
 }
