@@ -1471,6 +1471,153 @@ body.is-reordering .featured { display: none; }
 .chat-launch svg { margin: 0; }
 @keyframes seri-badge-pop { from { transform: scale(0); } }
 
+/* ---------- Mini klepet pod glavo (chat-mini.js) ---------- */
+.chat-mini[hidden] { display: none; }
+.chat-mini {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: clamp(14px, 2vw, 22px);
+  padding: 12px 12px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-solid);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  isolation: isolate;
+}
+.chat-mini::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, #6366f1 16%, transparent), transparent 55%),
+    radial-gradient(120% 140% at 100% 100%, color-mix(in srgb, #ec4899 12%, transparent), transparent 55%);
+}
+.chat-mini-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.chat-mini-title { display: inline-flex; align-items: center; gap: 8px; color: var(--text); text-decoration: none; font-size: .92rem; }
+.chat-mini-mark {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 9px;
+  color: #fff;
+  background: linear-gradient(140deg, #6366f1, #8b5cf6 50%, #ec4899);
+}
+.chat-mini-mark svg { width: 14px; height: 14px; }
+.chat-mini-count {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #f43f5e;
+  color: #fff;
+  font-size: .68rem;
+  font-weight: 800;
+}
+.chat-mini-count[hidden] { display: none; }
+.chat-mini-toggle {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-soft);
+  cursor: pointer;
+  transition: transform .25s ease, background .15s ease;
+}
+.chat-mini-toggle:hover { background: var(--surface); color: var(--text); }
+.chat-mini-toggle svg { width: 18px; height: 18px; }
+.chat-mini.is-collapsed .chat-mini-toggle { transform: rotate(-90deg); }
+.chat-mini.is-collapsed .chat-mini-list,
+.chat-mini.is-collapsed .chat-mini-form { display: none; }
+.chat-mini.is-collapsed { padding-bottom: 12px; }
+
+.chat-mini-list { display: flex; flex-direction: column; gap: 2px; color: inherit; text-decoration: none; text-align: left; }
+.chat-mini-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 5px 6px;
+  border-radius: 10px;
+  font-size: .86rem;
+  transition: background .15s ease;
+}
+.chat-mini-list:hover .chat-mini-row { background: color-mix(in srgb, var(--text) 3%, transparent); }
+.chat-mini-row.is-new { animation: seri-in-arrive .5s cubic-bezier(.2, 1.3, .4, 1); }
+.chat-mini-row.is-unread b::after {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-left: 5px;
+  border-radius: 50%;
+  background: #f43f5e;
+  vertical-align: 2px;
+}
+.chat-mini-av {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  color: #fff;
+  font-style: normal;
+  font-size: .6rem;
+  font-weight: 800;
+}
+.chat-mini-row b { flex: none; font-weight: 700; color: var(--text); }
+.chat-mini-row.is-me b { color: var(--text-soft); }
+.chat-mini-txt { flex: 1; min-width: 0; color: var(--text-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat-mini-row.is-unread .chat-mini-txt { color: var(--text); }
+.chat-mini-row em { flex: none; font-style: normal; font-size: .7rem; color: var(--text-soft); opacity: .8; }
+.chat-mini-empty { padding: 4px 6px; font-size: .86rem; color: var(--text-soft); }
+
+.chat-mini-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 4px 4px 14px;
+  border-radius: 999px;
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.chat-mini-form:focus-within { border-color: #a855f7; box-shadow: 0 0 0 3px color-mix(in srgb, #a855f7 18%, transparent); }
+.chat-mini-input {
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 1rem; /* ≥16 px: iOS ne poveča strani ob fokusu */
+}
+.chat-mini-input::placeholder { color: var(--text-soft); }
+.chat-mini-send {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  background: linear-gradient(140deg, #ec4899, #a855f7 55%, #6366f1);
+  cursor: pointer;
+  transition: opacity .2s ease, transform .2s ease;
+}
+.chat-mini-send:disabled { opacity: .35; cursor: default; }
+.chat-mini-send:not(:disabled):hover { transform: rotate(-10deg); }
+.chat-mini-send svg { width: 16px; height: 16px; margin: 1px 1px 0 0; }
+
 .seri-inbox[hidden] { display: none; }
 .seri-inbox {
   display: flex;

@@ -1,6 +1,6 @@
 /* Klepet — ena skupna soba za vse uporabnike huba (chat.html).
    Sporočila: tabela chat_messages (za vedno), priponke: bucket `chat` (30 dni),
-   odzivi: chat_reactions, prebrano: chat_reads (značka na plošči, chat-badge.js).
+   odzivi: chat_reactions, prebrano: chat_reads (značka in mini klepet na plošči, chat-mini.js).
    V živo: postgres_changes (sporočila, odzivi) + broadcast „typing“ + presence. */
 (function () {
   "use strict";
@@ -636,6 +636,31 @@
       if (err.message !== "abort") toast(err.message);
     });
   }
+
+  /* ---------- Višina strani = dejanska vidna višina ----------
+     Na Androidu se 100dvh ne ujema vedno s sistemsko vrstico / tipkovnico,
+     zato bi bilo polje za pisanje pod robom zaslona. */
+  var vv = window.visualViewport;
+  function fit() {
+    var h = vv ? vv.height : window.innerHeight;
+    document.documentElement.style.setProperty("--app-h", Math.round(h) + "px");
+    if (window.scrollY) window.scrollTo(0, 0);
+  }
+  fit();
+  if (vv) {
+    vv.addEventListener("resize", function () {
+      var stick = nearBottom();
+      fit();
+      if (stick) toBottom(false);
+    });
+    vv.addEventListener("scroll", fit);
+  }
+  window.addEventListener("resize", fit);
+  window.addEventListener("orientationchange", function () { setTimeout(fit, 250); });
+  input.addEventListener("focus", function () {
+    // tipkovnica se odpira → po animaciji poravnaj in skoči na dno
+    setTimeout(function () { fit(); toBottom(false); }, 320);
+  });
 
   /* ---------- Pisanje ---------- */
 

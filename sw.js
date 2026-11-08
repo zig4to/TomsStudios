@@ -1,7 +1,7 @@
 /* Service worker — omogoča namestitev in delovanje brez povezave.
    Ob spremembi datotek povečaj VERZIJO, da se predpomnilnik osveži. */
 
-const VERZIJA = "v65";
+const VERZIJA = "v66";
 const CACHE = "ptomsetu-" + VERZIJA;
 
 const LUPINA = [
@@ -21,7 +21,7 @@ const LUPINA = [
   "./chat.html",
   "./chat.js",
   "./chat.css",
-  "./chat-badge.js",
+  "./chat-mini.js",
   "./apps-registry.js",
   "./supabase-config.js",
   "./manifest.json",

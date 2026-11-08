@@ -6,7 +6,9 @@
    ========================================================= */
 
 body.chat-page {
-  height: 100dvh;
+  /* --app-h nastavi chat.js iz visualViewport (dejanska vidna višina, brez
+     tipkovnice in sistemske vrstice); 100dvh je le rezerva */
+  height: var(--app-h, 100dvh);
   min-height: 0;
   padding: 0;
   gap: 0;
@@ -393,7 +395,7 @@ body.chat-page {
 /* ---------- Spodaj: tipka … + pisanje ---------- */
 .chat-foot {
   flex: none;
-  padding: 0 12px max(12px, env(safe-area-inset-bottom));
+  padding: 0 12px calc(max(14px, env(safe-area-inset-bottom)) + 8px);
   background: linear-gradient(to top, var(--bg) 60%, transparent);
 }
 .chat-typing {
@@ -482,6 +484,9 @@ body.chat-page {
   .chat-stack { max-width: 82%; }
   .chat-scroll { padding: 10px 8px 6px; }
   .chat-foot { padding-left: 8px; padding-right: 8px; }
+  .chat-composer { min-height: 56px; align-items: center; }
+  .chat-input { padding: 12px 4px; }
+  .chat-send { width: 44px; height: 44px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -85,7 +85,7 @@ Gumb **Klepet** v glavi plošče (ob Šeriju, z značko neprebranih) odpre
 - Odzivi z emoji (dolg pritisk na telefonu, gumb/desni klik na računalniku),
   „… tipka“ (broadcast), kdo je na spletu (presence), brisanje svojih sporočil.
 - Baza: `supabase/008_chat.sql` — `chat_messages`, `chat_reactions`,
-  `chat_reads` (značka, `chat-badge.js`), bucket `chat`, pomočnik
+  `chat_reads` (značka in mini klepet na plošči, `chat-mini.js`), bucket `chat`, pomočnik
   `hub_is_blocked()` (popravi tudi preverjanje blokade v Šeriju).
 
 ## Namestitev na telefon
