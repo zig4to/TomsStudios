@@ -97,8 +97,10 @@ body.chat-page {
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 14px 12px 8px;
-  scrollbar-width: thin;
+  scrollbar-width: none; /* brez vidnega drsnika */
+  -ms-overflow-style: none;
 }
+.chat-scroll::-webkit-scrollbar { display: none; width: 0; height: 0; }
 .chat-list { display: flex; flex-direction: column; max-width: 760px; margin: 0 auto; }
 .chat-more { display: grid; place-items: center; padding: 10px 0 16px; }
 .chat-spin {

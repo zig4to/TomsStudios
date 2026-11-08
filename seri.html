@@ -30,7 +30,7 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
       <span>Plošča</span>
     </a>
-    <h1 class="seri-logo"><span class="seri-logo-txt">Šeri</span><span class="seri-logo-dot">.</span></h1>
+    <h1 class="seri-logo"><span class="seri-logo-txt"><span class="is-s">Š</span><span class="is-e">e</span><span class="is-r">r</span><span class="is-i">i</span></span><span class="seri-logo-dot">.</span></h1>
   </header>
 
   <main class="seri-main">
@@ -66,7 +66,7 @@
             </button>
           </div>
         </div>
-        <p class="seri-plus-hint" id="seriPlusHint">Slika ali dokument <span>· do 50 MB · vsi formati</span></p>
+        <p class="seri-plus-hint" id="seriPlusHint">Slika ali dokument <span>· več naenkrat · do 50 MB na datoteko</span></p>
 
         <div class="seri-file" id="seriFile" hidden>
           <div class="seri-file-card" id="seriFileCard">
@@ -99,18 +99,23 @@
               <span class="seri-progress-pct" id="seriProgressPct">0 %</span>
             </div>
           </div>
+          <ul class="seri-files" id="seriFiles" hidden></ul>
           <div class="seri-swipe-hint" id="seriSwipeHint" aria-hidden="true">
             <span class="seri-chev"></span><span class="seri-chev"></span><span class="seri-chev"></span>
             <em>Povleci gor in pošlji</em>
           </div>
           <div class="seri-file-actions">
             <button class="seri-btn seri-btn--ghost" id="seriCancel" type="button">Prekliči</button>
+            <button class="seri-btn seri-btn--ghost seri-btn--add" id="seriAddMore" type="button" aria-label="Dodaj še datoteke">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+              <span>Dodaj</span>
+            </button>
             <button class="seri-btn seri-btn--go" id="seriSend" type="button">Pošlji</button>
           </div>
         </div>
 
-        <input type="file" id="seriInput" hidden />
-        <input type="file" id="seriGalleryInput" accept="image/*,video/*" hidden />
+        <input type="file" id="seriInput" multiple hidden />
+        <input type="file" id="seriGalleryInput" accept="image/*,video/*" multiple hidden />
       </section>
 
       <div class="seri-drop" id="seriDrop" hidden><span>Spusti datoteko</span></div>

@@ -45,11 +45,82 @@
     badge.hidden = n === 0;
   }
 
+  // Računalnik (desna polovica plošče): Šeri je okvir pod klepetom, viden tudi prazen.
+  var wideMq = window.matchMedia ? window.matchMedia("(min-width: 1000px)") : null;
+  function wide() { return !!(wideMq && wideMq.matches); }
+  if (wideMq && wideMq.addEventListener) wideMq.addEventListener("change", function () { render(); });
+
+  var SERI_ICON =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M12 18v-6"/><path d="m9 15 3-3 3 3"/></svg>';
+
+  // okvir je zložljiv; privzeto zaprt (zapomni si izbiro)
+  var COLLAPSE_KEY = "seri-box-collapsed";
+  function collapsed() {
+    try { return localStorage.getItem(COLLAPSE_KEY) !== "0"; } catch (e) { return true; }
+  }
+  var CHEV_ICON =
+    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+
+  function head() {
+    var h = document.createElement("div");
+    h.className = "chat-mini-head seri-box-head";
+    var title = document.createElement("a");
+    title.className = "chat-mini-title";
+    title.href = "seri.html";
+    title.innerHTML = '<span class="chat-mini-mark seri-box-mark">' + SERI_ICON + "</span><strong>Šeri</strong>";
+    var fresh = items.filter(function (t) { return !t.downloaded_at; }).length;
+    if (fresh) {
+      var cnt = document.createElement("span");
+      cnt.className = "chat-mini-count";
+      cnt.textContent = fresh + (fresh === 1 ? " nova" : " novih");
+      title.appendChild(cnt);
+    }
+    var send = document.createElement("a");
+    send.className = "seri-box-send";
+    send.href = "seri.html";
+    send.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Pošlji datoteko</span>';
+    var tog = document.createElement("button");
+    tog.type = "button";
+    tog.className = "chat-mini-toggle seri-box-toggle";
+    tog.innerHTML = CHEV_ICON;
+    var c = collapsed();
+    tog.setAttribute("aria-expanded", String(!c));
+    tog.setAttribute("aria-label", c ? "Razširi Šeri" : "Strni Šeri");
+    tog.addEventListener("click", function () {
+      try { localStorage.setItem(COLLAPSE_KEY, collapsed() ? "0" : "1"); } catch (e) {}
+      render();
+    });
+    var tools = document.createElement("div");
+    tools.className = "chat-mini-tools";
+    tools.appendChild(send);
+    tools.appendChild(tog);
+    h.appendChild(title);
+    h.appendChild(tools);
+    // klik na prazen del glave = odpri/zapri
+    h.addEventListener("click", function (e) { if (e.target === h) tog.click(); });
+    return h;
+  }
+
   function render() {
     var now = Date.now();
     items = items.filter(function (t) { return Date.parse(t.expires_at) > now; });
     box.innerHTML = "";
-    box.hidden = items.length === 0;
+    var boxed = wide() && !!uid;
+    box.classList.toggle("is-box", boxed);
+    box.classList.toggle("is-collapsed", boxed && collapsed());
+    box.hidden = items.length === 0 && !boxed;
+    if (boxed) {
+      box.appendChild(head());
+      if (!items.length) {
+        var empty = document.createElement("p");
+        empty.className = "seri-box-empty";
+        empty.textContent = "Ni prejetih datotek. Datoteke, ki ti jih pošljejo, so tu 24 ur.";
+        box.appendChild(empty);
+      }
+    }
+    // „Prenesi vse“: ko sta prispeli vsaj dve datoteki (nobena več ne prihaja)
+    var arrived = items.filter(function (t) { return !t._arrive; });
+    if (arrived.length >= 2 && arrived.length === items.length) box.appendChild(allBar(arrived));
     items.forEach(function (t) { box.appendChild(card(t)); });
     updateBadge();
   }
@@ -141,6 +212,62 @@
           sb().from("seri_transfers").update({ downloaded_at: t.downloaded_at }).eq("id", t.id).then(function () {});
         }
       });
+  }
+
+  /* ---------- Prenesi vse ---------- */
+  var dlAllBusy = false;
+
+  function allBar(list) {
+    var bar = document.createElement("div");
+    bar.className = "seri-in-all";
+    var fresh = list.filter(function (t) { return !t.downloaded_at; }).length;
+    var total = list.reduce(function (a, t) { return a + (Number(t.size) || 0); }, 0);
+    var txt = document.createElement("span");
+    txt.className = "seri-in-all-txt";
+    txt.textContent = list.length + " datotek · " + S.formatSize(total) + (fresh && fresh < list.length ? " · " + fresh + " novih" : "");
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "seri-in-dl seri-in-all-btn";
+    b.disabled = dlAllBusy;
+    b.innerHTML = DL_ICON + "<span>" + (dlAllBusy ? "Prenašam …" : "Prenesi vse") + "</span>";
+    b.addEventListener("click", function () { downloadAll(list.slice(), b); });
+    bar.appendChild(txt);
+    bar.appendChild(b);
+    return bar;
+  }
+
+  // Ena za drugo z razmikom — brskalnik sicer naenkrat sproži samo prvi prenos
+  // (Chrome lahko enkrat vpraša, ali dovoliš več prenosov s te strani).
+  function downloadAll(list, btn) {
+    if (dlAllBusy) return;
+    dlAllBusy = true;
+    btn.disabled = true;
+    btn.lastChild.textContent = "Prenašam …";
+    var i = 0, failed = 0;
+    (function next() {
+      if (i >= list.length) {
+        dlAllBusy = false;
+        render();
+        if (failed) alertFail();
+        return;
+      }
+      var t = list[i++];
+      btn.lastChild.textContent = "Prenašam " + i + "/" + list.length + " …";
+      sb().storage.from(S.BUCKET).createSignedUrl(t.path, 600, { download: t.name }).then(function (res) {
+        if (res.error || !res.data) { failed++; setTimeout(next, 50); return; }
+        var a = document.createElement("a");
+        a.href = res.data.signedUrl;
+        a.rel = "noopener";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        if (!t.downloaded_at) {
+          t.downloaded_at = new Date().toISOString();
+          sb().from("seri_transfers").update({ downloaded_at: t.downloaded_at }).eq("id", t.id).then(function () {});
+        }
+        setTimeout(next, 700);
+      }, function () { failed++; setTimeout(next, 50); });
+    })();
   }
 
   /* ---------- Predogled slike (SERI.lightbox) ---------- */

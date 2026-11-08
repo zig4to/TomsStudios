@@ -263,8 +263,8 @@ body {
   height: 34px;
   border-radius: 11px;
   color: #fff;
-  background: linear-gradient(140deg, #a855f7, #3b82f6);
-  box-shadow: 0 6px 16px -6px rgba(99, 102, 241, .7);
+  background: linear-gradient(135deg, #2e1065, #6d28d9 50%, #c026d3);
+  box-shadow: 0 6px 16px -6px rgba(109, 40, 217, .7);
 }
 .brand-mark svg { width: 17px; height: 17px; }
 
@@ -2043,3 +2043,59 @@ body.chat-mini-open { overflow: hidden; }
   .hub-side .chat-mini:not(.is-expanded) .chat-mini-send { width: 42px; height: 42px; }
   .hub-side .chat-mini:not(.is-expanded) .chat-mini-empty { font-size: 1rem; }
 }
+
+/* Šeri prejeto: „Prenesi vse“ nad karticami */
+.seri-in-all {
+  --doc-a: #a855f7;
+  --doc-b: #22d3ee;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 4px 0 6px;
+}
+.seri-in-all-txt { font-size: .85rem; font-weight: 600; color: var(--text-soft); }
+.seri-in-all-btn:disabled { opacity: .7; cursor: default; transform: none; }
+
+/* ---------- Računalnik: Šeri kot okvir pod klepetom (enak videz kot klepet) ---------- */
+.seri-inbox.is-box {
+  gap: 10px;
+  padding: 16px 16px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-solid);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow);
+}
+.seri-inbox.is-box .chat-mini-title { font-size: 1.05rem; }
+.seri-inbox.is-box .chat-mini-mark { width: 32px; height: 32px; border-radius: 11px; }
+.seri-inbox.is-box .chat-mini-mark svg { width: 17px; height: 17px; }
+.seri-box-mark { background: linear-gradient(140deg, #a855f7, #ec4899 55%, #22d3ee); }
+.seri-box-send {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: linear-gradient(120deg, #a855f7, #ec4899);
+  color: #fff;
+  font-size: .85rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform .15s ease;
+}
+.seri-box-send:hover { transform: translateY(-1px); }
+.seri-box-send svg { width: 16px; height: 16px; }
+.seri-box-empty { margin: 2px 4px 4px; font-size: .92rem; color: var(--text-soft); }
+.seri-inbox.is-box .seri-in { box-shadow: none; }
+.seri-inbox:not(.is-box) .seri-box-head { display: none; }
+/* na računalniku je Šeri v okvirju → gumb v glavi ni potreben */
+@media (min-width: 1000px) {
+  html.hub-session .seri-launch { display: none; }
+}
+
+/* Šeri okvir: zložljiv (privzeto zaprt) */
+.seri-inbox.is-box.is-collapsed > :not(.seri-box-head) { display: none; }
+.seri-inbox.is-box .seri-box-head { cursor: pointer; }
+.seri-inbox.is-box .seri-box-toggle { transition: transform .25s ease; }
+.seri-inbox.is-box.is-collapsed .seri-box-toggle { transform: rotate(-90deg); }
+.seri-inbox.is-box .chat-mini-tools { gap: 6px; }

@@ -1,6 +1,6 @@
 /* Generator ikon za PWA — brez odvisnosti.
    Zaženi z: npm run icons
-   Nariše kapsulo s kvadratkom in krogom na barvni preliv in zapiše PNG-je v icons/.
+   Nariše belo črko B (Rajdhani Light) na vijoličen preliv in zapiše PNG-je v icons/.
    Neobvezen argument: druga izhodna mapa (npr. za predogled). */
 
 const fs = require("fs");
@@ -55,10 +55,13 @@ function encodePNG(size, rgba) {
 }
 
 /* ---------- risanje ---------- */
+/* Bitneverse: črka B (Chakra Petch Light) bela na prelivu „Ultravijolična“,
+   z rahlo senco. Koordinate scene so 0–100 (kot v icon-b.html). */
 
 const STOPS = [
-  { t: 0.0, c: [0xa8, 0x55, 0xf7] }, // vijolična
-  { t: 1.0, c: [0x3b, 0x82, 0xf6] }, // modra
+  { t: 0.0, c: [0x2e, 0x10, 0x65] },
+  { t: 0.5, c: [0x6d, 0x28, 0xd9] },
+  { t: 1.0, c: [0xc0, 0x26, 0xd3] },
 ];
 
 function gradient(t) {
@@ -68,11 +71,7 @@ function gradient(t) {
       const a = STOPS[i - 1];
       const b = STOPS[i];
       const k = (t - a.t) / (b.t - a.t);
-      return [
-        a.c[0] + (b.c[0] - a.c[0]) * k,
-        a.c[1] + (b.c[1] - a.c[1]) * k,
-        a.c[2] + (b.c[2] - a.c[2]) * k,
-      ];
+      return [0, 1, 2].map((j) => a.c[j] + (b.c[j] - a.c[j]) * k);
     }
   }
   return STOPS[STOPS.length - 1].c;
@@ -85,53 +84,84 @@ function inRoundRect(x, y, size, r) {
   return dx * dx + dy * dy <= r * r;
 }
 
-function inRect(x, y, w, h, r) {
-  if (x < 0 || y < 0 || x > w || y > h) return false;
-  const dx = Math.max(r - x, x - (w - r), 0);
-  const dy = Math.max(r - y, y - (h - r), 0);
-  return dx * dx + dy * dy <= r * r;
+// Obris črke „B“ iz Rajdhani-Light.ttf (enote fonta, 1000/em, y navzgor; krivulje zglajene v daljice).
+const B_ADV = 544;
+const B_CONTOURS = [
+  [[129, 28], [335, 28], [347, 28], [359, 30], [369, 32], [379, 35], [389, 39], [397, 43], [405, 49], [412, 56], [418, 63], [424, 71], [428, 79], [432, 89], [435, 99], [437, 110], [439, 122], [439, 134], [439, 205], [437, 230], [432, 251], [423, 270], [411, 285], [394, 296], [375, 304], [352, 309], [325, 311], [129, 311], [127, 311], [125, 311], [124, 310], [122, 309], [121, 308], [121, 307], [120, 305], [120, 303], [120, 36], [120, 34], [121, 33], [121, 31], [122, 30], [124, 29], [125, 29], [127, 28]],
+  [[129, 339], [325, 339], [337, 339], [349, 341], [360, 343], [370, 346], [380, 350], [389, 354], [397, 360], [405, 367], [411, 374], [417, 382], [422, 390], [426, 400], [429, 410], [431, 421], [433, 433], [433, 445], [433, 509], [433, 521], [431, 533], [429, 544], [426, 554], [422, 564], [418, 572], [412, 580], [406, 588], [399, 594], [391, 600], [383, 604], [373, 608], [363, 611], [353, 613], [341, 615], [329, 615], [129, 615], [127, 615], [125, 615], [124, 614], [122, 613], [121, 612], [121, 611], [120, 609], [120, 607], [120, 347], [120, 345], [121, 344], [121, 342], [122, 341], [124, 340], [125, 340], [127, 339]],
+  [[90, 9], [90, 634], [90, 636], [91, 638], [91, 639], [92, 641], [93, 642], [95, 642], [96, 643], [98, 643], [329, 643], [344, 642], [358, 641], [371, 638], [384, 634], [396, 629], [407, 623], [417, 616], [427, 608], [435, 598], [442, 588], [449, 577], [454, 565], [458, 553], [461, 539], [462, 525], [463, 510], [463, 444], [462, 422], [458, 402], [451, 384], [441, 368], [429, 354], [414, 342], [396, 333], [375, 325], [384, 324], [393, 322], [401, 319], [409, 315], [417, 310], [425, 305], [433, 298], [440, 290], [447, 281], [453, 272], [458, 263], [462, 253], [465, 242], [467, 230], [469, 218], [469, 206], [469, 133], [468, 118], [467, 104], [464, 90], [460, 78], [455, 66], [448, 55], [441, 45], [433, 36], [423, 27], [413, 20], [402, 14], [390, 9], [377, 5], [364, 2], [350, 1], [335, 0], [98, 0], [96, 0], [95, 1], [93, 1], [92, 2], [91, 4], [91, 5], [90, 7]],
+];
+// Tako kot SVG <text x=50 y=51 text-anchor=middle dominant-baseline=central font-size=72.6>
+const B_SIZE = 64.8 * 1.12;
+const B_CENTRAL = (930 - 346) / 2; // sredina med ascender in descender
+const B_SEGS = [];
+for (const c of B_CONTOURS) {
+  const pts = c.map(([fx, fy]) => [50 + ((fx - B_ADV / 2) * B_SIZE) / 1000, 51 + ((B_CENTRAL - fy) * B_SIZE) / 1000]);
+  for (let i = 0; i < pts.length; i++) B_SEGS.push([pts[i], pts[(i + 1) % pts.length]]);
 }
 
-// Obroba (črta znotraj oblike), da razmiki med oblikami ostanejo.
-const STROKE = 1.2;
-function inOutline(x, y, w, h, r) {
-  const ri = Math.max(0, Math.min(r - STROKE / 2, (w - 2 * STROKE) / 2, (h - 2 * STROKE) / 2));
-  return inRect(x, y, w, h, r) && !inRect(x - STROKE, y - STROKE, w - 2 * STROKE, h - 2 * STROKE, ri);
+function inB(x, y) {
+  let inside = false;
+  for (const [[x1, y1], [x2, y2]] of B_SEGS) {
+    if (y1 > y !== y2 > y && x < ((x2 - x1) * (y - y1)) / (y2 - y1) + x1) inside = !inside;
+  }
+  return inside;
 }
 
-// Kapsula v koordinatah 24 x 24: visok stolpec levo, desno kvadratek in poln krog.
-// Ista oblika kot .brand-mark v index.html.
-function inGlyph(x, y) {
-  const capsule = inOutline(x - 3, y - 3, 8, 18, 4);
-  const square = inOutline(x - 13, y - 3, 8, 8, 1.4);
-  const dot = (x - 17) ** 2 + (y - 17) ** 2 <= 16;
-  return capsule || square || dot;
+function distB(x, y) {
+  let best = Infinity;
+  for (const [[x1, y1], [x2, y2]] of B_SEGS) {
+    const dx = x2 - x1, dy = y2 - y1;
+    const t = Math.max(0, Math.min(1, ((x - x1) * dx + (y - y1) * dy) / (dx * dx + dy * dy)));
+    best = Math.min(best, Math.hypot(x - x1 - t * dx, y - y1 - t * dy));
+  }
+  return inB(x, y) ? -best : best;
+}
+
+// senca: feDropShadow dy=1.6, stdDeviation=2, #1e1b4b, 45 % (približek z razdaljo)
+const SHADOW = [0x1e, 0x1b, 0x4b];
+function erfc(x) {
+  const t = 1 / (1 + 0.5 * Math.abs(x));
+  const r = t * Math.exp(-x * x - 1.26551223 + t * (1.00002368 + t * (0.37409196 + t * (0.09678418 + t * (-0.18628806 +
+    t * (0.27886807 + t * (-1.13520398 + t * (1.48851587 + t * (-0.82215223 + t * 0.17087277)))))))));
+  return x >= 0 ? r : 2 - r;
+}
+function shadowAlpha(x, y) {
+  const d = distB(x, y - 1.6);
+  if (d > 8) return 0;
+  return 0.45 * 0.5 * erfc(d / (2 * Math.SQRT2));
 }
 
 function render(size, { maskable = false } = {}) {
   const SS = 4; // nadvzorčenje za mehke robove
-  const radius = maskable ? 0 : size * 0.22;
-  const glyph = maskable ? 0.55 : 0.72; // delež stranice, ki ga zavzame viewBox 24
+  const radius = maskable ? 0 : size * 0.29;
+  const scale = maskable ? 0.84 : 1; // maskable: črka v varnem krogu
   const out = Buffer.alloc(size * size * 4);
 
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
       let r = 0, g = 0, b = 0, a = 0;
+      // senca je mehka → dovolj en vzorec na piksel
+      const cx = (((x + 0.5) / size) * 100 - 50) / scale + 50;
+      const cy = (((y + 0.5) / size) * 100 - 50) / scale + 50;
+      const sh = shadowAlpha(cx, cy);
 
       for (let sy = 0; sy < SS; sy++) {
         for (let sx = 0; sx < SS; sx++) {
           const px = x + (sx + 0.5) / SS;
           const py = y + (sy + 0.5) / SS;
           if (!inRoundRect(px, py, size, radius)) continue;
-
-          const gx = ((px - size / 2) / (size * glyph)) * 24 + 12;
-          const gy = ((py - size / 2) / (size * glyph)) * 24 + 12;
+          const ux = (px / size) * 100;
+          const uy = (py / size) * 100;
+          const gx = (ux - 50) / scale + 50;
+          const gy = (uy - 50) / scale + 50;
 
           let col;
-          if (inGlyph(gx, gy)) {
+          if (inB(gx, gy)) {
             col = [255, 255, 255];
           } else {
-            col = gradient((px / size) * 0.62 + (py / size) * 0.38);
+            const bg = gradient((ux + uy) / 200);
+            col = bg.map((v, j) => v + (SHADOW[j] - v) * sh);
           }
           r += col[0]; g += col[1]; b += col[2]; a += 255;
         }
