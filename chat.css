@@ -139,10 +139,10 @@ body.chat-page {
   display: flex;
   align-items: flex-end;
   gap: 8px;
-  margin-top: 10px;
+  margin-top: 16px;
   max-width: 100%;
 }
-.chat-row.is-grouped-prev { margin-top: 2px; }
+.chat-row.is-grouped-prev { margin-top: 6px; }
 .chat-row.is-me { flex-direction: row-reverse; }
 .chat-row.is-new { animation: chat-in .35s cubic-bezier(.2, 1.3, .4, 1); }
 @keyframes chat-in { from { opacity: 0; transform: translateY(10px) scale(.97); } }
@@ -175,7 +175,7 @@ body.chat-page {
 .chat-bubble {
   position: relative;
   max-width: 100%;
-  padding: 9px 13px;
+  padding: 10px 15px;
   border-radius: 20px;
   background: color-mix(in srgb, var(--text) 9%, var(--surface-solid));
   border: 1px solid transparent;
@@ -271,11 +271,12 @@ body.chat-page {
   transition: width .25s ease-out;
 }
 
-.chat-time { margin: 3px 10px 0; font-size: .66rem; color: var(--text-soft); }
+.chat-time { margin: 5px 10px 0; font-size: .66rem; color: var(--text-soft); }
 .chat-row.is-grouped-next .chat-time { display: none; }
 
 /* odzivi */
 .chat-reacts { display: flex; flex-wrap: wrap; gap: 4px; margin-top: -6px; padding: 0 8px; position: relative; z-index: 1; }
+.chat-reacts:empty { display: none; } /* sicer negativni rob stisne sporočila */
 .chat-react {
   display: inline-flex;
   align-items: center;
