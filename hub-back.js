@@ -15,7 +15,10 @@
     window.navigator.standalone === true;
   var fromHub = false;
   try { fromHub = sessionStorage.getItem("bitneverse-hub") === "1"; } catch (e) {}
-  if (!standalone || !fromHub) return;
+  // samo iPhone/iPad: Android ima sistemski gumb/potezo nazaj
+  var ios = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  if (!ios || !standalone || !fromHub) return;
 
   var POS_KEY = "bitneverse-back-y";
 
