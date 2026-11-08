@@ -102,30 +102,36 @@
       a.href = buildAppUrl(app, session);
       if (isStandalone()) { a.target = "_blank"; a.rel = "noopener"; }
 
+      // Vrstica: ikona | ime + NOVO, podnaslov | i, Odpri.
+      // Opis (f.text) je pod vrstico, viden šele po kliku na „i“.
+      var main = document.createElement("span");
+      main.className = "featured-main";
+
       var icon = document.createElement("span");
       icon.className = "featured-icon";
       icon.innerHTML = app.icon;
 
       var body = document.createElement("span");
       body.className = "featured-body";
-      var badge = document.createElement("span");
-      badge.className = "badge-new";
-      badge.textContent = "NOVO";
+      var titleRow = document.createElement("span");
+      titleRow.className = "featured-title-row";
       var title = document.createElement("span");
       title.className = "featured-title";
       title.textContent = app.title;
-      var text = document.createElement("span");
-      text.className = "featured-text";
-      text.textContent = f.text || app.subtitle;
-      var cta = document.createElement("span");
-      cta.className = "featured-cta";
-      cta.innerHTML = "Odpri " + ARROW_SVG;
-      body.appendChild(badge);
-      body.appendChild(title);
-      body.appendChild(text);
-      body.appendChild(cta);
+      var badge = document.createElement("span");
+      badge.className = "badge-new";
+      badge.textContent = "NOVO";
+      titleRow.appendChild(title);
+      titleRow.appendChild(badge);
+      var sub = document.createElement("span");
+      sub.className = "featured-sub";
+      sub.textContent = app.subtitle;
+      body.appendChild(titleRow);
+      body.appendChild(sub);
 
-      // Opis je skrit za gumbom „i“ (klik ne odpre aplikacije, le pokaže/skrije opis).
+      var actions = document.createElement("span");
+      actions.className = "featured-actions";
+      // Gumb „i“: pokaže/skrije opis, aplikacije ne odpre.
       var info = document.createElement("button");
       info.type = "button";
       info.className = "featured-info";
@@ -138,10 +144,22 @@
         var open = a.classList.toggle("is-info-open");
         info.setAttribute("aria-expanded", open ? "true" : "false");
       });
+      var cta = document.createElement("span");
+      cta.className = "featured-cta";
+      cta.innerHTML = "<span>Odpri</span>" + ARROW_SVG;
+      actions.appendChild(info);
+      actions.appendChild(cta);
 
-      a.appendChild(icon);
-      a.appendChild(body);
-      a.appendChild(info);
+      main.appendChild(icon);
+      main.appendChild(body);
+      main.appendChild(actions);
+
+      var text = document.createElement("span");
+      text.className = "featured-text";
+      text.textContent = f.text || app.subtitle;
+
+      a.appendChild(main);
+      a.appendChild(text);
       row.appendChild(a);
     });
     featuredEl.appendChild(row);

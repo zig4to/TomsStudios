@@ -1031,13 +1031,13 @@ body.is-reordering .card.is-dragging .card-grip { cursor: grabbing; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 .featured-label {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: .78rem;
+  font-size: .76rem;
   font-weight: 700;
   letter-spacing: .14em;
   text-transform: uppercase;
@@ -1070,24 +1070,25 @@ body.is-reordering .card.is-dragging .card-grip { cursor: grabbing; }
 .featured-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(14px, 1.4vw, 20px);
+  gap: clamp(12px, 1.4vw, 18px);
+  align-items: start;
 }
+
+/* Kartica: ena vrstica (ikona | besedilo | gumba), opis pod njo po kliku na „i“. */
 .featured-card {
   position: relative;
   isolation: isolate;
   display: flex;
-  align-items: center;
-  gap: 14px;
-  min-height: 0;
-  padding: 10px 16px;
-  border-radius: calc(var(--radius) + 4px);
+  flex-direction: column;
+  padding: 12px 14px;
+  border-radius: calc(var(--radius) - 2px);
   color: #fff;
   text-decoration: none;
   overflow: hidden;
   background:
-    radial-gradient(circle at 12% 0%, rgba(255, 255, 255, .32), transparent 55%),
-    linear-gradient(135deg, var(--accent), var(--accent-2));
-  box-shadow: 0 18px 40px -18px var(--accent-2), 0 2px 6px rgba(0, 0, 0, .12);
+    radial-gradient(circle at 8% 0%, rgba(255, 255, 255, .3), transparent 50%),
+    linear-gradient(120deg, var(--accent), var(--accent-2));
+  box-shadow: 0 14px 32px -16px var(--accent-2), 0 1px 3px rgba(0, 0, 0, .12);
   transition: transform .28s cubic-bezier(.2, .8, .2, 1), box-shadow .28s ease;
 }
 /* svetlobni preblisk čez kartico */
@@ -1096,7 +1097,7 @@ body.is-reordering .card.is-dragging .card-grip { cursor: grabbing; }
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, .22) 50%, transparent 65%);
+  background: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, .2) 50%, transparent 65%);
   transform: translateX(-100%);
   animation: featured-shine 5s ease-in-out infinite;
 }
@@ -1107,9 +1108,15 @@ body.is-reordering .card.is-dragging .card-grip { cursor: grabbing; }
 }
 .featured-card:hover,
 .featured-card:focus-visible {
-  transform: translateY(-5px);
-  box-shadow: 0 26px 50px -18px var(--accent-2), 0 2px 6px rgba(0, 0, 0, .15);
+  transform: translateY(-3px);
+  box-shadow: 0 20px 40px -16px var(--accent-2), 0 1px 3px rgba(0, 0, 0, .15);
   outline: none;
+}
+
+.featured-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 .featured-icon {
   display: grid;
@@ -1117,62 +1124,99 @@ body.is-reordering .card.is-dragging .card-grip { cursor: grabbing; }
   flex-shrink: 0;
   width: 46px;
   height: 46px;
-  border-radius: 16px;
+  border-radius: 14px;
   background: rgba(255, 255, 255, .2);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .3);
   transition: transform .28s cubic-bezier(.2, .8, .2, 1);
 }
 .featured-icon svg { width: 25px; height: 25px; }
 .featured-card:hover .featured-icon { transform: scale(1.06) rotate(-4deg); }
-.featured-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.featured-title { font-size: 1.2rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
-.featured-text { display: none; font-size: .88rem; line-height: 1.4; color: rgba(255, 255, 255, .9); }
-.featured-card.is-info-open .featured-text { display: block; animation: featured-fade .2s ease; }
-@keyframes featured-fade { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: none; } }
-.featured-body { padding-right: 34px; padding-bottom: 16px; }
-/* gumb „i“ — pokaže/skrije opis */
-.featured-info {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: 0;
-  border-radius: 999px;
-  font: italic 700 .95rem/1 Georgia, "Times New Roman", serif;
-  color: #fff;
-  background: rgba(255, 255, 255, .22);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .4);
-  cursor: pointer;
-  transition: background .2s ease, transform .2s ease;
+
+.featured-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
-.featured-info:hover { background: rgba(255, 255, 255, .34); transform: scale(1.08); }
-.featured-card.is-info-open .featured-info { background: #fff; color: var(--accent-2); }
+.featured-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.featured-title {
+  overflow: hidden;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.featured-sub {
+  overflow: hidden;
+  font-size: .8rem;
+  color: rgba(255, 255, 255, .85);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.featured-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.featured-info,
 .featured-cta {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  position: absolute;
-  right: 16px;
-  bottom: 9px;
-  padding: 4px 10px;
+  height: 32px;
   border-radius: 999px;
+  color: #fff;
   background: rgba(255, 255, 255, .2);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .35);
+  transition: background .2s ease, transform .2s ease;
+}
+.featured-info {
+  justify-content: center;
+  width: 32px;
+  padding: 0;
+  border: 0;
+  font: italic 700 .95rem/1 Georgia, "Times New Roman", serif;
+  cursor: pointer;
+}
+.featured-info:hover { background: rgba(255, 255, 255, .34); transform: scale(1.06); }
+.featured-card.is-info-open .featured-info { background: #fff; color: var(--accent-2); }
+.featured-cta {
+  gap: 4px;
+  padding: 0 12px;
   font-size: .82rem;
   font-weight: 600;
 }
 .featured-cta svg { width: 15px; height: 15px; transition: transform .25s ease; }
+.featured-card:hover .featured-cta { background: rgba(255, 255, 255, .3); }
 .featured-card:hover .featured-cta svg { transform: translate(2px, -2px); }
 
+/* opis — viden po kliku na „i“ */
+.featured-text {
+  display: none;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, .25);
+  font-size: .85rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, .92);
+}
+.featured-card.is-info-open .featured-text { display: block; animation: featured-fade .2s ease; }
+@keyframes featured-fade { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: none; } }
+
 .badge-new {
-  align-self: flex-start;
-  padding: 3px 8px;
+  flex-shrink: 0;
+  padding: 2px 7px;
   border-radius: 999px;
-  font-size: .64rem;
+  font-size: .6rem;
   font-weight: 800;
   letter-spacing: .12em;
   color: #fff;
@@ -1204,11 +1248,13 @@ body.is-reordering .featured { display: none; }
   .card { min-height: 148px; padding: 16px; }
   .card-icon { width: 42px; height: 42px; }
   .card-icon svg { width: 22px; height: 22px; }
-  .featured-card { min-height: 0; padding: 9px 12px; gap: 12px; }
+  .featured-card { padding: 10px 12px; }
+  .featured-main { gap: 12px; }
   .featured-icon { width: 42px; height: 42px; border-radius: 13px; }
   .featured-icon svg { width: 22px; height: 22px; }
-  .featured-title { font-size: 1.1rem; }
-  .featured-text { font-size: .82rem; }
+  .featured-title { font-size: 1.05rem; }
+  .featured-cta span { display: none; }
+  .featured-cta { padding: 0; width: 32px; justify-content: center; }
 
   /* naslov na telefonu poravnan levo (prostor za krog uporabnika desno) in manjši */
   .site-header { text-align: left; padding-right: 52px; }
