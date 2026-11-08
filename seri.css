@@ -12,25 +12,7 @@ body.seri-page {
   overflow-x: hidden;
 }
 
-/* ---------- Ozadje: lebdeči barvni mehurčki ---------- */
-.seri-bg { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
-.seri-blob {
-  position: absolute;
-  width: 60vmax;
-  height: 60vmax;
-  border-radius: 50%;
-  filter: blur(70px);
-  opacity: calc(var(--glow-alpha) * 1.25);
-  animation: seri-float 18s ease-in-out infinite alternate;
-}
-.seri-blob--1 { top: -25vmax; left: -20vmax; background: #a855f7; }
-.seri-blob--2 { top: 10vmax; right: -28vmax; background: #22d3ee; animation-delay: -6s; animation-duration: 22s; }
-.seri-blob--3 { bottom: -32vmax; left: 10vmax; background: #f472b6; animation-delay: -11s; animation-duration: 26s; }
-@keyframes seri-float {
-  0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(6vmax, 4vmax) scale(1.08); }
-  100% { transform: translate(-4vmax, 7vmax) scale(.95); }
-}
+/* Ozadje: isti .bg-glow kot na plošči (styles.css) — brez lastnih mehurčkov. */
 
 /* ---------- Glava ---------- */
 .seri-header {
@@ -447,7 +429,7 @@ body.seri-page {
   .seri-swipe-hint em { font-size: .76rem; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .seri-blob, .seri-plus-ring, .seri-wave, .seri-orbit i { animation: none !important; }
+  .seri-plus-ring, .seri-wave, .seri-orbit i { animation: none !important; }
 }
 
 /* Prenos: ikono riše platno (SERI.transfer), izvirna ikona in gumbi se skrijejo */
