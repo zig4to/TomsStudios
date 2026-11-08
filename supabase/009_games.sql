@@ -79,6 +79,7 @@ create or replace function public.c4_win(p_board text, p_idx int)
 returns int[]
 language plpgsql
 immutable
+set search_path = public
 as $$
 declare
   r int := p_idx / 7;
