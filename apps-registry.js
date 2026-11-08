@@ -220,4 +220,20 @@
         "</svg>"
     }
   ];
+
+  /* Izpostavljene nove aplikacije: velik razdelek „Novo“ na vrhu plošče in
+     značka NOVO na kartici. Prikaže se samo aplikacije, do katerih ima
+     uporabnik dostop. Ko uporabnik razdelek zapre (×), se zapomni `key` —
+     za naslednjo objavo spremeni key, da se razdelek spet pokaže. */
+  window.PTOMSETU_FEATURED = {
+    key: "2026-11-bingo-cekar",
+    // Izpostavljeno 2 tedna od objave; po tem datumu (vključno) se razdelek
+    // in značke NOVO ne prikazujejo več.
+    until: "2026-11-22",
+    title: "Novo v TomStudios",
+    apps: [
+      { id: "bingo", text: "Letni bingo ciljev in števec — npr. 2000 km na kolesu, 50× plezanja. Kljukaj in odštevaj skozi leto." },
+      { id: "cekar", text: "Skupni nakupovalni seznami po trgovinah — dodaš izdelek, ostali ga vidijo takoj." }
+    ]
+  };
 })();

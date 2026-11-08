@@ -41,6 +41,112 @@
   var CHECK_SVG =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
 
+  /* ---------- Izpostavljene nove aplikacije („Novo“) ---------- */
+
+  var FEATURED = window.PTOMSETU_FEATURED || null;
+  var FEATURED_DISMISS_KEY = "ptomsetu-featured-dismissed";
+  var featuredEl = document.getElementById("featured");
+
+  function featuredDismissed() {
+    if (!FEATURED) return true;
+    // Potekel rok izpostavitve (lokalni datum YYYY-MM-DD)?
+    if (FEATURED.until) {
+      var d = new Date();
+      var today = d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
+      if (today >= FEATURED.until) return true;
+    }
+    try { return localStorage.getItem(FEATURED_DISMISS_KEY) === FEATURED.key; } catch (e) { return false; }
+  }
+
+  function isFeatured(appId) {
+    return !!FEATURED && !featuredDismissed() &&
+      FEATURED.apps.some(function (f) { return f.id === appId; });
+  }
+
+  function renderFeatured() {
+    if (!featuredEl) return;
+    featuredEl.innerHTML = "";
+    var items = !FEATURED || featuredDismissed() || (access && access.blocked)
+      ? []
+      : FEATURED.apps.filter(function (f) { return APPS_BY_ID[f.id] && canUse(f.id); });
+    featuredEl.hidden = items.length === 0;
+    if (!items.length) return;
+
+    var head = document.createElement("div");
+    head.className = "featured-head";
+    var label = document.createElement("span");
+    label.className = "featured-label";
+    label.innerHTML = '<span class="featured-spark" aria-hidden="true">\u2726</span>';
+    label.appendChild(document.createTextNode(FEATURED.title));
+    var close = document.createElement("button");
+    close.type = "button";
+    close.className = "featured-close";
+    close.setAttribute("aria-label", "Skrij novosti");
+    close.innerHTML = REMOVE_ICON;
+    close.addEventListener("click", function () {
+      try { localStorage.setItem(FEATURED_DISMISS_KEY, FEATURED.key); } catch (e) {}
+      render();
+    });
+    head.appendChild(label);
+    head.appendChild(close);
+    featuredEl.appendChild(head);
+
+    var row = document.createElement("div");
+    row.className = "featured-row";
+    items.forEach(function (f) {
+      var app = APPS_BY_ID[f.id];
+      var a = document.createElement("a");
+      a.className = "featured-card";
+      a.style.setProperty("--accent", app.accent);
+      a.style.setProperty("--accent-2", app.accent2);
+      a.href = buildAppUrl(app, session);
+      if (isStandalone()) { a.target = "_blank"; a.rel = "noopener"; }
+
+      var icon = document.createElement("span");
+      icon.className = "featured-icon";
+      icon.innerHTML = app.icon;
+
+      var body = document.createElement("span");
+      body.className = "featured-body";
+      var badge = document.createElement("span");
+      badge.className = "badge-new";
+      badge.textContent = "NOVO";
+      var title = document.createElement("span");
+      title.className = "featured-title";
+      title.textContent = app.title;
+      var text = document.createElement("span");
+      text.className = "featured-text";
+      text.textContent = f.text || app.subtitle;
+      var cta = document.createElement("span");
+      cta.className = "featured-cta";
+      cta.innerHTML = "Odpri " + ARROW_SVG;
+      body.appendChild(badge);
+      body.appendChild(title);
+      body.appendChild(text);
+      body.appendChild(cta);
+
+      // Opis je skrit za gumbom „i“ (klik ne odpre aplikacije, le pokaže/skrije opis).
+      var info = document.createElement("button");
+      info.type = "button";
+      info.className = "featured-info";
+      info.textContent = "i";
+      info.setAttribute("aria-label", "Opis aplikacije " + app.title);
+      info.setAttribute("aria-expanded", "false");
+      info.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var open = a.classList.toggle("is-info-open");
+        info.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+
+      a.appendChild(icon);
+      a.appendChild(body);
+      a.appendChild(info);
+      row.appendChild(a);
+    });
+    featuredEl.appendChild(row);
+  }
+
   // Nastavljeno spodaj (znotraj bloka za vlečenje razvrščanja), a poklicano
   // tudi iz render() — zato deklarirano tu, da je vidno v celotnem obsegu.
   var toggleEndCap;
@@ -166,6 +272,12 @@
     a.appendChild(icon);
     a.appendChild(body);
     a.appendChild(arrow);
+    if (isFeatured(appEntry.id)) {
+      var badge = document.createElement("span");
+      badge.className = "badge-new badge-new--card";
+      badge.textContent = "NOVO";
+      a.appendChild(badge);
+    }
     return a;
   }
 
@@ -199,6 +311,7 @@
 
   function render() {
     grid.innerHTML = "";
+    renderFeatured();
     if (access && access.blocked) {
       var msg = document.createElement("p");
       msg.className = "grid-blocked";
@@ -748,6 +861,7 @@
     setAccess(null);
     slots = [];
     grid.innerHTML = "";
+    if (featuredEl) { featuredEl.innerHTML = ""; featuredEl.hidden = true; }
     closePicker();
   }
 
