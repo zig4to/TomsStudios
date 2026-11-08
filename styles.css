@@ -1606,6 +1606,26 @@ body.is-reordering .featured { display: none; }
   font-size: 1rem; /* vsaj 16 px: iOS ne poveča strani ob fokusu */
 }
 .chat-mini-input::placeholder { color: var(--text-soft); }
+.chat-mini-form { padding-left: 4px; }
+.chat-mini-attach {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-soft);
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+}
+.chat-mini-attach + .chat-mini-attach { margin-left: -4px; }
+.chat-mini-attach:hover, .chat-mini-attach:focus-visible { color: var(--text); background: var(--surface-solid); outline: none; }
+.chat-mini-attach svg { width: 18px; height: 18px; }
+.chat-mini-photo { color: #ec4899; }
+.chat-mini.is-expanded .chat-mini-attach { width: 40px; height: 40px; }
+.chat-mini.is-expanded .chat-mini-attach svg { width: 20px; height: 20px; }
 .chat-mini-send {
   flex: none;
   display: grid;

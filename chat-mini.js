@@ -37,6 +37,8 @@
   }
 
   function preview(m) {
+    if (m._failed) return "⚠️ Ni poslano: " + (m.file_name || m.body || "");
+    if (m._pending && m.file_path) return "⏳ " + m.file_name + " · " + Math.round(m._pct || 0) + " %";
     if (m.file_path) {
       var kind = S.isImage(m.file_name, m.file_mime) ? "🖼️ Slika" : "📎 " + m.file_name;
       return m.body ? kind + " · " + m.body : kind;
@@ -95,6 +97,10 @@
     '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>';
   var SHRINK_ICON =
     '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6"/><path d="M20 10h-6V4"/><path d="M14 10l7-7"/><path d="M3 21l7-7"/></svg>';
+  var CLIP_ICON =
+    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>';
+  var PHOTO_ICON =
+    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.09-3.09a2 2 0 0 0-2.82 0L6 21"/></svg>';
   var CHEV_ICON =
     '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
   var CHAT_ICON =
@@ -166,8 +172,43 @@
       send.disabled = true;
       quickSend(text);
     });
+    // priponke: datoteka (vsi formati) in galerija (izbirnik fotografij)
+    var fileInp = document.createElement("input");
+    fileInp.type = "file";
+    fileInp.multiple = true;
+    fileInp.hidden = true;
+    var galInp = document.createElement("input");
+    galInp.type = "file";
+    galInp.accept = "image/*,video/*";
+    galInp.multiple = true;
+    galInp.hidden = true;
+    [fileInp, galInp].forEach(function (fi) {
+      fi.addEventListener("change", function () {
+        Array.prototype.slice.call(fi.files || [], 0, 10).forEach(sendFile);
+        fi.value = "";
+      });
+    });
+    var attach = document.createElement("button");
+    attach.type = "button";
+    attach.className = "chat-mini-attach";
+    attach.setAttribute("aria-label", "Priloži datoteko");
+    attach.title = "Datoteka";
+    attach.innerHTML = CLIP_ICON;
+    attach.addEventListener("click", function () { fileInp.click(); });
+    var photo = document.createElement("button");
+    photo.type = "button";
+    photo.className = "chat-mini-attach chat-mini-photo";
+    photo.setAttribute("aria-label", "Slika iz galerije");
+    photo.title = "Galerija";
+    photo.innerHTML = PHOTO_ICON;
+    photo.addEventListener("click", function () { galInp.click(); });
+
+    form.appendChild(attach);
+    form.appendChild(photo);
     form.appendChild(inp);
     form.appendChild(send);
+    form.appendChild(fileInp);
+    form.appendChild(galInp);
 
     box.appendChild(head);
     box.appendChild(list);
@@ -306,6 +347,74 @@
         if (res.error) throw res.error;
         msgs = (res.data || []).reverse();
       });
+  }
+
+  // priponka: naloži v bucket `chat` (kot chat.js), nato vrstica v chat_messages
+  function sendFile(file) {
+    if (file.size > S.MAX_BYTES) {
+      toast("Datoteka je prevelika (" + S.formatSize(file.size) + "). Največ 50 MB.");
+      return;
+    }
+    var caption = els && els.inp.value.trim();
+    if (caption) { els.inp.value = ""; els.inp.dispatchEvent(new Event("input")); }
+    var m = {
+      id: S.uuid(),
+      sender_id: uid,
+      body: caption || null,
+      file_path: uid + "/" + S.uuid(),
+      file_name: file.name || "datoteka",
+      file_size: file.size,
+      file_mime: file.type || null,
+      created_at: new Date().toISOString(),
+      _pending: true,
+      _pct: 0
+    };
+    add(m);
+    markRead();
+    var shown = 0;
+    S.upload(sb(), "chat", m.file_path, file, function (pct) {
+      m._pct = pct;
+      if (pct - shown >= 4 || pct >= 100) { shown = pct; render(); }
+    }).promise
+      .then(function () {
+        return sb().from("chat_messages").insert({
+          id: m.id,
+          body: m.body,
+          file_path: m.file_path,
+          file_name: m.file_name,
+          file_size: m.file_size,
+          file_mime: m.file_mime
+        });
+      })
+      .then(function (res) {
+        if (res && res.error) throw new Error("Pošiljanje ni uspelo.");
+        m._pending = false;
+        render();
+      })
+      .catch(function (err) {
+        m._pending = false;
+        m._failed = true;
+        render();
+        if (err && err.message !== "abort") toast(err.message);
+        // neuspelo sporočilo po nekaj sekundah umakni
+        setTimeout(function () {
+          msgs = msgs.filter(function (x) { return x.id !== m.id; });
+          render();
+        }, 6000);
+      });
+  }
+
+  function toast(text) {
+    var t = document.querySelector(".toast");
+    if (!t) {
+      t = document.createElement("div");
+      t.className = "toast";
+      document.body.appendChild(t);
+    }
+    t.textContent = text;
+    t.classList.add("is-visible");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function () { t.classList.remove("is-visible"); }, 3200);
   }
 
   function quickSend(text) {
