@@ -198,6 +198,19 @@
         "</svg>"
     },
     {
+      id: "klodi",
+      title: "Klodi",
+      subtitle: "Claude Code v oblaku",
+      url: "https://klodi-ruby.vercel.app/",
+      accent: "#0ea5e9",
+      accent2: "#6366f1",
+      icon:
+        // Poln bel oblak — enako kot ikona aplikacije Klodi.
+        '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none">' +
+        '<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>' +
+        "</svg>"
+    },
+    {
       id: "zaganjalnik",
       title: "Zaganjalnik",
       subtitle: "DevHost na domačem PC",
