@@ -104,7 +104,7 @@
   function sb() { return window.sb; }
 
   function collapsed() {
-    try { return localStorage.getItem(COLLAPSE_KEY) === "1"; } catch (e) { return false; }
+    try { return localStorage.getItem(COLLAPSE_KEY) !== "0"; } catch (e) { return true; }
   }
   function setCollapsed(v) {
     try { localStorage.setItem(COLLAPSE_KEY, v ? "1" : "0"); } catch (e) {}
