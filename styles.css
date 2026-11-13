@@ -1988,8 +1988,8 @@ body.chat-mini-open { overflow: hidden; }
 @media (min-width: 1000px) {
   html.hub-session .hub-layout {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: clamp(20px, 2.2vw, 32px);
+    grid-template-columns: minmax(0, 1fr) clamp(340px, 30vw, 440px);
+    gap: clamp(24px, 2.6vw, 40px);
     align-items: start;
   }
   html.hub-session .hub-layout .hub-side {
@@ -2000,7 +2000,7 @@ body.chat-mini-open { overflow: hidden; }
   }
   html.hub-session .hub-layout .hub-apps { grid-column: 1; grid-row: 1; }
   html.hub-session .hub-layout .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  html.hub-session .hub-layout .featured-row { grid-template-columns: minmax(0, 1fr); }
+  html.hub-session .hub-layout .featured-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   /* medtem ko se klepet nalaga: prazen okvir, da se postavitev ne premakne */
   html.hub-session .hub-side:not(:has(.chat-mini:not([hidden])))::before {
     content: "";
