@@ -211,6 +211,20 @@
         "</svg>"
     },
     {
+      id: "kviz",
+      title: "Garaža kviz",
+      subtitle: "Pub kviz v ekipah",
+      url: "https://pubkviz.vercel.app/",
+      accent: "#06b6d4",
+      accent2: "#7c3aed",
+      icon:
+        // Garaža (streha + vrata) z vprašajem — enako kot ikona aplikacije Kviz.
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' +
+        '<path d="M2 21V9.5L12 3l10 6.5V21"/><path d="M6 21V10.5h12V21"/>' +
+        '<path d="M10.25 14.69a1.8 1.8 0 0 1 3.5.6c0 1.2-1.8 1.8-1.8 1.8"/><path d="M12 19.5h.01"/>' +
+        "</svg>"
+    },
+    {
       id: "zaganjalnik",
       title: "Zaganjalnik",
       subtitle: "DevHost na domačem PC",
