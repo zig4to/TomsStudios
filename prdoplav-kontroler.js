@@ -1,0 +1,213 @@
+/* Prdoplav — telefon kot kontroler. Pošilja levo/desno/prdec v sobo (prdoplav-net.js),
+   od gostitelja dobi stanje (žival, plin, življenja, faza). */
+(function () {
+  "use strict";
+
+  var NET = window.PRDONET;
+  var $ = function (id) { return document.getElementById(id); };
+  var sb = NET.client();
+  var user = null, name = "", room = null, joined = false, code = "";
+  var inp = { l: false, r: false, f: false };
+  var st = null, stAt = 0, hostHere = false;
+  var holdStart = 0;
+
+  function gateMsg(t) { $("gateMsg").textContent = t; }
+
+  if (!sb) { gateMsg("Povezava s TomsStudiom ni na voljo."); return; }
+
+  sb.auth.getSession().then(function (res) {
+    var s = res && res.data && res.data.session;
+    if (!s) {
+      gateMsg("Za igro se najprej prijavi na plošči TomsStudia, nato znova skeniraj kodo.");
+      return;
+    }
+    user = s.user;
+    NET.myName(sb, user).then(function (n) {
+      name = n;
+      var c = NET.cleanCode(new URLSearchParams(location.search).get("soba"));
+      if (c.length === 4) join(c);
+      else askCode();
+    });
+  }, function () { gateMsg("Ni povezave."); });
+
+  function askCode() {
+    gateMsg("Vpiši kodo sobe, ki je na velikem zaslonu.");
+    $("joinForm").hidden = false;
+    $("codeIn").focus();
+  }
+  $("codeIn").addEventListener("input", function () { this.value = NET.cleanCode(this.value); });
+  $("joinForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var c = NET.cleanCode($("codeIn").value);
+    if (c.length !== 4) return;
+    history.replaceState(null, "", "?soba=" + c);
+    join(c);
+  });
+
+  function join(c) {
+    code = c;
+    $("gate").hidden = true;
+    $("pad").hidden = false;
+    $("meName").textContent = name;
+    setStatus("Povezujem se v sobo " + code + " …");
+    room = NET.channel(sb, code, user.id);
+    room
+      .on("presence", { event: "sync" }, function () {
+        hostHere = !!room.presenceState().host;
+        render();
+      })
+      .on("broadcast", { event: NET.EV.ST }, function (m) {
+        st = m.payload || null; stAt = Date.now();
+        render();
+      })
+      .subscribe(function (status) {
+        if (status === "SUBSCRIBED") {
+          joined = true;
+          room.track({ name: name, at: Date.now() });
+          send();
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          joined = false;
+          setStatus("Povezava je prekinjena. Poskušam znova …", true);
+        }
+      });
+    wake();
+  }
+
+  function send() {
+    if (!joined || !room) return;
+    room.send({ type: "broadcast", event: NET.EV.IN, payload: { u: user.id, l: inp.l, r: inp.r, f: inp.f } });
+  }
+  setInterval(send, 400);
+
+  function cmd(a) {
+    if (!joined || !room) return;
+    room.send({ type: "broadcast", event: NET.EV.CMD, payload: { u: user.id, a: a } });
+  }
+
+  function setStatus(t, warn) {
+    var s = $("status");
+    s.textContent = t;
+    s.classList.toggle("warn", !!warn);
+  }
+
+  var HEART = '<svg viewBox="0 0 24 24" fill="FILL" stroke="#fff" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>';
+
+  function render() {
+    var mine = st && st.p ? st.p.filter(function (x) { return x.u === user.id; })[0] : null;
+    var act = $("act");
+    act.hidden = true;
+    $("controls").classList.toggle("dim", !(st && (st.ph === "play" || st.ph === "count")));
+
+    if (!hostHere && Date.now() - stAt > 3000) {
+      setStatus("Velikega zaslona ni v sobi " + code + ". Preveri kodo.", true);
+      return;
+    }
+    if (!st) { setStatus("Povezan. Čakam na veliki zaslon …"); return; }
+    if (!mine) { setStatus("Prijavljam se v igro …"); return; }
+
+    if (mine.w || mine.s < 0) {
+      $("meAnimal").textContent = "";
+      setStatus(st.ph === "play" || st.ph === "count" ? "Vožnja že teče. Pridružiš se na naslednji progi." : "Splav je poln (4 igralci). Počakaj na prosto mesto.");
+      return;
+    }
+    var a = NET.ANIMALS[mine.s];
+    document.documentElement.style.setProperty("--me", a.ring);
+    $("meAnimal").textContent = "· " + a.name;
+    var g = Math.max(0, Math.min(1, mine.g));
+    var fill = $("gasFill");
+    fill.style.width = Math.round(g * 100) + "%";
+    fill.style.background = g > 0.5 ? "#a3e635" : g > 0.2 ? "#facc15" : "#f97316";
+
+    var lives = "";
+    for (var i = 0; i < (st.maxLives || 3); i++) lives += HEART.replace("FILL", i < st.lives ? "#ef4444" : "rgba(255,255,255,0.15)");
+    $("lives").innerHTML = st.ph === "lobby" ? "" : lives;
+
+    if (st.ph === "lobby") {
+      setStatus("Si " + a.name.toLowerCase() + " na splavu. Ko so vsi notri, začni.");
+      act.hidden = false; act.textContent = "Začni vožnjo"; act.dataset.a = "start";
+    } else if (st.ph === "count") {
+      setStatus("Pripravi se … " + st.lvName);
+    } else if (st.ph === "play") {
+      setStatus(st.lvName + " · levo/desno po robu, prdec odrine splav");
+    } else if (st.ph === "end") {
+      setStatus("Na cilju! Bravo, ekipa.");
+      act.hidden = false;
+      act.textContent = st.next ? "Naslednja proga" : "Ponovi progo";
+      act.dataset.a = st.next ? "next" : "retry";
+    } else if (st.ph === "over") {
+      setStatus("Splav je razpadel.", true);
+      act.hidden = false; act.textContent = "Še enkrat"; act.dataset.a = "retry";
+    } else {
+      setStatus("Čakam na veliki zaslon …");
+    }
+  }
+  setInterval(render, 1000);
+
+  $("act").addEventListener("click", function () { cmd(this.dataset.a); });
+
+  /* ---- gumbi (več prstov hkrati) ---- */
+  function bind(el, key) {
+    function down(e) {
+      e.preventDefault();
+      try { el.setPointerCapture(e.pointerId); } catch (x) {}
+      set(key, true, el);
+    }
+    function up() { set(key, false, el); }
+    el.addEventListener("pointerdown", down);
+    el.addEventListener("pointerup", up);
+    el.addEventListener("pointercancel", up);
+    el.addEventListener("lostpointercapture", up);
+    el.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+  }
+  function set(key, val, el) {
+    if (inp[key] === val) return;
+    inp[key] = val;
+    el.classList.toggle("on", val);
+    if (key === "f") {
+      if (val) { holdStart = Date.now(); chargeAnim(); }
+      else {
+        var held = Math.min(1, (Date.now() - holdStart) / 900);
+        $("chargeFill").style.height = "0%";
+        if (navigator.vibrate) navigator.vibrate(Math.round(30 + 90 * held));
+      }
+    } else if (val && navigator.vibrate) navigator.vibrate(8);
+    send();
+  }
+  function chargeAnim() {
+    if (!inp.f) return;
+    var k = Math.min(1, (Date.now() - holdStart) / 900);
+    $("chargeFill").style.height = Math.round(k * 100) + "%";
+    requestAnimationFrame(chargeAnim);
+  }
+  bind($("bL"), "l");
+  bind($("bR"), "r");
+  bind($("bF"), "f");
+
+  // tipkovnica (za preizkus na računalniku)
+  var KEYMAP = { ArrowLeft: ["l", "bL"], ArrowRight: ["r", "bR"], ArrowUp: ["f", "bF"], Space: ["f", "bF"] };
+  window.addEventListener("keydown", function (e) {
+    var k = KEYMAP[e.code];
+    if (!k || $("pad").hidden) return;
+    e.preventDefault();
+    set(k[0], true, $(k[1]));
+  });
+  window.addEventListener("keyup", function (e) {
+    var k = KEYMAP[e.code];
+    if (k) set(k[0], false, $(k[1]));
+  });
+
+  /* ---- ekran naj ostane prižgan ---- */
+  var lock = null;
+  function wake() {
+    if (!navigator.wakeLock || lock) return;
+    navigator.wakeLock.request("screen").then(function (l) {
+      lock = l;
+      l.addEventListener("release", function () { lock = null; });
+    }).catch(function () {});
+  }
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden && room) { wake(); send(); }
+    if (document.hidden) { inp.l = inp.r = inp.f = false; send(); }
+  });
+  document.addEventListener("pointerdown", wake, { once: true });
+})();

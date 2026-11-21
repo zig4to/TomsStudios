@@ -23,6 +23,20 @@ const TYPES = {
 
 const server = http.createServer((req, res) => {
   const url = decodeURIComponent(req.url.split("?")[0]);
+
+  // IP naslovi tega računalnika v lokalnem omrežju — Prdoplav z njimi naredi QR kodo,
+  // ki jo telefon lahko odpre (localhost na telefonu kaže na telefon sam).
+  if (url === "/__lan") {
+    const ips = [];
+    Object.values(require("os").networkInterfaces()).forEach((list) =>
+      (list || []).forEach((a) => {
+        if ((a.family === "IPv4" || a.family === 4) && !a.internal) ips.push(a.address);
+      })
+    );
+    res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+    res.end(JSON.stringify({ ips, port: PORT }));
+    return;
+  }
   let file = path.join(ROOT, url === "/" ? "index.html" : url);
 
   // Ne pusti ven iz mape projekta.

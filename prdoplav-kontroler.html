@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<title>Prdoplav kontroler</title>
+<meta name="theme-color" content="#0b1a10" />
+<meta name="robots" content="noindex" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0b1a10;
+    --panel: #13271a;
+    --line: rgba(255, 255, 255, 0.12);
+    --text: #f8fafc;
+    --muted: #9bb7a4;
+    --me: #84cc16;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) { --bg: #0b1a10; }
+  }
+  :root[data-theme="dark"] { --bg: #0b1a10; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg); color: var(--text); font-family: Outfit, system-ui, sans-serif;
+    -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none;
+    -webkit-touch-callout: none; overscroll-behavior: none; touch-action: manipulation;
+  }
+
+  .gate {
+    min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; padding: 24px 16px; text-align: center;
+  }
+  .gate[hidden] { display: none; }
+  .gate h1 { margin: 0; font-size: 44px; font-weight: 900; color: #d9f99d; text-shadow: 0 3px 0 #3f6212; }
+  .gate p { margin: 0; color: var(--muted); max-width: 340px; line-height: 1.45; }
+  .gate form { display: flex; flex-direction: column; gap: 10px; width: min(320px, 100%); }
+  .gate form[hidden] { display: none; }
+  .gate input {
+    font: inherit; font-size: 40px; font-weight: 900; letter-spacing: 0.3em; text-align: center; text-transform: uppercase;
+    padding: 10px; border-radius: 16px; border: 2px solid var(--line); background: var(--panel); color: var(--text);
+  }
+  .btn {
+    font: inherit; font-weight: 800; font-size: 19px; padding: 14px; border-radius: 16px; border: 0;
+    background: #84cc16; color: #1a2e05; box-shadow: 0 4px 0 #3f6212;
+  }
+  .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #3f6212; }
+  .gate a { color: var(--muted); }
+
+  .pad {
+    position: fixed; inset: 0; display: grid; grid-template-rows: auto 1fr;
+    padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+    gap: 10px; touch-action: none;
+  }
+  .pad[hidden] { display: none; }
+  .bar { display: flex; flex-direction: column; gap: 8px; }
+  .bar-row { display: flex; align-items: center; gap: 10px; }
+  .me { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 18px; min-width: 0; }
+  .me i { width: 16px; height: 16px; border-radius: 50%; background: var(--me); flex: none; box-shadow: 0 0 0 3px rgba(255,255,255,0.15); }
+  .me b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .me span { color: var(--muted); font-weight: 600; }
+  .lives { margin-left: auto; display: flex; gap: 4px; }
+  .lives svg { width: 20px; height: 20px; }
+  .status { font-size: 15px; color: var(--muted); }
+  .status.warn { color: #fca5a5; }
+  .gas { height: 12px; border-radius: 6px; background: rgba(255, 255, 255, 0.12); overflow: hidden; }
+  .gas span { display: block; height: 100%; width: 100%; background: #a3e635; border-radius: 6px; transition: width .2s; }
+  .act { font: inherit; font-weight: 900; font-size: 20px; padding: 14px; border-radius: 16px; border: 0; background: #38bdf8; color: #082f49; box-shadow: 0 4px 0 #0369a1; }
+  .act[hidden] { display: none; }
+
+  .controls { display: grid; gap: 12px; min-height: 0; grid-template-columns: 1fr; grid-template-rows: 1.25fr 1fr; }
+  .lr { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; min-height: 0; order: 2; }
+  @media (orientation: landscape) {
+    .controls { grid-template-columns: 1.1fr 1fr; grid-template-rows: 1fr; }
+    .lr { order: 0; }
+  }
+  .pb {
+    border: 0; border-radius: 26px; background: var(--panel); color: var(--text);
+    display: grid; place-items: center; font: inherit; touch-action: none;
+    box-shadow: inset 0 -6px 0 rgba(0, 0, 0, 0.35), 0 0 0 2px var(--line);
+    transition: transform .05s, background .05s;
+  }
+  .pb svg { width: 56px; height: 56px; }
+  .pb.on { background: #24452f; transform: scale(0.97); }
+  .fart {
+    position: relative; overflow: hidden; background: #3f6212; color: #ecfccb;
+    font-weight: 900; font-size: clamp(30px, 9vw, 52px); letter-spacing: 0.04em;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  }
+  .fart small { font-size: 14px; font-weight: 600; letter-spacing: 0; opacity: 0.8; position: relative; }
+  .fart b { position: relative; }
+  .fart .fill { position: absolute; left: 0; right: 0; bottom: 0; height: 0%; background: #84cc16; opacity: 0.55; }
+  .fart.on { background: #4d7c0f; }
+  .dim .pb { opacity: 0.45; }
+</style>
+</head>
+<body>
+  <div class="gate" id="gate">
+    <h1>Prdoplav</h1>
+    <p id="gateMsg">Nalagam …</p>
+    <form id="joinForm" hidden autocomplete="off">
+      <input id="codeIn" maxlength="4" inputmode="text" autocapitalize="characters" spellcheck="false" placeholder="KODA" aria-label="Koda sobe" />
+      <button class="btn" type="submit">Pridruži se</button>
+    </form>
+    <a href="./">Nazaj na ploščo</a>
+  </div>
+
+  <div class="pad" id="pad" hidden>
+    <div class="bar">
+      <div class="bar-row">
+        <span class="me"><i id="meDot"></i><b id="meName"></b><span id="meAnimal"></span></span>
+        <span class="lives" id="lives"></span>
+      </div>
+      <div class="gas"><span id="gasFill"></span></div>
+      <div class="status" id="status">Povezujem …</div>
+      <button class="act" id="act" type="button" hidden></button>
+    </div>
+    <div class="controls" id="controls">
+      <div class="lr">
+        <button class="pb" id="bL" type="button" aria-label="Levo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        <button class="pb" id="bR" type="button" aria-label="Desno">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+      </div>
+      <button class="pb fart" id="bF" type="button">
+        <span class="fill" id="chargeFill"></span>
+        <b>PRDNI</b>
+        <small>drži za močnejšega</small>
+      </button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="prdoplav-net.js"></script>
+  <script src="prdoplav-kontroler.js"></script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 /* Service worker — omogoča namestitev in delovanje brez povezave.
    Ob spremembi datotek povečaj VERZIJO, da se predpomnilnik osveži. */
 
-const VERZIJA = "v98";
+const VERZIJA = "v99";
 const CACHE = "ptomsetu-" + VERZIJA;
 
 const LUPINA = [
@@ -27,6 +27,12 @@ const LUPINA = [
   "./games.css",
   "./igra.html",
   "./igra.js",
+  "./prdoplav.html",
+  "./prdoplav.js",
+  "./prdoplav-net.js",
+  "./prdoplav3d.js",
+  "./prdoplav-kontroler.html",
+  "./prdoplav-kontroler.js",
   "./apps-registry.js",
   "./supabase-config.js",
   "./manifest.json",
@@ -70,6 +76,8 @@ self.addEventListener("fetch", (e) => {
       : url.pathname.endsWith("/seri.html") ? "./seri.html"
       : url.pathname.endsWith("/chat.html") ? "./chat.html"
       : url.pathname.endsWith("/igra.html") ? "./igra.html"
+      : url.pathname.endsWith("/prdoplav.html") ? "./prdoplav.html"
+      : url.pathname.endsWith("/prdoplav-kontroler.html") ? "./prdoplav-kontroler.html"
       : "./index.html";
     e.respondWith(
       fetch(req)

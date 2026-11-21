@@ -225,6 +225,22 @@
         "</svg>"
     },
     {
+      id: "prdoplav",
+      title: "Prdoplav",
+      subtitle: "Splav na prdce · telefoni kot kontrolerji",
+      // stran je v tem repoju (isti izvor → ista prijava), žeton v povezavi ni potreben
+      url: "prdoplav.html",
+      noToken: true,
+      accent: "#84cc16",
+      accent2: "#0284c7",
+      icon:
+        // Okrogel splav od zgoraj in oblaček plina.
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+        '<circle cx="10" cy="14" r="7"/><path d="M5.5 11.5h9M5.5 16.5h9"/>' +
+        '<path d="M16 6.5a2.5 2.5 0 0 1 4.5-1.5A2 2 0 1 1 20 9h-3.5a1.25 1.25 0 0 1-.5-2.5Z"/>' +
+        "</svg>"
+    },
+    {
       id: "zaganjalnik",
       title: "Zaganjalnik",
       subtitle: "DevHost na domačem PC",
