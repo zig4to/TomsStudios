@@ -32,7 +32,7 @@
 
     var A = api.ANIMALS, RAFT = api.RAFT;
     var t = 0;
-    var levelIdx = -1, levelGroup = null, water = null, waterBase = null, logs = [], pools = [], flows = [], gates = [];
+    var levelIdx = -1, levelGroup = null, water = null, waterBase = null, logs = [], pools = [], flows = [], gates = [], boulders = [];
     var curLv = null;
     function E(y) { return curLv ? api.elev(curLv, y) : 0; }
 
@@ -83,7 +83,7 @@
       var prof = lv.noFence ? CLIFF : COLS, floor = lv.noFence ? -490 : 0; // drevesa na dnu soteske
       levelGroup = new T.Group();
       scene.add(levelGroup);
-      logs = []; pools = []; flows = []; gates = [];
+      logs = []; pools = []; flows = []; gates = []; boulders = [];
 
       // teren (trava, pesek, dno)
       var y0 = -700, y1 = lv.len + 1400, step = 40;
@@ -92,10 +92,12 @@
       for (var r = 0; r < rows; r++) {
         var y = y0 + r * step, rv = api.river(lv, y);
         for (var k = 0; k < nc; k++) {
-          var h = prof[k][1];
+          // odsek brez ograje na tej strani → prepad (CLIFF), sicer trava
+          var pk = (k < 5 && api.openSide(lv, y, "L")) || (k > 5 && api.openSide(lv, y, "R")) ? CLIFF : prof;
+          var h = pk[k][1];
           if (k <= 2 || k >= nc - 3) h += hash(y * 0.31 + k * 7.7) * 10 - 3;
           pos.push(colX(rv, k), h + E(y), -y);
-          c.setHex(prof[k][2]);
+          c.setHex(pk[k][2]);
           var j = 0.94 + hash(y * 0.7 + k) * 0.1;
           col.push(c.r * j, c.g * j, c.b * j);
         }
@@ -148,7 +150,7 @@
         var trv = api.river(lv, ty);
         for (var side = -1; side <= 1; side += 2) for (var q = 0; q < 3; q++) {
           var hq = hash(ty * 0.13 + side * 7 + q * 31);
-          spots.push({ x: trv.cx + side * (trv.hw + 90 + hq * 380 + q * 160), y: ty + hash(ty + q) * 60, s: 0.7 + hash(ty * 3 + q + side) * 0.7, bush: q === 1 });
+          spots.push({ x: trv.cx + side * (trv.hw + 90 + hq * 380 + q * 160), y: ty + hash(ty + q) * 60, s: 0.7 + hash(ty * 3 + q + side) * 0.7, bush: q === 1, fl: api.openSide(lv, ty, side < 0 ? "L" : "R") ? -490 : 0 });
         }
       }
       var trees = spots.filter(function (s) { return !s.bush; }), bushes = spots.filter(function (s) { return s.bush; });
@@ -158,7 +160,7 @@
       var m4 = new T.Matrix4(), q4 = new T.Quaternion(), s3 = new T.Vector3(), v3 = new T.Vector3();
       trees.forEach(function (s, n) {
         s3.set(s.s, s.s, s.s);
-        var e = E(s.y) + floor;
+        var e = E(s.y) + s.fl;
         m4.compose(v3.set(s.x, e + 30 + 17 * s.s, -s.y), q4, s3); trunks.setMatrixAt(n, m4);
         m4.compose(v3.set(s.x, e + 30 + 34 * s.s + 50 * s.s, -s.y), q4, s3); crowns.setMatrixAt(n, m4);
       });
@@ -166,7 +168,7 @@
       bushes.forEach(function (s, n) {
         s3.set(s.s, s.s * 0.7, s.s);
         bq.setFromAxisAngle(upAxis, s.y);
-        m4.compose(v3.set(s.x, 32 + floor + E(s.y), -s.y), bq, s3);
+        m4.compose(v3.set(s.x, 32 + s.fl + E(s.y), -s.y), bq, s3);
         bushM.setMatrixAt(n, m4);
       });
       [crowns, trunks, bushM].forEach(function (im) { im.castShadow = true; im.receiveShadow = true; levelGroup.add(im); });
@@ -181,6 +183,13 @@
         var foam = new T.Mesh(new T.RingGeometry(o.r * 1.0, o.r * 1.25, 18), new T.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.45 }));
         foam.rotation.x = -Math.PI / 2; foam.position.set(o.x, 3 + E(o.y), -o.y);
         levelGroup.add(foam);
+      });
+
+      // kotaleče se krogle
+      lv.B.forEach(function (b) {
+        var ball = mesh(new T.IcosahedronGeometry(b.r, 1), mat(0x78716c));
+        levelGroup.add(ball);
+        boulders.push({ b: b, m: ball });
       });
 
       // hlodi
@@ -514,6 +523,11 @@
       });
 
       // ovire, ki se premikajo
+      boulders.forEach(function (o) {
+        var p = api.boulderPos(lv, o.b);
+        o.m.position.set(p.x, E(p.y) + p.r * 0.75, -p.y);
+        o.m.rotation.x = p.spin; // kotali se proti kameri (navzdol po klancu)
+      });
       logs.forEach(function (o) {
         o.g.position.x = api.logX(o.l);
         o.g.position.y = 4 + E(o.l.y) + wave(o.g.position.x, -o.l.y) * 0.6;

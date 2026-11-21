@@ -41,8 +41,11 @@
   .levels-row { display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: end; }
   @media (max-width: 680px) { .levels-row { grid-template-columns: 1fr; } }
   #viewPick button { padding: 10px 18px; }
-  #lvPick { flex-wrap: wrap; }
-  #lvPick button { flex: 1 1 120px; }
+  .lv-seg { flex-wrap: wrap; }
+  .lobby-levels { grid-column: 1 / -1; }
+  .levels .seg.lv-seg button, .lobby-levels .seg button { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 6px; font-size: 15px; }
+  .lobby-levels .seg small { font-weight: 500; font-size: 12px; opacity: 0.75; }
+  .lv-seg button { flex: 1 1 120px; }
 
   .ov {
     position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
@@ -199,7 +202,7 @@
       <div class="levels levels-row">
         <div>
           <h2>Proga</h2>
-          <div class="seg" id="lvPick"></div>
+          <div class="seg lv-seg" id="lvPick"></div>
         </div>
         <div>
           <h2>Izris</h2>
@@ -232,6 +235,10 @@
           <button class="go" id="btnStart" type="button" disabled>Začni vožnjo</button>
           <button class="ghost" id="btnLobbyBack" type="button">Zapri sobo</button>
         </div>
+      </div>
+      <div class="lobby-levels">
+        <h2>Izberi progo</h2>
+        <div class="seg lv-seg" id="lobbyLv"></div>
       </div>
     </div>
   </div>

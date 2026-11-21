@@ -105,6 +105,18 @@
       flows: [[2100, 240, -80, 10]]
     },
     {
+      // dolg vzpon s počivališči; po klancu se kotalijo kamnite krogle,
+      // vmes odseki brez ograje levo (L), desno (R) ali na obeh straneh (B)
+      name: "Dolgi klanec", len: 5600, wide: 1.2,
+      river: [[0, 0, 300], [800, 0, 260], [1600, 100, 250], [2400, -80, 240], [3200, 60, 250], [4000, -60, 240], [4800, 40, 250], [5900, 0, 300]],
+      rocks: [[100, 1100, 30]],
+      logs: [], pools: [], flows: [],
+      hills: [[0, 0], [500, 0], [1300, 60], [1600, 60], [2400, 130], [2700, 130], [3600, 210], [3900, 210], [4900, 290], [5900, 290]],
+      open: [[1650, 2350, "L"], [2750, 3550, "R"], [3950, 4800, "B"]],
+      // krogle: [x glede na sredino, vrh, dno, hitrost, zamik 0–1, polmer]
+      boulders: [[-80, 2350, 1600, 140, 0, 32], [90, 3550, 2750, 150, 0.5, 32], [0, 4850, 3950, 160, 0.3, 34], [-120, 4850, 3950, 160, 0.8, 30]]
+    },
+    {
       name: "Velika finala", len: 6600, wide: 1.15,
       river: [[0, 0, 300], [700, 0, 250], [1400, -150, 220], [2100, 120, 220], [2800, 0, 240], [3500, -180, 220], [4200, 100, 220], [4900, 0, 230], [5600, -120, 220], [6900, 0, 300]],
       rocks: [[90, 800, 35], [-100, 1500, 35], [110, 2400, 35], [-90, 3300, 35], [100, 4500, 35], [-60, 5400, 35]],
@@ -144,6 +156,18 @@
   function spiky(lv, y) {
     return !!lv.spikes && lv.spikes.some(function (s) { return y >= s[0] && y <= s[1]; });
   }
+  // Ali je ta stran ("L" / "R") na višini y brez ograje (čez rob se pade)?
+  function openSide(lv, y, side) {
+    if (lv.noFence) return true;
+    return !!lv.open && lv.open.some(function (o) { return y >= o[0] && y <= o[1] && (o[2] === "B" || o[2] === side); });
+  }
+  // Kotaleča se krogla: od vrha klanca navzdol, nato spet na vrhu.
+  function boulderPos(lv, b) {
+    var range = b.top - b.bot;
+    var d = ((G.time * b.speed + b.ph * range) % range + range) % range;
+    var y = b.top - d;
+    return { x: river(lv, y).cx + b.ox, y: y, r: b.r, spin: d / b.r };
+  }
 
   function river(lv, y) {
     var p = lv.river;
@@ -182,6 +206,9 @@
     lv.P = lv.pools.map(function (p) { return { x: river(lv, p[1]).cx + p[0], y: p[1], r: p[2], str: p[3] }; });
     lv.F = lv.flows.map(function (f) { return { y: f[0], h: f[1], fx: f[2], fy: f[3] }; });
     // zapornice: [y, perioda (s), zamik] — vrata z obeh bregov se zapirajo proti sredini
+    lv.B = (lv.boulders || []).map(function (b) {
+      return { ox: b[0], top: b[1], bot: b[2], speed: b[3], ph: b[4], r: b[5] };
+    });
     lv.Gt = (lv.gates || []).map(function (g) {
       var rv = river(lv, g[0]);
       return { y: g[0], cx: rv.cx, hw: rv.hw, period: g[1], ph: g[2], gap: rv.hw, open: 1 };
@@ -349,16 +376,23 @@
     var rv = river(lv, r.y), rv2 = river(lv, r.y + 10);
     var left = rv.cx - rv.hw, right = rv.cx + rv.hw;
     var thr = spiky(lv, r.y) ? SPIKE_HIT : 0;
-    if (lv.noFence) {
-      // brez ograje: ko je sredina splava čez rob, splav pade
-      if ((r.x < left || r.x > right) && G.phase === "play") fallOff(r.x < left ? -1 : 1);
+    // brez ograje: ko je sredina splava čez rob, splav pade
+    if (openSide(lv, r.y, "L")) {
+      if (r.x < left && G.phase === "play") fallOff(-1);
     } else if (r.x - RC < left) {
       var sl = ((rv2.cx - rv2.hw) - left) / 10, ln = Math.sqrt(1 + sl * sl);
       collide(1 / ln, -sl / ln, (left - (r.x - RC)) / ln, 0, 0, r.x - RC, r.y, thr);
     }
-    if (!lv.noFence && r.x + RC > right) {
+    if (openSide(lv, r.y, "R")) {
+      if (r.x > right && G.phase === "play") fallOff(1);
+    } else if (r.x + RC > right) {
       var sr = ((rv2.cx + rv2.hw) - right) / 10, rn = Math.sqrt(1 + sr * sr);
       collide(-1 / rn, sr / rn, ((r.x + RC) - right) / rn, 0, 0, r.x + RC, r.y, thr);
+    }
+    // kotaleče se krogle
+    for (var bi = 0; bi < lv.B.length; bi++) {
+      var bp = boulderPos(lv, lv.B[bi]), bx = r.x - bp.x, by = r.y - bp.y, bd = Math.sqrt(bx * bx + by * by);
+      if (bd < RC + bp.r && bd > 0.01) collide(bx / bd, by / bd, RC + bp.r - bd, 0, -lv.B[bi].speed, bp.x + bx / bd * bp.r, bp.y + by / bd * bp.r);
     }
     // zapornice: dve vrati od bregov do reže na sredini
     for (var gi = 0; gi < lv.Gt.length; gi++) {
@@ -475,7 +509,7 @@
     var pos = animalPos(p), cos = Math.cos(pos.a), sin = Math.sin(pos.a);
     if (k < 0.15) {
       puffs(pos.x + cos * 12, pos.y + sin * 12, cos, sin, 3, 0.2);
-      sound.fart(0.05);
+      sound.fart(0.05, p.slot);
       return;
     }
     var power = (70 + 160 * c) * k; // prej 110 + 250 * c — prdec premakne manj
@@ -483,7 +517,7 @@
     G.raft.av += (Math.random() - 0.5) * 0.4 * c;
     p.puff = 0.35;
     puffs(pos.x + cos * 12, pos.y + sin * 12, cos, sin, Math.round(8 + 22 * c * k), 0.4 + c * k);
-    sound.fart(Math.max(0.2, c * k));
+    sound.fart(Math.max(0.2, c * k), p.slot);
     sendBuzz(p);
   }
 
@@ -530,32 +564,53 @@
       }
       if (ac.state === "suspended") ac.resume();
     }
-    function fart(p) {
+    /* Vsaka žival ima svoj prdec (slot = mesto igralca):
+       krava globok bobneč, pujs visok cviljenje, koza tresoč meketajoč, raca kratek račji „ga-ga-ga“. */
+    var VOICES = [
+      { type: "sawtooth", base: 62, drop: 0.6, lfo: 12, depth: 0.3, filter: 380, noise: 180, nGain: 0.6, trem: 0, len: 1.15 },  // krava
+      { type: "square", base: 190, drop: 0.7, lfo: 28, depth: 0.22, filter: 1400, noise: 700, nGain: 0.25, trem: 0, len: 0.8 },  // pujs
+      { type: "triangle", base: 120, drop: 0.8, lfo: 38, depth: 0.55, filter: 900, noise: 380, nGain: 0.4, trem: 9, len: 1.0 },  // koza
+      { type: "sawtooth", base: 240, drop: 0.85, lfo: 20, depth: 0.15, filter: 1100, noise: 900, nGain: 0.3, trem: 16, len: 0.7 } // raca
+    ];
+    var DEFAULT_VOICE = { type: "sawtooth", base: 95, drop: 0.55, lfo: 24, depth: 0.35, filter: 600, noise: 260, nGain: 0.5, trem: 0, len: 1 };
+
+    function fart(p, slot) {
       if (!ac) return;
-      var t = ac.currentTime, dur = 0.18 + 0.55 * p;
+      var v = VOICES[slot] || DEFAULT_VOICE;
+      var t = ac.currentTime, dur = (0.18 + 0.55 * p) * v.len;
       var g = ac.createGain();
       g.gain.setValueAtTime(0.0001, t);
       g.gain.exponentialRampToValueAtTime(0.35 + 0.35 * p, t + 0.03);
       g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
       g.connect(ac.destination);
 
+      // tresenje glasnosti (koza, raca) — prek vmesne ojačitve
+      var out = g;
+      if (v.trem) {
+        var tg = ac.createGain(), tl = ac.createOscillator(), td = ac.createGain();
+        tg.gain.value = 0.6; tl.type = "square"; tl.frequency.value = v.trem; td.gain.value = 0.4;
+        tl.connect(td); td.connect(tg.gain); tg.connect(g);
+        tl.start(t); tl.stop(t + dur);
+        out = tg;
+      }
+
       var o = ac.createOscillator();
-      o.type = "sawtooth";
-      var base = 95 - 35 * p + Math.random() * 25;
+      o.type = v.type;
+      var base = v.base * (1 - 0.3 * p) * (0.9 + Math.random() * 0.2);
       o.frequency.setValueAtTime(base, t);
-      o.frequency.exponentialRampToValueAtTime(base * 0.55, t + dur);
+      o.frequency.exponentialRampToValueAtTime(base * v.drop, t + dur);
       var lfo = ac.createOscillator(), lg = ac.createGain();
-      lfo.frequency.value = 18 + Math.random() * 14;
-      lg.gain.value = base * 0.35;
+      lfo.frequency.value = v.lfo * (0.85 + Math.random() * 0.3);
+      lg.gain.value = base * v.depth;
       lfo.connect(lg); lg.connect(o.frequency);
       var lp = ac.createBiquadFilter();
-      lp.type = "lowpass"; lp.frequency.value = 500 + 400 * p;
-      o.connect(lp); lp.connect(g);
+      lp.type = "lowpass"; lp.frequency.value = v.filter * (1 + 0.6 * p);
+      o.connect(lp); lp.connect(out);
 
       var n = ac.createBufferSource(), bp = ac.createBiquadFilter(), ng = ac.createGain();
-      n.buffer = noise; bp.type = "bandpass"; bp.frequency.value = 260; bp.Q.value = 0.9;
-      ng.gain.value = 0.5;
-      n.connect(bp); bp.connect(ng); ng.connect(g);
+      n.buffer = noise; bp.type = "bandpass"; bp.frequency.value = v.noise; bp.Q.value = 0.9;
+      ng.gain.value = v.nGain;
+      n.connect(bp); bp.connect(ng); ng.connect(out);
 
       o.start(t); lfo.start(t); n.start(t);
       o.stop(t + dur); lfo.stop(t + dur); n.stop(t + dur);
@@ -657,6 +712,25 @@
     // pesek ob bregu + voda
     riverPath(lv, yBot, yTop, step, 16);
     ctx.fillStyle = lv.noFence ? "#94a3b8" : "#e7cf96"; ctx.fill();
+    // odseki brez ograje: zunaj roba je prepad
+    (lv.open || []).forEach(function (o) {
+      var a0 = Math.max(o[0], yBot), a1 = Math.min(o[1], yTop);
+      if (a1 <= a0) return;
+      ["L", "R"].forEach(function (side) {
+        if (o[2] !== "B" && o[2] !== side) return;
+        var s = side === "L" ? -1 : 1, yy, rr;
+        ctx.beginPath();
+        for (yy = a0; yy <= a1; yy += 12) { rr = river(lv, yy); ctx.lineTo(sx(rr.cx + s * rr.hw), sy(yy)); }
+        rr = river(lv, a1); ctx.lineTo(sx(rr.cx + s * (rr.hw + 900)), sy(a1));
+        rr = river(lv, a0); ctx.lineTo(sx(rr.cx + s * (rr.hw + 900)), sy(a0));
+        ctx.closePath();
+        ctx.fillStyle = "#2a211c"; ctx.fill();
+        ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 6 * S;
+        ctx.beginPath();
+        for (yy = a0; yy <= a1; yy += 12) { rr = river(lv, yy); ctx.lineTo(sx(rr.cx + s * (rr.hw + 3)), sy(yy)); }
+        ctx.stroke();
+      });
+    });
     riverPath(lv, yBot, yTop, step, 0);
     var grd = ctx.createLinearGradient(0, 0, W, 0);
     grd.addColorStop(0, "#2f86cf"); grd.addColorStop(0.5, "#3b9ae1"); grd.addColorStop(1, "#2f86cf");
@@ -773,6 +847,21 @@
       ctx.fillStyle = "#9ca3af"; ctx.beginPath(); ctx.arc(ox - or * 0.25, oy - or * 0.25, or * 0.6, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = "#d1d5db"; ctx.beginPath(); ctx.arc(ox - or * 0.38, oy - or * 0.4, or * 0.2, 0, Math.PI * 2); ctx.fill();
     });
+    // kotaleče se krogle
+    lv.B.forEach(function (b) {
+      var p = boulderPos(lv, b);
+      if (p.y - p.r > yTop || p.y + p.r < yBot) return;
+      var bx = sx(p.x), by = sy(p.y), br = p.r * S;
+      ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.beginPath(); ctx.ellipse(bx + 5 * S, by + 6 * S, br, br * 0.8, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#78716c"; ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "#44403c"; ctx.lineWidth = 2.5 * S;
+      for (var k = 0; k < 3; k++) { // razpoke se vrtijo, ko se krogla kotali
+        var a = -p.spin + k * 2.1;
+        ctx.beginPath(); ctx.moveTo(bx + Math.cos(a) * br * 0.2, by + Math.sin(a) * br * 0.2);
+        ctx.lineTo(bx + Math.cos(a) * br * 0.85, by + Math.sin(a) * br * 0.85); ctx.stroke();
+      }
+      ctx.fillStyle = "rgba(255,255,255,0.25)"; ctx.beginPath(); ctx.arc(bx - br * 0.35, by - br * 0.35, br * 0.3, 0, Math.PI * 2); ctx.fill();
+    });
     // hlodi
     lv.L.forEach(function (l) {
       if (l.y - 30 > yTop || l.y + 30 < yBot) return;
@@ -805,7 +894,7 @@
 
   window.PRDOPLAV = {
     G: G, LEVELS: LEVELS, ANIMALS: ANIMALS, RAFT: RAFT, CURRENT: CURRENT,
-    river: river, logX: logX, elev: elev, slopeAt: slopeAt, GATE_R: GATE_R, LOG_R: LOG_R
+    river: river, logX: logX, elev: elev, openSide: openSide, boulderPos: boulderPos, slopeAt: slopeAt, GATE_R: GATE_R, LOG_R: LOG_R
   };
 
   function loadScript(src) {
@@ -1346,19 +1435,25 @@
     }
   }
 
+  // Izbira proge — v meniju in v sobi pred »Začni vožnjo« (ista izbira).
   function renderLevels() {
-    var box = $("lvPick");
-    box.innerHTML = "";
-    LEVELS.forEach(function (lv, i) {
-      var b = document.createElement("button");
-      b.type = "button";
-      if (i === G.lv) b.className = "on";
-      b.appendChild(document.createTextNode(lv.name));
-      var sm = document.createElement("small");
-      sm.textContent = G.best[lv.name] ? "rekord " + fmt(G.best[lv.name]) : "še brez rekorda";
-      b.appendChild(sm);
-      b.addEventListener("click", function () { G.lv = i; resetRaft(LEVELS[i]); renderLevels(); });
-      box.appendChild(b);
+    ["lvPick", "lobbyLv"].forEach(function (id) {
+      var box = $(id);
+      box.innerHTML = "";
+      LEVELS.forEach(function (lv, i) {
+        var b = document.createElement("button");
+        b.type = "button";
+        if (i === G.lv) b.className = "on";
+        b.appendChild(document.createTextNode(lv.name));
+        var sm = document.createElement("small");
+        sm.textContent = G.best[lv.name] ? "rekord " + fmt(G.best[lv.name]) : "še brez rekorda";
+        b.appendChild(sm);
+        b.addEventListener("click", function () {
+          G.lv = i; resetRaft(LEVELS[i]); renderLevels();
+          pushState(true); // telefoni vidijo izbrano progo
+        });
+        box.appendChild(b);
+      });
     });
   }
 

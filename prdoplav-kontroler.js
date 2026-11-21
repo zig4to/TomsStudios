@@ -167,7 +167,7 @@
     $("lives").innerHTML = st.ph === "lobby" ? "" : lives;
 
     if (st.ph === "lobby") {
-      setStatus("Si " + a.name.toLowerCase() + " na splavu. Ko so vsi notri, začni.");
+      setStatus("Si " + a.name.toLowerCase() + " na splavu. Proga: " + st.lvName + ". Ko so vsi notri, začni.");
       act.hidden = false; act.textContent = "Začni vožnjo"; act.dataset.a = "start";
     } else if (st.ph === "count") {
       setStatus("Pripravi se … " + st.lvName);
