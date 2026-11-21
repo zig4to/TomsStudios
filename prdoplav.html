@@ -177,6 +177,24 @@
   .roster li i { width: 16px; height: 16px; border-radius: 50%; flex: none; }
   .roster li span { color: var(--muted); font-weight: 500; font-size: 0.8em; margin-left: auto; }
   .roster li.empty { color: var(--muted); font-weight: 500; border: 1px dashed var(--line); background: none; }
+  /* tekma: stolpci po splavih */
+  .roster.teams { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); align-items: start; }
+  .roster li.team {
+    display: grid; gap: 6px; align-content: start; padding: 10px; border-top: 5px solid var(--tc);
+    font-size: clamp(15px, 1.6vw, 18px);
+  }
+  .roster li.team .th { display: flex; align-items: center; gap: 8px; font-weight: 900; }
+  .roster li.team .th span { margin-left: auto; }
+  .roster li.team .pl {
+    font: inherit; font-weight: 700; text-align: left; padding: 8px 10px; border-radius: 10px; cursor: pointer;
+    border: 1px solid var(--line); background: rgba(255, 255, 255, 0.07); color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .roster li.team .pl:hover { border-color: var(--tc); }
+  .roster li.team .pe { color: var(--muted); font-weight: 500; padding: 8px 10px; border: 1px dashed var(--line); border-radius: 10px; }
+  .roster li.team-tools { grid-column: 1 / -1; background: none; padding: 0; gap: 12px; flex-wrap: wrap; font-size: 14px; }
+  .roster li.team-tools span { margin-left: 0; }
+  .team-tag { margin-left: 8px; padding: 1px 8px; border-radius: 999px; color: #0f172a; font-size: 12px; }
   .row { display: flex; gap: 10px; flex-wrap: wrap; }
   .lobby .side p { color: var(--muted); }
 
@@ -186,6 +204,14 @@
   .end .big { font-size: clamp(30px, 5vw, 48px); font-weight: 900; margin: 8px 0; }
   .end .row { justify-content: center; margin-top: 18px; }
   .end .rec { color: #fde047; font-weight: 800; }
+  .end-info { color: var(--muted); }
+  .rank { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; text-align: left; }
+  .rank li { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.06); color: var(--text); }
+  .rank b { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; color: #0f172a; font-weight: 900; flex: none; }
+  .rank .rn { font-weight: 800; min-width: 0; }
+  .rank .rn small { display: block; font-weight: 500; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rank .rt { margin-left: auto; font-weight: 900; white-space: nowrap; }
+  .rank li:first-child { background: rgba(253, 224, 71, 0.14); }
 
   .corner {
     position: fixed; top: max(12px, env(safe-area-inset-top)); right: 12px; display: flex; gap: 8px;
@@ -255,6 +281,8 @@
         <div>
           <h2>Proga</h2>
           <div class="seg lv-seg" id="lvPick"></div>
+          <h2 class="farts-h">Splavi</h2>
+          <div class="farts" id="raceMenu"></div>
           <h2 class="farts-h">Prdci na igralca</h2>
           <div class="farts" id="fartsMenu"></div>
         </div>
@@ -293,6 +321,8 @@
       <div class="lobby-levels">
         <h2>Izberi progo</h2>
         <div class="seg lv-seg" id="lobbyLv"></div>
+        <h2 class="farts-h">Splavi</h2>
+        <div class="farts" id="raceLobby"></div>
         <h2 class="farts-h">Prdci na igralca</h2>
         <div class="farts" id="fartsLobby"></div>
       </div>
@@ -304,7 +334,7 @@
     <div class="card end">
       <h1 id="endTitle">Na cilju!</h1>
       <div class="big" id="endTime"></div>
-      <p id="endInfo"></p>
+      <div class="end-info" id="endInfo"></div>
       <div class="row">
         <button class="go" id="btnNext" type="button">Naslednja proga</button>
         <button class="ghost" id="btnRetry" type="button">Ponovi</button>

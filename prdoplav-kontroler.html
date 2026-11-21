@@ -100,6 +100,16 @@
   .fart .fill { position: absolute; left: 0; right: 0; bottom: 0; height: 0%; background: #84cc16; opacity: 0.55; }
   .fart.on { background: #4d7c0f; }
   .dim .pb { opacity: 0.45; }
+  /* tekma: barva splava + izbira splava */
+  body.race .pad { box-shadow: inset 0 6px 0 var(--team); }
+  .teams { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .teams[hidden] { display: none; }
+  .teams button {
+    font: inherit; font-weight: 800; padding: 10px; border-radius: 12px; cursor: pointer;
+    border: 2px solid var(--tc); background: rgba(255, 255, 255, 0.06); color: #fff;
+  }
+  .teams button.on { background: var(--tc); color: #0f172a; }
+  .teams button:disabled { opacity: 0.4; cursor: default; }
 </style>
 </head>
 <body>
@@ -118,6 +128,7 @@
       </div>
       <div class="gas-row"><div class="gas"><span id="gasFill"></span></div><span class="left" id="fartsLeft" hidden></span></div>
       <div class="status" id="status">Povezujem …</div>
+      <div class="teams" id="teams" hidden></div>
       <button class="act" id="act" type="button" hidden></button>
     </div>
     <div class="controls" id="controls">

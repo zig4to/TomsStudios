@@ -3,8 +3,10 @@
    Gostitelj ima presence ključ „host“, kontrolerji svoj user id.
    Sporočila:
      in  (telefon → gostitelj)  { u, l, r, f }           levo / desno / prdec (držim)
-     cmd (telefon → gostitelj)  { u, a }                 a = "start" | "next" | "retry"
-     st  (gostitelj → telefoni) { ph, lv, lvName, lives, next, p: [{ u, s, g, c, w }] } */
+     cmd (telefon → gostitelj)  { u, a, t }              a = "start" | "next" | "retry" | "team" (t = ekipa)
+     st  (gostitelj → telefoni) { ph, lv, lvName, lives, next, ts, teams, rafts, p: [{ u, s, t, g, c, w, f }] }
+       ts = igralcev na splav (0 = vsi na enem), teams = [{ n }] zasedenost ekip v sobi,
+       rafts = [{ t, lives, done, out, place }] med tekmo, p.t = ekipa igralca */
 (function () {
   "use strict";
 
@@ -16,6 +18,14 @@
     { key: "pujs", name: "Pujs", ring: "#3b82f6" },
     { key: "koza", name: "Koza", ring: "#22c55e" },
     { key: "raca", name: "Raca", ring: "#f59e0b" }
+  ];
+
+  // Tekma več splavov: barva in ime splava (ekipe). Barve se ne prekrivajo z obroči živali.
+  var TEAMS = [
+    { name: "Vijolični", c: "#a855f7" },
+    { name: "Turkizni", c: "#06b6d4" },
+    { name: "Rožnati", c: "#ec4899" },
+    { name: "Beli", c: "#e2e8f0" }
   ];
 
   function client() {
@@ -83,6 +93,7 @@
 
   window.PRDONET = {
     ANIMALS: ANIMALS,
+    TEAMS: TEAMS,
     EV: { IN: "in", CMD: "cmd", ST: "st" },
     client: client,
     newCode: newCode,

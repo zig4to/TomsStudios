@@ -19,22 +19,38 @@
     scene.background = new T.Color(SKY);
     scene.fog = new T.Fog(SKY, 1400, 3200);
 
-    var camera = new T.PerspectiveCamera(50, 1, 5, 5000);
+    var camera = new T.PerspectiveCamera(50, 1, 5, 7000);
     var hemi = new T.HemisphereLight(0xeaf6ff, 0x3f6b2a, 0.75);
     scene.add(hemi);
     var sun = new T.DirectionalLight(0xfff3d6, 0.85);
     sun.castShadow = true;
     sun.shadow.mapSize.set(1024, 1024);
     var sc = sun.shadow.camera;
-    sc.left = -600; sc.right = 600; sc.top = 600; sc.bottom = -600; sc.near = 10; sc.far = 2000;
+    sc.left = -600; sc.right = 600; sc.top = 600; sc.bottom = -600; sc.near = 10; sc.far = 2400;
     sun.shadow.bias = -0.0015;
     scene.add(sun); scene.add(sun.target);
 
     var A = api.ANIMALS, RAFT = api.RAFT;
     var t = 0;
-    var levelIdx = -1, levelGroup = null, water = null, waterBase = null, logs = [], pools = [], flows = [], gates = [], spinners = [];
-    var curLv = null;
-    function E(y) { return curLv ? api.elev(curLv, y) : 0; }
+    var levelIdx = -1, levelWk = -1, levelGroup = null, water = null, waterBase = null, logs = [], pools = [], flows = [], gates = [], spinners = [];
+    var curLv = null, eTab = null, E_STEP = 10, E_Y0 = -600;
+    // Višina v 3D. Strme dele klancev prikažemo položneje (največ naklon VIS_SLOPE),
+    // sicer je razdalja po klancu na videz precej daljša od tiste, ki jo računa fizika
+    // (trk s skalo bi se zgodil, ko je skala na videz še daleč). Blagi hribčki ostanejo enaki.
+    var VIS_SLOPE = 0.35;
+    function visSlope(lv, y) { return Math.max(-VIS_SLOPE, Math.min(VIS_SLOPE, api.slopeAt(lv, y))); }
+    function buildElev(lv) {
+      eTab = [];
+      var h = api.elev(lv, E_Y0);
+      for (var y = E_Y0; y <= lv.len + 1400; y += E_STEP) { eTab.push(h); h += visSlope(lv, y + E_STEP / 2) * E_STEP; }
+    }
+    function E(y) {
+      if (!curLv || !eTab) return 0;
+      var f = (y - E_Y0) / E_STEP, i = Math.floor(f);
+      if (i < 0) return eTab[0];
+      if (i >= eTab.length - 1) return eTab[eTab.length - 1];
+      return eTab[i] + (eTab[i + 1] - eTab[i]) * (f - i);
+    }
 
     function hash(n) { var s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); }
     function wave(x, z) {
@@ -79,7 +95,9 @@
       }
       levelIdx = i;
       var lv = api.LEVELS[i];
+      levelWk = lv.wk;
       curLv = lv;
+      buildElev(lv);
       var prof = lv.noFence ? CLIFF : COLS, floor = lv.noFence ? -490 : 0; // drevesa na dnu soteske
       levelGroup = new T.Group();
       scene.add(levelGroup);
@@ -347,12 +365,13 @@
       });
     }
 
-    /* ---------- splav ---------- */
-    var raft = new T.Group();
-    scene.add(raft);
-    var raftBody = new T.Group();
-    raft.add(raftBody);
-    (function () {
+    /* ---------- splavi (en ali več pri tekmi; zastavica v barvi ekipe) ---------- */
+    var raftMeshes = [];
+    function makeRaft() {
+      var raft = new T.Group();
+      scene.add(raft);
+      var raftBody = new T.Group();
+      raft.add(raftBody);
       var n = 6, pw = RAFT * 2 / n;
       for (var i = 0; i < n; i++) {
         var x = -RAFT + pw * (i + 0.5);
@@ -369,7 +388,22 @@
       var rope = mesh(new T.TorusGeometry(RAFT - 3, 2.5, 6, 32), mat(0xe2c48a));
       rope.rotation.x = Math.PI / 2; rope.position.y = pw / 2 + 2;
       raftBody.add(rope);
-    })();
+      var flag = new T.Group();
+      var pole = mesh(new T.CylinderGeometry(1.6, 1.6, 70, 6), mat(0x78350f));
+      pole.position.y = 35 + pw / 2;
+      flag.add(pole);
+      var cloth = mesh(new T.BoxGeometry(34, 20, 1.5), mat(0xffffff));
+      cloth.position.set(17, 60 + pw / 2, 0);
+      flag.add(cloth);
+      flag.visible = false;
+      raftBody.add(flag);
+      return { g: raft, body: raftBody, flag: flag, cloth: cloth, prevV: { x: 0, y: 0 }, tilt: { x: 0, z: 0 } };
+    }
+    function raftMesh(i) {
+      while (raftMeshes.length <= i) raftMeshes.push(makeRaft());
+      return raftMeshes[i];
+    }
+    raftMesh(0);
     var DECK = RAFT * 2 / 6 / 2 + 2;
 
     /* ---------- živali ---------- */
@@ -470,7 +504,6 @@
 
     /* ---------- kamera ---------- */
     var camPos = new T.Vector3(), camLook = new T.Vector3(), camInit = false;
-    var prevV = { x: 0, y: 0 }, tilt = { x: 0, z: 0 };
 
     var W = 1, H = 1;
     function resize(w, h) {
@@ -483,13 +516,13 @@
     function render(dt) {
       t += dt;
       var G = api.G;
-      if (G.lv !== levelIdx) { buildLevel(G.lv); camInit = false; }
-      var r = G.raft;
       var lv = api.LEVELS[G.lv];
+      if (G.lv !== levelIdx || lv.wk !== levelWk) { buildLevel(G.lv); camInit = false; }
+      var cy0 = G.cam.y;
 
       // valovi
       var wpos = water.geometry.attributes.position, arr = wpos.array;
-      var zMin = -(r.y + 2200), zMax = -(r.y - 900);
+      var zMin = -(cy0 + 2200 / Math.min(1, G.zoom)), zMax = -(cy0 - 900);
       for (var i = 0; i < arr.length; i += 3) {
         var z = arr[i + 2];
         if (z < zMin || z > zMax) continue;
@@ -498,26 +531,35 @@
       wpos.needsUpdate = true;
       water.geometry.computeVertexNormals();
 
-      // splav
-      var rx = r.x, rz = -r.y;
-      var bob = wave(rx, rz) * 0.8;
-      var drop = G.fall ? G.fall.t * G.fall.t * 420 : 0; // padec čez rob
-      raft.position.set(rx, E(r.y) + 6 + bob - drop, rz);
-      raft.rotation.y = r.ang;
-      raft.rotation.x = Math.atan(api.slopeAt(lv, r.y)); // nagib po klancu
-      var ax = (r.vx - prevV.x) / Math.max(dt, 0.001), ay = (r.vy - prevV.y) / Math.max(dt, 0.001);
-      prevV.x = r.vx; prevV.y = r.vy;
+      // splavi
       var k = 1 - Math.exp(-6 * dt);
-      tilt.x += (Math.max(-0.25, Math.min(0.25, -ay * 0.0006)) + Math.sin(t * 1.7) * 0.03 - tilt.x) * k;
-      tilt.z += (Math.max(-0.25, Math.min(0.25, ax * 0.0006)) + Math.sin(t * 1.3) * 0.03 - tilt.z) * k;
-      raftBody.rotation.set(tilt.x * Math.cos(r.ang) - tilt.z * Math.sin(r.ang), 0, tilt.z * Math.cos(r.ang) + tilt.x * Math.sin(r.ang));
-      var blink = G.inv > 0 && Math.floor(G.inv * 10) % 2 === 0;
-      raft.visible = !blink;
+      var info = G.rafts.map(function (r, i) {
+        var m = raftMesh(i);
+        var rx = r.x, rz = -r.y;
+        var bob = wave(rx, rz) * 0.8;
+        var drop = r.fall ? r.fall.t * r.fall.t * 420 : 0; // padec čez rob
+        m.g.position.set(rx, E(r.y) + 6 + bob - drop, rz);
+        m.g.rotation.y = r.ang;
+        m.g.rotation.x = Math.atan(visSlope(lv, r.y)); // nagib po klancu
+        var ax = (r.vx - m.prevV.x) / Math.max(dt, 0.001), ay = (r.vy - m.prevV.y) / Math.max(dt, 0.001);
+        m.prevV.x = r.vx; m.prevV.y = r.vy;
+        m.tilt.x += (Math.max(-0.25, Math.min(0.25, -ay * 0.0006)) + Math.sin(t * 1.7 + i) * 0.03 - m.tilt.x) * k;
+        m.tilt.z += (Math.max(-0.25, Math.min(0.25, ax * 0.0006)) + Math.sin(t * 1.3 + i) * 0.03 - m.tilt.z) * k;
+        m.body.rotation.set(m.tilt.x * Math.cos(r.ang) - m.tilt.z * Math.sin(r.ang), 0, m.tilt.z * Math.cos(r.ang) + m.tilt.x * Math.sin(r.ang));
+        var blink = r.inv > 0 && r.inv < 100 && Math.floor(r.inv * 10) % 2 === 0;
+        m.g.visible = !blink && !r.out;
+        m.flag.visible = !!G.race;
+        if (G.race) m.cloth.material.color.set(api.TEAMS[r.team].c);
+        return { rx: rx, rz: rz, bob: bob, drop: drop, blink: blink || r.out };
+      });
+      for (var ri = G.rafts.length; ri < raftMeshes.length; ri++) raftMeshes[ri].g.visible = false;
 
       // živali
       var seen = {};
       G.players.forEach(function (p) {
-        var key = p.slot + ":" + (p.uid || "");
+        var r = G.rafts[p.raft] || G.rafts[0], ii = info[G.rafts.indexOf(r)];
+        var rx = ii.rx, rz = ii.rz, bob = ii.bob, drop = ii.drop, blink = ii.blink;
+        var key = p.raft + ":" + p.slot + ":" + (p.uid || "");
         seen[key] = true;
         var an = animals[key] || (animals[key] = makeAnimal(p.slot));
         var a = r.ang + p.phi;
@@ -585,10 +627,10 @@
       partMesh.instanceMatrix.needsUpdate = true;
       if (partMesh.instanceColor) partMesh.instanceColor.needsUpdate = true;
 
-      // kamera: zadaj in zgoraj, sledi splavu
-      var portrait = H > W;
-      var back = portrait ? 560 : 380, up = portrait ? 520 : 320;
-      var tx = G.cam.x, ty = r.y;
+      // kamera: zadaj in zgoraj, sledi splavu (pri tekmi težišču splavov, oddaljena po G.zoom)
+      var portrait = H > W, zf = 1 / Math.max(0.3, G.zoom);
+      var back = (portrait ? 560 : 380) * zf, up = (portrait ? 520 : 320) * zf;
+      var tx = G.cam.x, ty = G.race ? G.cam.y - 40 : G.raft.y;
       var ey = E(ty);
       var wantPos = pv.set(tx, up + ey, -(ty - back));
       var wantLook = new T.Vector3(tx, (ey + E(ty + 220)) / 2, -(ty + 220));
@@ -600,8 +642,10 @@
       if (G.shake > 0) camera.position.add(new T.Vector3((Math.random() - 0.5) * 24 * G.shake, (Math.random() - 0.5) * 24 * G.shake, 0));
       camera.lookAt(camLook);
 
-      sun.position.set(rx + 350, 700 + ey, rz + 250);
-      sun.target.position.set(rx, ey, rz - 150);
+      var se = Math.round(600 * Math.min(2.2, zf) / 50) * 50; // senca pokrije vse splave
+      if (sc.right !== se) { sc.left = -se; sc.right = se; sc.top = se; sc.bottom = -se; sc.updateProjectionMatrix(); }
+      sun.position.set(tx + 350, 700 + ey, -ty + 250);
+      sun.target.position.set(tx, ey, -ty - 150);
 
       renderer.render(scene, camera);
     }
@@ -614,7 +658,7 @@
     }
 
     function animalTop(p) {
-      var key = p.slot + ":" + (p.uid || "");
+      var key = p.raft + ":" + p.slot + ":" + (p.uid || "");
       var an = animals[key];
       return an ? an.g.position.y + an.by + U * 3.4 : 80;
     }

@@ -119,9 +119,33 @@
   }
   setInterval(send, 400);
 
-  function cmd(a) {
+  function cmd(a, t) {
     if (!joined || !room) return;
-    room.send({ type: "broadcast", event: NET.EV.CMD, payload: { u: user.id, a: a } });
+    var pl = { u: user.id, a: a };
+    if (t != null) pl.t = t;
+    room.send({ type: "broadcast", event: NET.EV.CMD, payload: pl });
+  }
+
+  // Tekma: gumbi v barvah splavov (v sobi in po koncu proge tapni drug splav)
+  function renderTeams(mine) {
+    var box = $("teams");
+    var canPick = st.ts && (st.ph === "lobby" || st.ph === "end" || st.ph === "over");
+    box.hidden = !canPick;
+    if (!canPick) return;
+    var key = st.ts + "|" + mine.t + "|" + (st.teams || []).map(function (x) { return x.n; }).join(",");
+    if (box.dataset.k === key) return;
+    box.dataset.k = key;
+    box.innerHTML = "";
+    NET.TEAMS.forEach(function (tm, i) {
+      var n = st.teams && st.teams[i] ? st.teams[i].n : 0;
+      var b = document.createElement("button");
+      b.type = "button"; b.style.setProperty("--tc", tm.c);
+      b.className = i === mine.t ? "on" : "";
+      b.disabled = i !== mine.t && n >= st.ts;
+      b.textContent = tm.name + " " + n + "/" + st.ts;
+      b.addEventListener("click", function () { if (i !== mine.t) cmd("team", i); });
+      box.appendChild(b);
+    });
   }
 
   function setStatus(t, warn) {
@@ -158,8 +182,15 @@
       return;
     }
     var a = NET.ANIMALS[mine.s];
+    var team = st.ts ? NET.TEAMS[mine.t || 0] : null;
     document.documentElement.style.setProperty("--me", a.ring);
-    $("meAnimal").textContent = "· " + a.name;
+    document.documentElement.style.setProperty("--team", team ? team.c : "transparent");
+    document.body.classList.toggle("race", !!team);
+    $("meAnimal").textContent = "· " + a.name + (team ? " · " + team.name + " splav" : "");
+    renderTeams(mine);
+    // pri tekmi: življenja in mesto svojega splava
+    var myRaft = st.rafts ? st.rafts.filter(function (x) { return x.t === (mine.t || 0); })[0] : null;
+    var place = st.rank ? st.rank.indexOf(mine.t || 0) + 1 : 0;
     var g = Math.max(0, Math.min(1, mine.g));
     var fill = $("gasFill");
     fill.style.width = Math.round(g * 100) + "%";
@@ -176,19 +207,30 @@
     }
 
     var lives = "";
-    for (var i = 0; i < (st.maxLives || 3); i++) lives += HEART.replace("FILL", i < st.lives ? "#ef4444" : "rgba(255,255,255,0.15)");
+    var myLives = myRaft ? myRaft.lives : st.lives;
+    for (var i = 0; i < (st.maxLives || 3); i++) lives += HEART.replace("FILL", i < myLives ? "#ef4444" : "rgba(255,255,255,0.15)");
     $("lives").innerHTML = st.ph === "lobby" ? "" : lives;
 
     if (st.ph === "lobby") {
-      setStatus("Si " + a.name.toLowerCase() + " na splavu. Proga: " + st.lvName + " · " +
+      setStatus((team ? "Tekma! Si " + a.name.toLowerCase() + " na splavu " + team.name.toLowerCase() + "h. Tapni barvo za menjavo. Proga: " :
+        "Si " + a.name.toLowerCase() + " na splavu. Proga: ") + st.lvName + " · " +
         (st.farts == null ? "neomejeno prdcev" : st.farts + " prdcev na igralca" +
           (st.rf ? ", polnjenje vsakih " + st.rf + " s" : "")) +
         (st.wt != null && st.wt !== 100 ? ", voda " + st.wt + " %" : "") + ". Ko so vsi notri, začni.");
       act.hidden = false; act.textContent = "Začni vožnjo"; act.dataset.a = "start";
     } else if (st.ph === "count") {
       setStatus("Pripravi se … " + st.lvName);
+    } else if (st.ph === "play" && myRaft && myRaft.done) {
+      setStatus("V cilju! " + myRaft.place + ". mesto. Čakamo ostale …");
+    } else if (st.ph === "play" && myRaft && myRaft.out) {
+      setStatus("Vaš splav je izpadel. Navijaj za ostale!", true);
     } else if (st.ph === "play") {
       setStatus(st.lvName + " · levo/desno po robu, prdec odrine splav");
+    } else if (place) {
+      setStatus(place === 1 ? "1. mesto! Zmaga za " + team.name.toLowerCase() + " splav!" : place + ". mesto od " + st.rank.length + ".", place !== 1 && st.ph === "over");
+      act.hidden = false;
+      act.textContent = st.next ? "Naslednja proga" : "Še enkrat";
+      act.dataset.a = st.next ? "next" : "retry";
     } else if (st.ph === "end") {
       setStatus("Na cilju! Bravo, ekipa.");
       act.hidden = false;
