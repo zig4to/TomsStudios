@@ -149,6 +149,26 @@
       hills: [[0, 0], [600, 0], [900, -80], [1200, -80], [1600, 40], [2000, 40], [2400, -60], [3000, -60], [3300, 60], [3700, 60], [4300, -100], [5000, -100], [5300, 20], [6500, 20]],
       gates: [[1800, 5.5, 0], [3800, 5, 2], [5800, 5, 1]],
       spikes: [[2900, 3600], [4400, 5000]]
+    },
+    {
+      // ovinkasta reka brez ograje: ob robu čakajo povodni možje (kdor se jim približa,
+      // potone), krokodili plavajo čez reko, na slapu je varen le žleb med zelenima kolema,
+      // rešilni obroči vrnejo življenje
+      name: "Povodni mož", len: 5600, wide: 1.2, noFence: true,
+      river: [[0, 0, 300], [600, 0, 260], [1100, -170, 245], [1600, 160, 245], [2100, -150, 250], [2500, 0, 280], [2950, 0, 280],
+        [3400, 170, 245], [3900, -170, 245], [4300, 40, 270], [4750, 40, 270], [5150, -120, 250], [5900, 0, 300]],
+      rocks: [[70, 700, 28], [-60, 3200, 30], [0, 5450, 28]],
+      logs: [], pools: [],
+      flows: [[1180, 240, 60, 0], [3550, 220, -60, 0]],
+      // povodni možje: [stran (-1 levo / 1 desno), y]
+      mozje: [[-1, 900], [1, 1350], [-1, 1900], [1, 2300], [-1, 3250], [-1, 3700], [1, 4150], [-1, 4900], [1, 5250]],
+      // krokodili: [x glede na sredino, y, razpon (del polširine reke), hitrost (rad/s), zamik]
+      crocs: [[0, 1550, 0.55, 0.75, 0], [0, 2150, 0.5, 0.95, 1.5], [0, 3050, 0.55, 0.7, 3], [0, 3550, 0.5, 0.9, 0.6],
+        [0, 4250, 0.5, 0.8, 2.2], [0, 5000, 0.55, 1.0, 4]],
+      // slapovi: [y, višina padca, sredina žleba glede na sredino reke, polovica širine žleba]
+      falls: [[2750, 170, -70, 80], [4550, 120, 80, 80]],
+      // rešilni obroči: [x glede na sredino, y]
+      buoys: [[-90, 1700], [110, 3150], [-70, 4400]]
     }
   ];
 
@@ -179,6 +199,13 @@
   // Vrtiljak: lesen križ, ki se vrti okoli stebra. Vrne kot prvega kraka.
   var SPIN_HUB = 16, SPIN_ARM = 9;
   function spinAng(s) { return s.ph + G.time * s.w; }
+  // Krokodil plava levo-desno; telo je kapsula vzdolž smeri plavanja.
+  var CROC_HALF = 46, CROC_R = 17;
+  function crocX(c) { return c.bx + c.amp * Math.sin(G.time * c.w + c.ph); }
+  function crocV(c) { return c.amp * c.w * Math.cos(G.time * c.w + c.ph); }
+  // Povodni mož zgrabi splav, ko je rob splava bližje kot PM_GRAB; pod vodo ga vleče PM_SINK s.
+  var PM_GRAB = 40, PM_WARN = 190, PM_SINK = 1.4;
+  var BUOY_R = 16;
   // Oblika vrtiljaka → koti krakov (radiani).
   function spinShape(sh) {
     var q = Math.PI / 2;
@@ -213,7 +240,7 @@
   var FART_DEFAULT = {
     "Prvi pljusk": 30, "Lenobni potok": 40, "Račji ribnik": 40, "Hribovita reka": 55,
     "Skalni kanjon": 55, "Zapornice": 50, "Hlodovina": 50, "Vrtinčni slapovi": 65,
-    "Bodičasti ovinki": 60, "Brez ograje": 55, "Dolgi klanec": 85, "Težki prdec": 120, "Velika finala": 75, "Gorski spust": 85
+    "Bodičasti ovinki": 60, "Brez ograje": 55, "Dolgi klanec": 85, "Težki prdec": 120, "Velika finala": 75, "Gorski spust": 85, "Povodni mož": 70
   };
   var EASY = 0.8;
   LEVELS.forEach(function (lv) {
@@ -241,6 +268,20 @@
     lv.Sp = (lv.spinners || []).map(function (s) {
       return { x: river(lv, s[1]).cx + s[0] * wk, y: s[1], len: s[2], w: s[3], angs: spinShape(s[4]), ph: s[5] || 0 };
     });
+    // povodni možje ob robu (sledijo širini reke), krokodili, slapovi z žlebom, rešilni obroči
+    lv.Pm = (lv.mozje || []).map(function (m) {
+      var rv = river(lv, m[1]);
+      return { side: m[0], x: rv.cx + m[0] * (rv.hw - 22), y: m[1], near: 0 };
+    });
+    lv.Cr = (lv.crocs || []).map(function (c) {
+      var rv = river(lv, c[1]);
+      return { bx: rv.cx + c[0] * wk, y: c[1], amp: c[2] * rv.hw, w: c[3], ph: c[4] };
+    });
+    lv.Fa = (lv.falls || []).map(function (f) {
+      var rv = river(lv, f[0]);
+      return { y: f[0], drop: f[1], cx: rv.cx + f[2] * wk, hw: f[3] * wk, rcx: rv.cx, rhw: rv.hw };
+    });
+    lv.Bu = (lv.buoys || []).map(function (b) { return { x: river(lv, b[1]).cx + b[0] * wk, y: b[1], taken: false }; });
     // zapornice: [y, perioda (s), zamik] — vrata z obeh bregov se zapirajo proti sredini
     lv.Gt = (lv.gates || []).map(function (g) {
       var rv = river(lv, g[0]);
@@ -340,7 +381,7 @@
     var x = rv.cx + (n > 1 ? (i - (n - 1) / 2) * (2 * rv.hw * 0.8 / n) : 0);
     return {
       x: x, y: 140, vx: 0, vy: 0, ang: i * 0.9, av: 0, team: team,
-      lives: MAXL, inv: 0, fall: null,
+      lives: MAXL, inv: 0, fall: null, sink: null,
       done: false, out: false, why: "", t: 0, place: 0, stuckY: 0, stuckT: 0, edgeT: 0
     };
   }
@@ -353,6 +394,7 @@
     teams.sort(function (a, b) { return a - b; });
     var n = teams.length, wk = widthFor(n);
     if (lv.wk !== wk) prepareLevel(lv, wk);
+    lv.Bu.forEach(function (b) { b.taken = false; });
     G.rafts = teams.map(function (t, i) { return newRaft(lv, i, n, t); });
     G.race = n > 1;
     G.raft = G.rafts[0];
@@ -450,6 +492,7 @@
       G.raft = r;
       if (r.inv > 0) r.inv = Math.max(0, r.inv - dt);
       if (r.fall) { if (G.phase === "play") updateFall(dt); continue; }
+      if (r.sink) { if (G.phase === "play") updateSink(r, dt); continue; }
       physicsRaft(r, dt);
     }
     G.raft = G.rafts[0];
@@ -510,7 +553,10 @@
     r.vy -= GRAV * slopeAt(lv, r.y) * dt;
     // splav se sam počasi vrti okoli svoje osi; sunki trkov se umirijo nazaj na to hitrost
     r.av += (spinRate() - r.av) * (1 - Math.exp(-1.4 * dt));
+    var y0 = r.y;
     r.x += r.vx * dt; r.y += r.vy * dt; r.ang += r.av * dt;
+    if (G.phase === "play") specials(lv, r, y0);
+    if (r.sink) return;
 
     // bregova (ob bodicah boli že rahel dotik)
     var rv = river(lv, r.y), rv2 = river(lv, r.y + 10);
@@ -556,6 +602,14 @@
       var o = lv.R[j], ox = r.x - o.x, oy = r.y - o.y, od = Math.sqrt(ox * ox + oy * oy);
       if (od < RC + o.r && od > 0.01) collide(ox / od, oy / od, RC + o.r - od, 0, 0, o.x + ox / od * o.r, o.y + oy / od * o.r);
     }
+    // krokodili (ugriz stane življenje že pri rahlem dotiku)
+    for (var ci = 0; ci < lv.Cr.length; ci++) {
+      var cr = lv.Cr[ci];
+      if (Math.abs(r.y - cr.y) > RC + CROC_R + 5) continue;
+      var cxp = crocX(cr), cpx = Math.max(cxp - CROC_HALF, Math.min(cxp + CROC_HALF, r.x));
+      var cqx = r.x - cpx, cqy = r.y - cr.y, cqd = Math.sqrt(cqx * cqx + cqy * cqy);
+      if (cqd < RC + CROC_R && cqd > 0.01) collide(cqx / cqd, cqy / cqd, RC + CROC_R - cqd, crocV(cr), 0, cpx, cr.y, 1);
+    }
     // hlodi
     for (var m = 0; m < lv.L.length; m++) {
       var l = lv.L[m], lx = logX(l);
@@ -600,6 +654,66 @@
     // vsi končali, poteklo odštevanje ali pa je ostal en sam splav (ostali izpadli) → zmaga
     if (!left || (G.raceEndT !== null && G.raceEndT <= 0) || (left === 1 && !anyDone)) finishRace();
   }
+
+  /* Posebnosti proge Povodni mož: slapovi (žleb), povodni možje (potopijo), rešilni obroči. */
+  function specials(lv, r, y0) {
+    // slap: navzgor se ne da; čez rob izven žleba stane življenje, v žlebu pospeši
+    for (var i = 0; i < lv.Fa.length; i++) {
+      var f = lv.Fa[i];
+      if (y0 > f.y && r.y <= f.y) { r.y = f.y + 1; if (r.vy < 0) r.vy = 0; continue; }
+      if (!(y0 < f.y && r.y >= f.y)) continue;
+      if (Math.abs(r.x - f.cx) <= f.hw) {
+        r.vy += 90;
+        splash(r.x, r.y + 30, 24, "#e0f2fe");
+        sound.tune([659, 880]);
+      } else {
+        r.vy *= 0.5; r.av += (Math.random() < 0.5 ? -1 : 1) * 2.5;
+        splash(r.x, r.y + 30, 34, "#e0f2fe");
+        impact(1e9, r.x, r.y, 1);
+      }
+    }
+    // povodni mož: rob splava preblizu → zgrabi in potopi
+    for (var j = 0; j < lv.Pm.length; j++) {
+      var pm = lv.Pm[j], dx = r.x - pm.x, dy = r.y - pm.y;
+      if (Math.abs(dy) > PM_WARN + RC) continue;
+      var d = Math.sqrt(dx * dx + dy * dy);
+      if (d < RC + PM_GRAB && !r.done) {
+        r.sink = { t: 0, pm: pm };
+        r.vx = 0; r.vy = 0;
+        G.shake = 0.6;
+        sound.tune([294, 247, 196, 147]);
+        splash(r.x, r.y, 36, "#14532d");
+        pushState(true);
+        return;
+      }
+    }
+    // rešilni obroč: +1 življenje (pri polnih +3 prdci vsem na splavu); vzame ga prvi splav
+    for (var k = 0; k < lv.Bu.length; k++) {
+      var b = lv.Bu[k];
+      if (b.taken) continue;
+      var bx = r.x - b.x, by = r.y - b.y;
+      if (bx * bx + by * by > (RC + BUOY_R) * (RC + BUOY_R)) continue;
+      b.taken = true;
+      if (r.lives < MAXL) r.lives++;
+      else G.players.forEach(function (p) { if (G.rafts[p.raft] === r && p.left !== Infinity) p.left += 3; });
+      splash(b.x, b.y, 22, "#fecaca");
+      sound.tune([784, 988, 1175]);
+      pushState(true);
+    }
+  }
+  // Povodni mož vleče splav k sebi in pod vodo; nato je splava konec.
+  function updateSink(r, dt) {
+    var sk = r.sink;
+    sk.t += dt / PM_SINK;
+    var k = 1 - Math.exp(-3 * dt);
+    r.x += (sk.pm.x - r.x) * k; r.y += (sk.pm.y - r.y) * k;
+    r.ang += 3 * dt;
+    if (Math.random() < 0.4) splash(r.x + (Math.random() - 0.5) * 60, r.y + (Math.random() - 0.5) * 60, 2, "#14532d");
+    if (sk.t < 1) return;
+    r.sink = null; r.lives = 0; r.out = true;
+    raftLost(r, "sink");
+  }
+  function whyText(why) { return why === "gas" ? "brez prdcev" : why === "edge" ? "zaostal" : why === "sink" ? "potonil" : "razpadel"; }
 
   // Padec čez rob: kratka animacija, izgubljeno življenje, splav se vrne nekoliko nazaj na sredino.
   var FALL_TIME = 1.1;
@@ -671,7 +785,7 @@
         if (!blocked) p.phi = np;
       }
       var rf = raftOf(p);
-      if (canFart && !rf.fall && !rf.out) {
+      if (canFart && !rf.fall && !rf.out && !rf.sink) {
         if (p.inp.f) p.charge = Math.min(1, p.charge + dt / 0.9);
         else if (p.holding) fart(p);
         p.holding = p.inp.f;
@@ -859,9 +973,10 @@
         : "Rekord: " + fmt(prev);
     } else {
       sound.tune([392, 330, 262, 196]);
-      $("endTitle").textContent = why === "gas" ? "Zmanjkalo je prdcev" : "Splav je razpadel";
+      $("endTitle").textContent = why === "gas" ? "Zmanjkalo je prdcev" : why === "sink" ? "Povodni mož vas je potegnil pod vodo" : "Splav je razpadel";
       $("endTime").textContent = Math.round(Math.min(1, G.raft.y / lv.len) * 100) + " % proge";
-      $("endInfo").textContent = why === "gas" ? "Splav je obstal. Poskusi z več prdci ali bolj premišljeno." : "Splav je dobil preveč udarcev. Še enkrat?";
+      $("endInfo").textContent = why === "gas" ? "Splav je obstal. Poskusi z več prdci ali bolj premišljeno."
+        : why === "sink" ? "Ne hodi preblizu temnih vrtincev ob robu. Še enkrat?" : "Splav je dobil preveč udarcev. Še enkrat?";
     }
     var hasNext = won && G.lv < LEVELS.length - 1;
     $("btnNext").hidden = !hasNext;
@@ -897,7 +1012,7 @@
     $("endTime").textContent = anyDone ? (win.done ? fmt(win.t) : "Edini preživeli") : Math.round(Math.min(1, win.y / lv.len) * 100) + " % proge";
     var html = '<ol class="rank">';
     rank.forEach(function (r, i) {
-      var st = r.done ? fmt(r.t) : r.out ? (r.why === "gas" ? "brez prdcev" : r.why === "edge" ? "zaostal" : "razpadel") : Math.round(Math.min(1, r.y / lv.len) * 100) + " %";
+      var st = r.done ? fmt(r.t) : r.out ? whyText(r.why) : Math.round(Math.min(1, r.y / lv.len) * 100) + " %";
       html += '<li><b style="background:' + TEAMS[r.team].c + '">' + (i + 1) + "</b>" +
         '<span class="rn">' + esc(TEAMS[r.team].name) + ' <small>' + esc(crewNames(r)) + "</small></span>" +
         '<span class="rt">' + st + "</span></li>";
@@ -1085,6 +1200,68 @@
       });
     });
 
+    // slapovi: penasta stopnica čez reko, žleb med zelenima kolema
+    lv.Fa.forEach(function (f) {
+      if (f.y - 60 > yTop || f.y + 120 < yBot) return;
+      var rv = river(lv, f.y), x0 = sx(rv.cx - rv.hw), x1 = sx(rv.cx + rv.hw), fy = sy(f.y);
+      var gr = ctx.createLinearGradient(0, fy, 0, fy - 90 * S); // dol po toku = navzgor na zaslonu
+      gr.addColorStop(0, "rgba(255,255,255,0.85)"); gr.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = gr; ctx.fillRect(x0, fy - 90 * S, x1 - x0, 90 * S);
+      ctx.fillStyle = "rgba(15, 23, 42, 0.35)"; ctx.fillRect(x0, fy, x1 - x0, 6 * S);
+      ctx.strokeStyle = "#fff"; ctx.lineWidth = 3 * S;
+      ctx.beginPath();
+      for (var xx = x0; xx <= x1; xx += 14 * S) ctx.lineTo(xx, fy - (Math.sin(xx * 0.3 + G.time * 8) + 1) * 4 * S);
+      ctx.stroke();
+      var c0 = sx(f.cx - f.hw), c1 = sx(f.cx + f.hw);
+      ctx.fillStyle = "rgba(134, 239, 172, 0.35)"; ctx.fillRect(c0, fy, c1 - c0, 50 * S);
+      [c0, c1].forEach(function (px) {
+        ctx.fillStyle = "#166534"; ctx.beginPath(); ctx.arc(px, fy + 4 * S, 9 * S, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#4ade80"; ctx.beginPath(); ctx.arc(px, fy + 4 * S, 5 * S, 0, Math.PI * 2); ctx.fill();
+      });
+    });
+    // povodni možje: temen vrtinec + zelena glava, roke se dvignejo, ko je splav blizu
+    lv.Pm.forEach(function (pm) {
+      if (pm.y - PM_WARN > yTop || pm.y + PM_WARN < yBot) return;
+      var px = sx(pm.x), py = sy(pm.y), gr2 = (PM_GRAB + 30) * S;
+      var near = 0;
+      G.rafts.forEach(function (r) { if (!r.out) near = Math.max(near, 1 - Math.min(1, (Math.hypot(r.x - pm.x, r.y - pm.y) - RC - PM_GRAB) / PM_WARN)); });
+      var rg = ctx.createRadialGradient(px, py, 0, px, py, gr2);
+      rg.addColorStop(0, "rgba(5, 46, 22, 0.85)"); rg.addColorStop(1, "rgba(5, 46, 22, 0)");
+      ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(px, py, gr2, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "rgba(187, 247, 208, " + (0.25 + near * 0.5) + ")"; ctx.lineWidth = 2 * S;
+      for (var k = 0; k < 3; k++) {
+        var rot = G.time * 1.6 + k * 2.1;
+        ctx.beginPath(); ctx.arc(px, py, gr2 * (0.4 + k * 0.2), rot, rot + 1.8); ctx.stroke();
+      }
+      var hr = 15 * S;
+      ctx.fillStyle = "#65a30d"; ctx.beginPath(); ctx.arc(px, py, hr, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#365314";
+      for (var h = -2; h <= 2; h++) { ctx.beginPath(); ctx.ellipse(px + h * 5 * S, py - hr * 0.8, 3 * S, 7 * S, h * 0.3, 0, Math.PI * 2); ctx.fill(); }
+      ctx.fillStyle = "#fef9c3";
+      ctx.beginPath(); ctx.arc(px - 5 * S, py - 2 * S, 3.5 * S, 0, Math.PI * 2); ctx.arc(px + 5 * S, py - 2 * S, 3.5 * S, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#111"; ctx.beginPath(); ctx.arc(px - 5 * S, py - 2 * S, 1.6 * S, 0, Math.PI * 2); ctx.arc(px + 5 * S, py - 2 * S, 1.6 * S, 0, Math.PI * 2); ctx.fill();
+      if (near > 0.05) {
+        // roke iz vode proti reki
+        [-1, 1].forEach(function (s2) {
+          var ax = px - pm.side * (18 + 20 * near) * S, ay = py + s2 * (14 + 8 * near) * S;
+          ctx.strokeStyle = "#4d7c0f"; ctx.lineWidth = 5 * S; ctx.lineCap = "round";
+          ctx.beginPath(); ctx.moveTo(px - pm.side * 8 * S, py + s2 * 8 * S); ctx.lineTo(ax, ay); ctx.stroke();
+          ctx.fillStyle = "#65a30d"; ctx.beginPath(); ctx.arc(ax, ay, 5 * S, 0, Math.PI * 2); ctx.fill();
+        });
+        ctx.lineCap = "butt";
+      }
+    });
+    // rešilni obroči
+    lv.Bu.forEach(function (b) {
+      if (b.taken || b.y - 40 > yTop || b.y + 40 < yBot) return;
+      var bx = sx(b.x), by = sy(b.y) + Math.sin(G.time * 3 + b.y) * 2 * S, br = BUOY_R * S;
+      ctx.lineWidth = 7 * S;
+      for (var q = 0; q < 8; q++) {
+        ctx.strokeStyle = q % 2 ? "#f8fafc" : "#dc2626";
+        ctx.beginPath(); ctx.arc(bx, by, br, q * Math.PI / 4 + G.time * 0.5, (q + 1) * Math.PI / 4 + G.time * 0.5); ctx.stroke();
+      }
+    });
+
     // skale
     lv.R.forEach(function (o) {
       if (o.y - o.r > yTop || o.y + o.r < yBot) return;
@@ -1130,10 +1307,38 @@
       ctx.beginPath(); ctx.ellipse(x1 - th * 0.4, ly, th * 0.45, th * 0.85, 0, 0, Math.PI * 2); ctx.fill();
     });
 
+    // krokodili
+    lv.Cr.forEach(function (c) {
+      if (c.y - 60 > yTop || c.y + 60 < yBot) return;
+      var cx0 = sx(crocX(c)), cy0 = sy(c.y), dir = crocV(c) >= 0 ? 1 : -1, L = CROC_HALF * S, R0 = CROC_R * S;
+      var jaw = (Math.sin(G.time * 5 + c.ph) + 1) * 0.5;
+      ctx.save(); ctx.translate(cx0, cy0); ctx.scale(dir, 1);
+      ctx.fillStyle = "rgba(255,255,255,0.25)"; ctx.beginPath(); ctx.ellipse(0, 0, L + 10 * S, R0 + 6 * S, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#3f6212";
+      ctx.beginPath(); ctx.moveTo(-L - 22 * S, 0); ctx.lineTo(-L * 0.6, -R0 * 0.7); ctx.lineTo(-L * 0.6, R0 * 0.7); ctx.closePath(); ctx.fill(); // rep
+      ctx.beginPath(); ctx.ellipse(-L * 0.1, 0, L * 0.75, R0, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#4d7c0f";
+      ctx.beginPath(); ctx.moveTo(L * 0.5, -R0 * 0.6); ctx.lineTo(L + 4 * S, -R0 * (0.3 + 0.25 * jaw)); ctx.lineTo(L + 4 * S, R0 * (0.3 + 0.25 * jaw)); ctx.lineTo(L * 0.5, R0 * 0.6); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#fef9c3";
+      ctx.beginPath(); ctx.arc(L * 0.45, -R0 * 0.55, 4 * S, 0, Math.PI * 2); ctx.arc(L * 0.45, R0 * 0.55, 4 * S, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#111";
+      ctx.beginPath(); ctx.arc(L * 0.47, -R0 * 0.55, 1.8 * S, 0, Math.PI * 2); ctx.arc(L * 0.47, R0 * 0.55, 1.8 * S, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#365314";
+      for (var sc = -2; sc <= 2; sc++) { ctx.beginPath(); ctx.arc(sc * 12 * S - 6 * S, 0, 3 * S, 0, Math.PI * 2); ctx.fill(); }
+      ctx.restore();
+    });
+
     drawParts(false);
     G.rafts.forEach(function (r) {
       if (r.out) return;
-      if (r.fall) {
+      if (r.sink) {
+        // povodni mož: splav se vrti, manjša in potone
+        var sk = r.sink.t, kx = sx(r.x), ky = sy(r.y);
+        ctx.save(); ctx.globalAlpha = Math.max(0, 1 - sk);
+        ctx.translate(kx, ky); ctx.scale(1 - sk * 0.6, 1 - sk * 0.6); ctx.translate(-kx, -ky);
+        drawRaft(r);
+        ctx.restore();
+      } else if (r.fall) {
         // padec: splav se manjša in bledi (pada v globino)
         var fk = r.fall.t, fx0 = sx(r.x), fy0 = sy(r.y);
         ctx.save(); ctx.globalAlpha = Math.max(0, 1 - fk);
@@ -1152,7 +1357,8 @@
   window.PRDOPLAV = {
     G: G, LEVELS: LEVELS, ANIMALS: ANIMALS, TEAMS: TEAMS, RAFT: RAFT, CURRENT: CURRENT,
     river: river, logX: logX, elev: elev, openSide: openSide, spinAng: spinAng, SPIN_HUB: SPIN_HUB, SPIN_ARM: SPIN_ARM, slopeAt: slopeAt, GATE_R: GATE_R, LOG_R: LOG_R,
-    prepareLevel: prepareLevel, widthFor: widthFor, RC: RC
+    prepareLevel: prepareLevel, widthFor: widthFor, RC: RC,
+    crocX: crocX, crocV: crocV, CROC_HALF: CROC_HALF, CROC_R: CROC_R, PM_GRAB: PM_GRAB, PM_WARN: PM_WARN, BUOY_R: BUOY_R
   };
 
   function loadScript(src) {
@@ -1540,7 +1746,7 @@
       ctx.fillText((k + 1) + ". " + tm.name, x + 20 * u, y0 + 8 * u);
       ctx.textAlign = "right"; ctx.font = "800 " + Math.round(14 * u) + "px Outfit, sans-serif";
       ctx.fillStyle = r.done ? "#bef264" : r.out || r.edgeT > 0 ? "#fca5a5" : "#fff";
-      ctx.fillText(r.done ? "v cilju " + fmt(r.t) : r.out ? (r.why === "gas" ? "brez prdcev" : r.why === "edge" ? "zaostal" : "razpadel") : (r.edgeT > 0 ? "zaostaja! " + Math.max(0, Math.ceil(EDGE_OUT - r.edgeT)) + " s" : Math.round(Math.min(1, r.y / LEVELS[G.lv].len) * 100) + " %"), x + cw - 10 * u, y0 + 10 * u);
+      ctx.fillText(r.done ? "v cilju " + fmt(r.t) : r.out ? whyText(r.why) : (r.edgeT > 0 ? "zaostaja! " + Math.max(0, Math.ceil(EDGE_OUT - r.edgeT)) + " s" : Math.round(Math.min(1, r.y / LEVELS[G.lv].len) * 100) + " %"), x + cw - 10 * u, y0 + 10 * u);
       for (var i = 0; i < MAXL; i++) heart(x + 28 * u + i * 20 * u, y0 + 32 * u, 15 * u, i < r.lives);
       var crew = G.players.filter(function (p) { return G.rafts[p.raft] === r; }).map(function (p) {
         var nm = G.mode === "tel" ? (p.name || "").split(/\s+/)[0] : "P" + (p.slot + 1);

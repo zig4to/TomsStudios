@@ -237,7 +237,8 @@
     } else if (st.ph === "play" && myRaft && myRaft.done) {
       setStatus("V cilju! " + myRaft.place + ". mesto. Čakamo ostale …");
     } else if (st.ph === "play" && myRaft && myRaft.out) {
-      setStatus(myRaft.why === "edge" ? "Preveč ste zaostali in izpadli. Navijaj za ostale!" : "Vaš splav je izpadel. Navijaj za ostale!", true);
+      setStatus(myRaft.why === "edge" ? "Preveč ste zaostali in izpadli. Navijaj za ostale!"
+        : myRaft.why === "sink" ? "Povodni mož vas je potegnil pod vodo. Navijaj za ostale!" : "Vaš splav je izpadel. Navijaj za ostale!", true);
     } else if (st.ph === "play" && myRaft && myRaft.e) {
       setStatus("Zaostajate! Prdite naprej, še " + myRaft.e + " s", true);
     } else if (st.ph === "play") {
