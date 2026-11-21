@@ -630,6 +630,11 @@
       // kamera: zadaj in zgoraj, sledi splavu (pri tekmi težišču splavov, oddaljena po G.zoom)
       var portrait = H > W, zf = 1 / Math.max(0.3, G.zoom);
       var back = (portrait ? 560 : 380) * zf, up = (portrait ? 520 : 320) * zf;
+      if (G.race) {
+        // zadnji splav je razpon/2 za sredino: kamera mora biti dlje zadaj in višje
+        back = Math.max(back, (portrait ? 560 : 380) + G.camSpan * 0.8);
+        up = Math.max(up, (portrait ? 520 : 320) + G.camSpan * 0.7);
+      }
       var tx = G.cam.x, ty = G.race ? G.cam.y - 40 : G.raft.y;
       var ey = E(ty);
       var wantPos = pv.set(tx, up + ey, -(ty - back));

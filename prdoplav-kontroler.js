@@ -7,6 +7,9 @@
   var $ = function (id) { return document.getElementById(id); };
   var sb = NET.client();
   var user = null, name = "", room = null, joined = false, code = "";
+  // lasten kanal za vnose (posluša ga le veliki zaslon); seja + zaporedna številka,
+  // da gostitelj zavrže zakasnelo starejše sporočilo
+  var inCh = null, inReady = false, SID = Math.random().toString(36).slice(2, 8), seq = 0;
   var inp = { l: false, r: false, f: false };
   var st = null, stAt = 0, hostHere = false;
   var holdStart = 0;
@@ -77,6 +80,8 @@
   var joinedAt = 0;
   function leaveRoom() {
     if (room) { try { sb.removeChannel(room); } catch (e) {} }
+    if (inCh) { try { sb.removeChannel(inCh); } catch (e) {} }
+    inCh = null; inReady = false;
     room = null; joined = false; st = null; hostHere = false;
     history.replaceState(null, "", location.pathname);
     $("pad").hidden = true;
@@ -91,6 +96,13 @@
     $("meName").textContent = name;
     setStatus("Povezujem se v sobo " + code + " …");
     room = NET.channel(sb, code, user.id);
+    var ic = NET.inputChannel(sb, code, user.id);
+    inCh = ic; inReady = false;
+    ic.subscribe(function (status) {
+      if (inCh !== ic) return;
+      inReady = status === "SUBSCRIBED";
+      if (inReady) send();
+    });
     room
       .on("presence", { event: "sync" }, function () {
         hostHere = !!room.presenceState().host;
@@ -115,7 +127,8 @@
 
   function send() {
     if (!joined || !room) return;
-    room.send({ type: "broadcast", event: NET.EV.IN, payload: { u: user.id, l: inp.l, r: inp.r, f: inp.f } });
+    var pl = { u: user.id, l: inp.l, r: inp.r, f: inp.f, s: SID, n: ++seq };
+    (inReady && inCh ? inCh : room).send({ type: "broadcast", event: NET.EV.IN, payload: pl });
   }
   setInterval(send, 400);
 
@@ -223,7 +236,9 @@
     } else if (st.ph === "play" && myRaft && myRaft.done) {
       setStatus("V cilju! " + myRaft.place + ". mesto. Čakamo ostale …");
     } else if (st.ph === "play" && myRaft && myRaft.out) {
-      setStatus("Vaš splav je izpadel. Navijaj za ostale!", true);
+      setStatus(myRaft.why === "edge" ? "Preveč ste zaostali in izpadli. Navijaj za ostale!" : "Vaš splav je izpadel. Navijaj za ostale!", true);
+    } else if (st.ph === "play" && myRaft && myRaft.e) {
+      setStatus("Zaostajate! Prdite naprej, še " + myRaft.e + " s", true);
     } else if (st.ph === "play") {
       setStatus(st.lvName + " · levo/desno po robu, prdec odrine splav");
     } else if (place) {

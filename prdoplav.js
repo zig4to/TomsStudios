@@ -294,7 +294,7 @@
     raceEndT: null,      // odštevanje do konca tekme po prvem v cilju
     placeN: 0,
     zoom: 1,             // oddaljenost kamere (tekma: vsi splavi na zaslonu)
-    cam: { x: 0, y: 0 },
+    cam: { x: 0, y: 0 }, camSpan: 0,
     refill: 0, refillT: 0, refillFlash: 0,   // polnjenje prdcev: vsakih „refill“ s (0 = izklopljeno)
     water: 100,                               // hitrost vode v % (100 = običajno, 0 = mirna voda)
     fartDelta: 0, fartInf: false,   // nastavitev števila prdcev (± glede na progo, ali neomejeno)
@@ -339,7 +339,7 @@
     return {
       x: x, y: 140, vx: 0, vy: 0, ang: i * 0.9, av: 0, team: team,
       lives: MAXL, inv: 0, fall: null,
-      done: false, out: false, why: "", t: 0, place: 0, stuckY: 0, stuckT: 0
+      done: false, out: false, why: "", t: 0, place: 0, stuckY: 0, stuckT: 0, edgeT: 0
     };
   }
 
@@ -593,7 +593,10 @@
   }
   function checkRaceEnd() {
     if (G.phase !== "play") return;
-    if (G.rafts.every(function (r) { return r.done || r.out; }) || (G.raceEndT !== null && G.raceEndT <= 0)) finishRace();
+    var left = G.rafts.filter(function (r) { return !r.done && !r.out; }).length;
+    var anyDone = G.rafts.some(function (r) { return r.done; });
+    // vsi končali, poteklo odštevanje ali pa je ostal en sam splav (ostali izpadli) → zmaga
+    if (!left || (G.raceEndT !== null && G.raceEndT <= 0) || (left === 1 && !anyDone)) finishRace();
   }
 
   // Padec čez rob: kratka animacija, izgubljeno življenje, splav se vrne nekoliko nazaj na sredino.
@@ -884,15 +887,15 @@
 
   function finishRace() {
     var lv = LEVELS[G.lv], rank = ranking(), win = rank[0];
-    var anyDone = rank.some(function (r) { return r.done; });
+    var anyDone = rank.some(function (r) { return r.done; }) || !win.out; // preživeli zmaga tudi brez cilja
     G.phase = anyDone ? "end" : "over";
     $("btnPause").hidden = true;
     sound.tune(anyDone ? [523, 659, 784, 1047] : [392, 330, 262, 196]);
     $("endTitle").textContent = anyDone ? "Zmaga: " + TEAMS[win.team].name + " splav!" : "Vsi splavi so izpadli";
-    $("endTime").textContent = anyDone ? fmt(win.t) : Math.round(Math.min(1, win.y / lv.len) * 100) + " % proge";
+    $("endTime").textContent = anyDone ? (win.done ? fmt(win.t) : "Edini preživeli") : Math.round(Math.min(1, win.y / lv.len) * 100) + " % proge";
     var html = '<ol class="rank">';
     rank.forEach(function (r, i) {
-      var st = r.done ? fmt(r.t) : r.out ? (r.why === "gas" ? "brez prdcev" : "razpadel") : Math.round(Math.min(1, r.y / lv.len) * 100) + " %";
+      var st = r.done ? fmt(r.t) : r.out ? (r.why === "gas" ? "brez prdcev" : r.why === "edge" ? "zaostal" : "razpadel") : Math.round(Math.min(1, r.y / lv.len) * 100) + " %";
       html += '<li><b style="background:' + TEAMS[r.team].c + '">' + (i + 1) + "</b>" +
         '<span class="rn">' + esc(TEAMS[r.team].name) + ' <small>' + esc(crewNames(r)) + "</small></span>" +
         '<span class="rt">' + st + "</span></li>";
@@ -1203,6 +1206,16 @@
       var pt = R3.project(rf.x + Math.cos(a) * RAFT, rf.y + Math.sin(a) * RAFT, R3.animalTop(p));
       if (pt.front) nameTag(p, pt.x, pt.y, G.race ? 0.95 : 1.15);
     });
+    // zaostajanje: rdeče odštevanje nad splavom
+    G.rafts.forEach(function (r) {
+      if (!(r.edgeT > 0) || r.done || r.out) return;
+      var pt = R3.project(r.x, r.y, 130);
+      if (!pt.front) return;
+      var es = 30, left = Math.max(0, Math.ceil(EDGE_OUT - r.edgeT));
+      ctx.font = "900 " + es + "px Outfit, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillStyle = "rgba(220, 38, 38, 0.9)"; ctx.beginPath(); ctx.arc(pt.x, pt.y, es * 0.95, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#fff"; ctx.fillText(String(left), pt.x, pt.y + 1);
+    });
     drawHud(lv);
   }
 
@@ -1316,6 +1329,12 @@
     ctx.fillStyle = c;
     ctx.beginPath(); ctx.moveTo(rx, ry - R * 0.95); ctx.lineTo(rx + R * 0.6, ry - R * 0.78); ctx.lineTo(rx, ry - R * 0.6); ctx.closePath(); ctx.fill();
     ctx.strokeStyle = "rgba(0,0,0,0.35)"; ctx.lineWidth = 1.5 * S; ctx.stroke();
+    if (r.edgeT > 0 && !r.done && !r.out) {
+      var es = Math.round(26 * S), left = Math.max(0, Math.ceil(EDGE_OUT - r.edgeT));
+      ctx.font = "900 " + es + "px Outfit, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillStyle = "rgba(220, 38, 38, 0.85)"; ctx.beginPath(); ctx.arc(rx, ry, es * 0.95, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#fff"; ctx.fillText(String(left), rx, ry + 1);
+    }
     if (r.done) {
       var fs = Math.round(22 * S);
       ctx.font = "900 " + fs + "px Outfit, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
@@ -1518,8 +1537,8 @@
       ctx.fillStyle = tm.c;
       ctx.fillText((k + 1) + ". " + tm.name, x + 20 * u, y0 + 8 * u);
       ctx.textAlign = "right"; ctx.font = "800 " + Math.round(14 * u) + "px Outfit, sans-serif";
-      ctx.fillStyle = r.done ? "#bef264" : r.out ? "#fca5a5" : "#fff";
-      ctx.fillText(r.done ? "v cilju " + fmt(r.t) : r.out ? (r.why === "gas" ? "brez prdcev" : "razpadel") : Math.round(Math.min(1, r.y / LEVELS[G.lv].len) * 100) + " %", x + cw - 10 * u, y0 + 10 * u);
+      ctx.fillStyle = r.done ? "#bef264" : r.out || r.edgeT > 0 ? "#fca5a5" : "#fff";
+      ctx.fillText(r.done ? "v cilju " + fmt(r.t) : r.out ? (r.why === "gas" ? "brez prdcev" : r.why === "edge" ? "zaostal" : "razpadel") : (r.edgeT > 0 ? "zaostaja! " + Math.max(0, Math.ceil(EDGE_OUT - r.edgeT)) + " s" : Math.round(Math.min(1, r.y / LEVELS[G.lv].len) * 100) + " %"), x + cw - 10 * u, y0 + 10 * u);
       for (var i = 0; i < MAXL; i++) heart(x + 28 * u + i * 20 * u, y0 + 32 * u, 15 * u, i < r.lives);
       var crew = G.players.filter(function (p) { return G.rafts[p.raft] === r; }).map(function (p) {
         var nm = G.mode === "tel" ? (p.name || "").split(/\s+/)[0] : "P" + (p.slot + 1);
@@ -1551,7 +1570,7 @@
       step(dt);
     }
     if (R3 && view === "3d") draw3d(frameDt); else draw();
-    if (now - lastPush > 200) pushState(false);
+    if (now - lastPush > 250) pushState(false);
     requestAnimationFrame(loop);
   }
 
@@ -1570,7 +1589,7 @@
       physics(dt);
       if (G.race && G.phase === "play") {
         if (G.raceEndT !== null) G.raceEndT -= dt;
-        pullForward();
+        pullForward(dt);
         checkRaceEnd();
       }
     } else if (G.phase === "menu" || G.phase === "lobby") {
@@ -1588,7 +1607,7 @@
 
   /* Kamera: sredina splavov, ki še tekmujejo. Pri tekmi se oddalji, da vidi vse splave
      in celo širino reke (do ZOOM_MIN). */
-  var ZOOM_MIN = 0.45, CAM_MARGIN = 520;
+  var ZOOM_MIN = 0.34, CAM_MARGIN = 520;
   function racing() {
     var a = G.rafts.filter(function (r) { return !r.out && !r.done; });
     if (!a.length) a = G.rafts.filter(function (r) { return !r.out; });
@@ -1609,21 +1628,32 @@
     var ck = 1 - Math.exp(-3 * dt);
     G.cam.x += (tx - G.cam.x) * ck; G.cam.y += (ty - G.cam.y) * ck;
     G.zoom += (zt - G.zoom) * (1 - Math.exp(-2 * dt));
+    G.camSpan += ((G.race ? maxY - minY : 0) - G.camSpan) * ck; // za 3D kamero
   }
 
-  // Kdor zaostane dlje, kot kamera še vidi, ga postavi tik za ostale (izgubi čas, ostane v igri).
-  function pullForward() {
-    var lv = LEVELS[G.lv], act = G.rafts.filter(function (r) { return !r.out && !r.done && !r.fall; });
-    if (act.length < 2) return;
+  /* Spodnji rob zaslona: kamera se oddalji do ZOOM_MIN; kdor zaostane do roba, ga rob
+     potiska naprej (splav normalno vozi naprej, le nazaj ne more). Kdor je na robu
+     EDGE_OUT sekund skupaj, izpade. Spust z roba odšteva nazaj. */
+  var EDGE_OUT = 5;
+  function edgeY() {
+    var act = G.rafts.filter(function (r) { return !r.out && !r.done; });
+    if (act.length < 2) return -Infinity;
     var lead = Math.max.apply(null, act.map(function (r) { return r.y; }));
-    var maxGap = (H / (S * ZOOM_MIN)) - CAM_MARGIN;
-    act.forEach(function (r) {
-      if (lead - r.y <= maxGap) return;
-      r.y = lead - maxGap + 60;
-      r.x = river(lv, r.y).cx; r.vx = 0; r.vy = 0;
-      r.inv = Math.max(r.inv, 1.5);
-      splash(r.x, r.y, 24, "#e0f2fe");
-      sound.bonk(0.4);
+    return lead - ((H / (S * ZOOM_MIN)) - CAM_MARGIN);
+  }
+  function pullForward(dt) {
+    var ey = edgeY();
+    G.rafts.forEach(function (r) {
+      if (r.out || r.done || r.fall) { r.edgeT = 0; return; }
+      if (r.y <= ey + RC) {
+        if (r.y < ey) { r.y = ey; if (r.vy < 0) r.vy = 0; }
+        var before = r.edgeT || 0;
+        r.edgeT = before + dt;
+        if (Math.ceil(EDGE_OUT - before) !== Math.ceil(EDGE_OUT - r.edgeT)) { sound.bonk(0.3); pushState(true); }
+        if (r.edgeT >= EDGE_OUT) { r.edgeT = 0; raftLost(r, "edge"); }
+      } else if (r.edgeT) {
+        r.edgeT = Math.max(0, r.edgeT - dt * 2);
+      }
     });
   }
 
@@ -1716,6 +1746,8 @@
       if (tel.room) { try { sb.removeChannel(tel.room); } catch (e) {} }
       // skupni kanal ostane (čakalna vrsta), samo soba se umakne iz oglasa
       if (tel.lobby && tel.lobbyReady && tel.lastN !== -1) { try { tel.lobby.untrack(); } catch (e) {} }
+      tel.syncInputs({});
+      tel.seq = {};
       tel.room = null; tel.lastN = -1;
       tel.ready = false; tel.players = [];
     },
@@ -1787,6 +1819,7 @@
       // odšli
       tel.players = tel.players.filter(function (p) { return online[p.uid] || !(canChange || p.waiting); });
       // novi
+      tel.syncInputs(online);
       Object.keys(online).forEach(function (uid) {
         var p = tel.players.find(function (x) { return x.uid === uid; });
         if (p) { p.name = online[uid]; return; }
@@ -1807,9 +1840,30 @@
       tel.render();
     },
 
+    inCh: {},   // uid → lasten kanal vnosov tega telefona
+    seq: {},    // uid → { s, n } zadnji sprejeti vnos (zakasnela starejša sporočila zavržemo)
+    // Za vsakega igralca v sobi poslušamo njegov kanal vnosov; odšle odstranimo.
+    syncInputs: function (online) {
+      Object.keys(online).forEach(function (uid) {
+        if (tel.inCh[uid] || !tel.code) return;
+        var ch = NET.inputChannel(sb, tel.code, uid);
+        ch.on("broadcast", { event: NET.EV.IN }, function (m) { tel.onInput(m.payload || {}); }).subscribe();
+        tel.inCh[uid] = ch;
+      });
+      Object.keys(tel.inCh).forEach(function (uid) {
+        if (online[uid]) return;
+        try { sb.removeChannel(tel.inCh[uid]); } catch (e) {}
+        delete tel.inCh[uid];
+      });
+    },
     onInput: function (m) {
       var p = G.players.find(function (x) { return x.uid === m.u; });
       if (!p) return;
+      if (m.s != null) {
+        var last = tel.seq[m.u];
+        if (last && last.s === m.s && m.n <= last.n) return; // starejše od že sprejetega
+        tel.seq[m.u] = { s: m.s, n: m.n };
+      }
       p.inp.l = !!m.l; p.inp.r = !!m.r; p.inp.f = !!m.f;
       p.lastIn = performance.now();
     },
@@ -1903,10 +1957,16 @@
     startLevel(G.lv);
   }
 
+  var pushTimer = 0;
   function pushState(force) {
     if (!tel.room || !tel.ready) return;
     var now = performance.now();
-    if (!force && now - lastPush < 200) return;
+    if (!force && now - lastPush < 250) return;
+    if (now - lastPush < 100) {
+      // več nujnih naenkrat (npr. prdci več igralcev): eno sporočilo malo kasneje
+      if (!pushTimer) pushTimer = setTimeout(function () { pushTimer = 0; pushState(true); }, 100 - (now - lastPush));
+      return;
+    }
     lastPush = now;
     var byUid = {};
     G.players.forEach(function (p) { if (p.uid) byUid[p.uid] = p; });
@@ -1917,7 +1977,7 @@
         ph: G.phase, lv: G.lv, lvName: lv.name, lives: G.raft ? G.raft.lives : MAXL, maxLives: MAXL,
         ts: G.teamSize,
         teams: G.teamSize ? [0, 1, 2, 3].map(function (t) { return { n: tel.teamCount(t) }; }) : null,
-        rafts: G.race ? G.rafts.map(function (r) { return { t: r.team, lives: r.lives, done: r.done, out: r.out, place: r.place }; }) : null,
+        rafts: G.race ? G.rafts.map(function (r) { return { t: r.team, lives: r.lives, done: r.done, out: r.out, place: r.place, why: r.why || "", e: r.edgeT > 0 ? Math.max(0, Math.ceil(EDGE_OUT - r.edgeT)) : 0 }; }) : null,
         rank: G.race && (G.phase === "end" || G.phase === "over") ? ranking().map(function (r) { return r.team; }) : null,
         farts: fartLimit(lv) === Infinity ? null : fartLimit(lv),
         rf: G.refill > 0 && !G.fartInf ? G.refill : 0,

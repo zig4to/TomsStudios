@@ -2,7 +2,8 @@
    Soba = Supabase Realtime kanal „prdoplav-<KODA>“ (broadcast + presence, brez tabel).
    Gostitelj ima presence ključ „host“, kontrolerji svoj user id.
    Sporočila:
-     in  (telefon → gostitelj)  { u, l, r, f }           levo / desno / prdec (držim)
+     in  (telefon → gostitelj)  { u, l, r, f, s, n }     levo / desno / prdec (držim); s = seja, n = zaporedna št.
+                                kanal „prdoplav-<KODA>-in-<uid>“ (star kontroler: kar soba)
      cmd (telefon → gostitelj)  { u, a, t }              a = "start" | "next" | "retry" | "team" (t = ekipa)
      st  (gostitelj → telefoni) { ph, lv, lvName, lives, next, ts, teams, rafts, p: [{ u, s, t, g, c, w, f }] }
        ts = igralcev na splav (0 = vsi na enem), teams = [{ n }] zasedenost ekip v sobi,
@@ -47,6 +48,13 @@
     return sb.channel("prdoplav-" + code, {
       config: { presence: { key: key }, broadcast: { self: false } }
     });
+  }
+
+  // Vnosi telefona gredo po njegovem lastnem kanalu, ki ga posluša le gostitelj.
+  // (V skupni sobi bi vsak pritisk dobili tudi vsi drugi telefoni → število sporočil
+  // raste s kvadratom igralcev in Supabase jih začne zadrževati.)
+  function inputChannel(sb, code, uid) {
+    return sb.channel("prdoplav-" + code + "-in-" + uid, { config: { broadcast: { self: false } } });
   }
 
   // Ime iz profila TomsStudia (seri_users), sicer del e-pošte.
@@ -99,6 +107,7 @@
     newCode: newCode,
     cleanCode: cleanCode,
     channel: channel,
+    inputChannel: inputChannel,
     myName: myName,
     controllerUrl: controllerUrl,
     lobbyChannel: lobbyChannel,
