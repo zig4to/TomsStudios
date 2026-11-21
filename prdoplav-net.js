@@ -49,6 +49,20 @@
     }, function () { return fallback; });
   }
 
+  // Skupni kanal, kjer se odprte sobe oglasijo (presence ključ = koda sobe,
+  // meta { code, name, n, at }). Telefon tako najde sobo brez vpisovanja kode.
+  function lobbyChannel(sb, key) {
+    return channel(sb, "lobby", key);
+  }
+  function openRooms(lobby) {
+    var st = lobby.presenceState(), out = [];
+    Object.keys(st).forEach(function (k) {
+      var m = st[k] && st[k][0];
+      if (m && m.code) out.push({ code: m.code, name: m.name || "Soba", n: m.n || 0, at: m.at || 0 });
+    });
+    return out.sort(function (a, b) { return b.at - a.at; });
+  }
+
   function controllerUrl(code, base) {
     return new URL("prdoplav-kontroler.html?soba=" + code, base || location.href).toString();
   }
@@ -76,6 +90,8 @@
     channel: channel,
     myName: myName,
     controllerUrl: controllerUrl,
+    lobbyChannel: lobbyChannel,
+    openRooms: openRooms,
     joinBase: joinBase
   };
 })();

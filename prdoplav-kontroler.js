@@ -26,26 +26,63 @@
       name = n;
       var c = NET.cleanCode(new URLSearchParams(location.search).get("soba"));
       if (c.length === 4) join(c);
-      else askCode();
+      else findRoom();
     });
   }, function () { gateMsg("Ni povezave."); });
 
-  function askCode() {
-    gateMsg("Vpiši kodo sobe, ki je na velikem zaslonu.");
-    $("joinForm").hidden = false;
-    $("codeIn").focus();
+  /* Brez kode: odprte sobe se oglašajo v skupnem kanalu. Ena soba → takoj noter,
+     več sob → izbereš po imenu gostitelja, nobene → čakaš, da se odpre. */
+  var lobby = null;
+  function findRoom() {
+    gateMsg("Iščem odprto sobo …");
+    lobby = NET.lobbyChannel(sb, user.id);
+    lobby
+      .on("presence", { event: "sync" }, showRooms)
+      .subscribe(function (status) {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") gateMsg("Ni povezave. Poskušam znova …");
+      });
   }
-  $("codeIn").addEventListener("input", function () { this.value = NET.cleanCode(this.value); });
-  $("joinForm").addEventListener("submit", function (e) {
-    e.preventDefault();
-    var c = NET.cleanCode($("codeIn").value);
-    if (c.length !== 4) return;
+  function showRooms() {
+    if (!lobby || room) return;
+    var rooms = NET.openRooms(lobby), box = $("rooms");
+    box.innerHTML = "";
+    if (rooms.length === 1) { enter(rooms[0].code); return; }
+    if (!rooms.length) {
+      box.hidden = true;
+      gateMsg("Ni odprte sobe. Na velikem zaslonu izberi »Telefoni kot kontrolerji« in »Odpri sobo«. Ko se soba odpre, te samo poveže.");
+      return;
+    }
+    gateMsg("Odprtih je več sob. Izberi svojo:");
+    rooms.forEach(function (r) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "btn";
+      b.textContent = "Soba: " + r.name;
+      var sm = document.createElement("small");
+      sm.textContent = r.n === 1 ? "1 igralec" : r.n + " igralcev";
+      b.appendChild(sm);
+      b.addEventListener("click", function () { enter(r.code); });
+      box.appendChild(b);
+    });
+    box.hidden = false;
+  }
+  function enter(c) {
+    if (lobby) { try { sb.removeChannel(lobby); } catch (e) {} lobby = null; }
     history.replaceState(null, "", "?soba=" + c);
     join(c);
-  });
+  }
+
+  var joinedAt = 0;
+  function leaveRoom() {
+    if (room) { try { sb.removeChannel(room); } catch (e) {} }
+    room = null; joined = false; st = null; hostHere = false;
+    history.replaceState(null, "", location.pathname);
+    $("pad").hidden = true;
+    $("gate").hidden = false;
+  }
 
   function join(c) {
     code = c;
+    joinedAt = Date.now();
     $("gate").hidden = true;
     $("pad").hidden = false;
     $("meName").textContent = name;
@@ -93,13 +130,20 @@
   var HEART = '<svg viewBox="0 0 24 24" fill="FILL" stroke="#fff" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>';
 
   function render() {
+    if (!room) return;
     var mine = st && st.p ? st.p.filter(function (x) { return x.u === user.id; })[0] : null;
     var act = $("act");
     act.hidden = true;
     $("controls").classList.toggle("dim", !(st && (st.ph === "play" || st.ph === "count")));
 
+    if (!hostHere && Date.now() - stAt > 5000 && Date.now() - joinedAt > 5000) {
+      // soba je zaprta (ali star naslov) → nazaj na iskanje odprte sobe
+      leaveRoom();
+      findRoom();
+      return;
+    }
     if (!hostHere && Date.now() - stAt > 3000) {
-      setStatus("Velikega zaslona ni v sobi " + code + ". Preveri kodo.", true);
+      setStatus("Povezujem se z velikim zaslonom …");
       return;
     }
     if (!st) { setStatus("Povezan. Čakam na veliki zaslon …"); return; }

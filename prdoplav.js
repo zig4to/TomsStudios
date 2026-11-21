@@ -1123,7 +1123,6 @@
       step(dt);
     }
     if (R3 && view === "3d") draw3d(frameDt); else draw();
-    updateMiniJoin();
     if (now - lastPush > 200) pushState(false);
     requestAnimationFrame(loop);
   }
@@ -1164,12 +1163,14 @@
 
   var tel = {
     room: null, code: null, ready: false,
+    lobby: null, lobbyReady: false, lastN: -1, openedAt: 0, hostName: "",
     players: [],   // { uid, name, slot, waiting }
 
     open: function () {
       if (!sb || !me) return;
       tel.close();
       tel.code = NET.newCode();
+      tel.openedAt = Date.now();
       tel.players = [];
       tel.ready = false;
       var room = NET.channel(sb, tel.code, "host");
@@ -1187,24 +1188,28 @@
             $("lobbyMsg").textContent = "Povezave s strežnikom ni. Preveri internet in odpri sobo znova.";
           }
         });
-      $("roomCode").textContent = tel.code;
-      $("miniCode").textContent = tel.code;
-      $("roomUrl").textContent = "";
-      $("qr").innerHTML = ""; $("qrMini").innerHTML = "";
-      var code = tel.code;
-      NET.joinBase().then(function (base) {
-        if (tel.code !== code) return; // medtem odprta druga soba
-        var url = NET.controllerUrl(code, base);
-        $("roomUrl").textContent = url.replace(/^https?:\/\//, "");
-        drawQr($("qr"), url, 320);
-        drawQr($("qrMini"), url, 132);
+      // oglas v skupnem kanalu — telefoni z gumbom »Pridruži se« sobo najdejo sami
+      var lobby = NET.lobbyChannel(sb, tel.code);
+      tel.lobby = lobby;
+      lobby.subscribe(function (status) {
+        if (status === "SUBSCRIBED") { tel.lobbyReady = true; tel.announce(); }
       });
       tel.render();
     },
 
+    announce: function () {
+      if (!tel.lobby || !tel.lobbyReady) return;
+      var n = tel.players.filter(function (p) { return !p.waiting; }).length;
+      if (tel.lastN === n) return;
+      tel.lastN = n;
+      tel.lobby.track({ code: tel.code, name: tel.hostName || "Soba", n: n, at: tel.openedAt });
+    },
+
     close: function () {
       if (tel.room) { try { sb.removeChannel(tel.room); } catch (e) {} }
-      tel.room = null; tel.ready = false; tel.players = [];
+      if (tel.lobby) { try { sb.removeChannel(tel.lobby); } catch (e) {} }
+      tel.room = null; tel.lobby = null; tel.lobbyReady = false; tel.lastN = -1;
+      tel.ready = false; tel.players = [];
     },
 
     freeSlot: function () {
@@ -1285,23 +1290,9 @@
       var waiting = tel.players.filter(function (p) { return p.waiting; }).length;
       if (waiting && tel.ready) $("lobbyMsg").textContent = waiting + " čaka na prosto mesto.";
       $("btnStart").disabled = !active.length;
+      tel.announce();
     }
   };
-
-  function drawQr(el, url, size) {
-    el.innerHTML = "";
-    el.hidden = false;
-    if (!window.QRCode) { el.hidden = true; return; }
-    try { new window.QRCode(el, { text: url, width: size, height: size, correctLevel: window.QRCode.CorrectLevel.M }); }
-    catch (e) { el.hidden = true; }
-  }
-
-  // mala QR koda v kotu med vožnjo — da se lahko pridruži še kdo (vstopi na naslednji progi)
-  function updateMiniJoin() {
-    var show = G.mode === "tel" && !!tel.room && G.phase !== "lobby" && G.phase !== "menu";
-    var el = $("miniJoin");
-    if (el.hidden === show) el.hidden = !show;
-  }
 
   function beginTel() {
     if (!tel.players.some(function (p) { return !p.waiting; })) return;
@@ -1454,7 +1445,9 @@
   // telefon → ponudi kontroler
   if (window.matchMedia && matchMedia("(pointer: coarse)").matches && !matchMedia("(any-pointer: fine)").matches &&
       Math.min(screen.width, screen.height) < 600) {
+    // na telefonu samo gumb »Pridruži se« — igra je na velikem zaslonu
     $("phoneHint").hidden = false;
+    document.body.classList.add("is-phone");
   }
 
   /* =================== Zagon =================== */
@@ -1485,6 +1478,7 @@
         return;
       }
       me = s.user;
+      NET.myName(sb, me).then(function (n) { tel.hostName = n; });
       telBtn.disabled = false;
     }, function () {
       telNote.hidden = false; telNote.textContent = "Ni povezave.";
