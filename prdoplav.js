@@ -268,7 +268,8 @@
   var SPIKE_HIT = 8;        // bodice: enako kot drugje
   var GRAV = 110;           // hribčki: pospešek navzdol po klancu (višine so podvojene)
   var GATE_R = 12;          // debelina vrat zapornice
-  var SPIN = 0.3;           // samodejno vrtenje splava (rad/s)
+  var SPIN = 0.3;           // samodejno vrtenje splava (rad/s) pri 100 %
+  function spinRate() { return SPIN * G.spin / 100; }
 
   var KEYS = [
     { l: ["KeyA"], r: ["KeyD"], f: ["KeyW"], label: ["A", "D", "W"] },
@@ -297,6 +298,7 @@
     cam: { x: 0, y: 0 }, camSpan: 0,
     refill: 0, refillT: 0, refillFlash: 0,   // polnjenje prdcev: vsakih „refill“ s (0 = izklopljeno)
     water: 100,                               // hitrost vode v % (100 = običajno, 0 = mirna voda)
+    spin: 100,                                // samodejno vrtenje splava v % (0 = se ne vrti sam)
     fartDelta: 0, fartInf: false,   // nastavitev števila prdcev (± glede na progo, ali neomejeno)
     best: null, newRecord: false
   };
@@ -507,7 +509,7 @@
     // hribček: navzdol pospeši, navzgor zavira
     r.vy -= GRAV * slopeAt(lv, r.y) * dt;
     // splav se sam počasi vrti okoli svoje osi; sunki trkov se umirijo nazaj na to hitrost
-    r.av += (SPIN - r.av) * (1 - Math.exp(-1.4 * dt));
+    r.av += (spinRate() - r.av) * (1 - Math.exp(-1.4 * dt));
     r.x += r.vx * dt; r.y += r.vy * dt; r.ang += r.av * dt;
 
     // bregova (ob bodicah boli že rahel dotik)
@@ -618,7 +620,7 @@
     r.lives--;
     if (r.lives <= 0) { raftLost(r, "hit"); return; }
     var lv = LEVELS[G.lv], back = Math.max(140, r.y - 220);
-    r.x = river(lv, back).cx; r.y = back; r.vx = 0; r.vy = 0; r.av = SPIN;
+    r.x = river(lv, back).cx; r.y = back; r.vx = 0; r.vy = 0; r.av = spinRate();
     r.inv = 2;
     pushState(true);
   }
@@ -1982,6 +1984,7 @@
         farts: fartLimit(lv) === Infinity ? null : fartLimit(lv),
         rf: G.refill > 0 && !G.fartInf ? G.refill : 0,
         wt: G.water,
+        sp: G.spin,
         rfIn: G.refill > 0 && !G.fartInf ? Math.max(0, Math.ceil(G.refill - G.refillT)) : null,
         next: G.phase === "end" && G.lv < LEVELS.length - 1,
         p: tel.players.map(function (t) {
@@ -2108,6 +2111,14 @@
       note(rw, "%");
       if (G.water !== 100) btn(rw, "običajno", "Običajna hitrost vode", function () { G.water = 100; }).classList.add("reset");
       note(rw, G.water === 0 ? "mirna voda" : G.water < 100 ? "počasnejši tok" : G.water > 100 ? "hitrejši tok" : "");
+
+      // vrtenje splava okoli svoje osi
+      var rs = row();
+      var sl = document.createElement("span"); sl.className = "lab"; sl.textContent = "Vrtenje splava"; rs.appendChild(sl);
+      stepper(rs, G.spin, 0, 500, function (v) { G.spin = Math.max(0, Math.min(500, Math.round(v) || 0)); }, false, "Hitrost vrtenja splava v odstotkih", 25);
+      note(rs, "%");
+      if (G.spin !== 100) btn(rs, "običajno", "Običajno vrtenje splava", function () { G.spin = 100; }).classList.add("reset");
+      note(rs, G.spin === 0 ? "se ne vrti sam" : G.spin < 100 ? "počasneje" : G.spin > 100 ? "hitreje" : "");
 
       // polnjenje
       if (G.fartInf) return;

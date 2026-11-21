@@ -229,7 +229,8 @@
         "Si " + a.name.toLowerCase() + " na splavu. Proga: ") + st.lvName + " · " +
         (st.farts == null ? "neomejeno prdcev" : st.farts + " prdcev na igralca" +
           (st.rf ? ", polnjenje vsakih " + st.rf + " s" : "")) +
-        (st.wt != null && st.wt !== 100 ? ", voda " + st.wt + " %" : "") + ". Ko so vsi notri, začni.");
+        (st.wt != null && st.wt !== 100 ? ", voda " + st.wt + " %" : "") +
+        (st.sp != null && st.sp !== 100 ? ", vrtenje " + st.sp + " %" : "") + ". Ko so vsi notri, začni.");
       act.hidden = false; act.textContent = "Začni vožnjo"; act.dataset.a = "start";
     } else if (st.ph === "count") {
       setStatus("Pripravi se … " + st.lvName);
