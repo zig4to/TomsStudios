@@ -57,6 +57,12 @@
       [30, -24, 0xb59a62], [null, -30, 0x7d6a45], [-30, -24, 0xb59a62], [14, 6, 0xe7cf96],
       [50, 26, 0x5a9b40], [500, 30, 0x4d8f3a], [1600, 34, 0x4d8f3a]
     ];
+    // brez ograje: kamnit rob ob vodi, nato prepad v sotesko
+    var CLIFF = [
+      [-1600, -470, 0x3b2f2a], [-500, -460, 0x4a3b32], [-50, -400, 0x6b5a4e], [-14, -4, 0x94a3b8],
+      [30, -24, 0xb59a62], [null, -30, 0x7d6a45], [-30, -24, 0xb59a62], [14, -4, 0x94a3b8],
+      [50, -400, 0x6b5a4e], [500, -460, 0x4a3b32], [1600, -470, 0x3b2f2a]
+    ];
     function colX(rv, i) {
       var c = COLS[i][0];
       if (c === null) return rv.cx;
@@ -74,6 +80,7 @@
       levelIdx = i;
       var lv = api.LEVELS[i];
       curLv = lv;
+      var prof = lv.noFence ? CLIFF : COLS, floor = lv.noFence ? -490 : 0; // drevesa na dnu soteske
       levelGroup = new T.Group();
       scene.add(levelGroup);
       logs = []; pools = []; flows = []; gates = [];
@@ -85,10 +92,10 @@
       for (var r = 0; r < rows; r++) {
         var y = y0 + r * step, rv = api.river(lv, y);
         for (var k = 0; k < nc; k++) {
-          var h = COLS[k][1];
+          var h = prof[k][1];
           if (k <= 2 || k >= nc - 3) h += hash(y * 0.31 + k * 7.7) * 10 - 3;
           pos.push(colX(rv, k), h + E(y), -y);
-          c.setHex(COLS[k][2]);
+          c.setHex(prof[k][2]);
           var j = 0.94 + hash(y * 0.7 + k) * 0.1;
           col.push(c.r * j, c.g * j, c.b * j);
         }
@@ -151,7 +158,7 @@
       var m4 = new T.Matrix4(), q4 = new T.Quaternion(), s3 = new T.Vector3(), v3 = new T.Vector3();
       trees.forEach(function (s, n) {
         s3.set(s.s, s.s, s.s);
-        var e = E(s.y);
+        var e = E(s.y) + floor;
         m4.compose(v3.set(s.x, e + 30 + 17 * s.s, -s.y), q4, s3); trunks.setMatrixAt(n, m4);
         m4.compose(v3.set(s.x, e + 30 + 34 * s.s + 50 * s.s, -s.y), q4, s3); crowns.setMatrixAt(n, m4);
       });
@@ -159,7 +166,7 @@
       bushes.forEach(function (s, n) {
         s3.set(s.s, s.s * 0.7, s.s);
         bq.setFromAxisAngle(upAxis, s.y);
-        m4.compose(v3.set(s.x, 32 + E(s.y), -s.y), bq, s3);
+        m4.compose(v3.set(s.x, 32 + floor + E(s.y), -s.y), bq, s3);
         bushM.setMatrixAt(n, m4);
       });
       [crowns, trunks, bushM].forEach(function (im) { im.castShadow = true; im.receiveShadow = true; levelGroup.add(im); });
@@ -466,7 +473,8 @@
       // splav
       var rx = r.x, rz = -r.y;
       var bob = wave(rx, rz) * 0.8;
-      raft.position.set(rx, E(r.y) + 6 + bob, rz);
+      var drop = G.fall ? G.fall.t * G.fall.t * 420 : 0; // padec čez rob
+      raft.position.set(rx, E(r.y) + 6 + bob - drop, rz);
       raft.rotation.y = r.ang;
       raft.rotation.x = Math.atan(api.slopeAt(lv, r.y)); // nagib po klancu
       var ax = (r.vx - prevV.x) / Math.max(dt, 0.001), ay = (r.vy - prevV.y) / Math.max(dt, 0.001);
@@ -487,7 +495,7 @@
         var a = r.ang + p.phi;
         var x = rx + Math.cos(a) * RAFT, wz = rz - Math.sin(a) * RAFT;
         var hop = p.puff > 0 ? Math.sin((0.35 - p.puff) / 0.35 * Math.PI) * 16 : 0;
-        an.g.position.set(x, E(-wz) + 6 + bob + DECK + hop, wz);
+        an.g.position.set(x, E(-wz) + 6 + bob + DECK + hop - drop, wz);
         an.g.rotation.y = a + Math.PI;
         var sw = 1 + 0.18 * p.charge + (p.holding ? Math.sin(t * 40) * 0.03 * p.charge : 0);
         an.body.scale.set(1, sw, sw);

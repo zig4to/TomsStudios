@@ -97,6 +97,14 @@
       spikes: [[500, 4450]]
     },
     {
+      // brez bregov: kanal visoko nad sotesko — kdor zapelje čez rob, pade dol
+      name: "Brez ograje", len: 4400, wide: 1.0, noFence: true,
+      river: [[0, 0, 280], [600, 0, 240], [1200, 120, 230], [1800, -100, 220], [2400, 80, 230], [3000, -60, 220], [3600, 60, 230], [4600, 0, 280]],
+      rocks: [[0, 1500, 30], [0, 3000, 30]],
+      logs: [], pools: [],
+      flows: [[2100, 240, -80, 10]]
+    },
+    {
       name: "Velika finala", len: 6600, wide: 1.15,
       river: [[0, 0, 300], [700, 0, 250], [1400, -150, 220], [2100, 120, 220], [2800, 0, 240], [3500, -180, 220], [4200, 100, 220], [4900, 0, 230], [5600, -120, 220], [6900, 0, 300]],
       rocks: [[90, 800, 35], [-100, 1500, 35], [110, 2400, 35], [-90, 3300, 35], [100, 4500, 35], [-60, 5400, 35]],
@@ -187,11 +195,12 @@
   var MINGAP = 0.62;        // najmanjši kot med živalmi
   var CURRENT = 45;         // osnovni tok reke
   var DRAG = 0.9;
-  var HIT = 130;            // hitrost udarca, ki stane življenje
+  var HIT = 8;              // vsak dotik ovire ali brega stane življenje (potem 2 s neranljivosti)
   var MAXL = 5;             // življenja splava
-  var SPIKE_HIT = 40;       // ob bodicah že rahel dotik stane življenje
+  var SPIKE_HIT = 8;        // bodice: enako kot drugje
   var GRAV = 110;           // hribčki: pospešek navzdol po klancu (višine so podvojene)
   var GATE_R = 12;          // debelina vrat zapornice
+  var SPIN = 0.3;           // samodejno vrtenje splava (rad/s)
 
   var KEYS = [
     { l: ["KeyA"], r: ["KeyD"], f: ["KeyW"], label: ["A", "D", "W"] },
@@ -258,7 +267,7 @@
     G.players = makePlayers(list);
     resetRaft(lv);
     G.lives = MAXL; G.inv = 0; G.t = 0; G.parts = []; G.newRecord = false;
-    G.phase = "count"; G.count = 3.2;
+    G.phase = "count"; G.count = 3.2; G.fall = null;
     showOnly(null);
     $("btnPause").hidden = false;
     sound.unlock();
@@ -332,18 +341,22 @@
     }
     // hribček: navzdol pospeši, navzgor zavira
     r.vy -= GRAV * slopeAt(lv, r.y) * dt;
-    r.av *= Math.exp(-1.4 * dt);
+    // splav se sam počasi vrti okoli svoje osi; sunki trkov se umirijo nazaj na to hitrost
+    r.av += (SPIN - r.av) * (1 - Math.exp(-1.4 * dt));
     r.x += r.vx * dt; r.y += r.vy * dt; r.ang += r.av * dt;
 
     // bregova (ob bodicah boli že rahel dotik)
     var rv = river(lv, r.y), rv2 = river(lv, r.y + 10);
     var left = rv.cx - rv.hw, right = rv.cx + rv.hw;
     var thr = spiky(lv, r.y) ? SPIKE_HIT : 0;
-    if (r.x - RC < left) {
+    if (lv.noFence) {
+      // brez ograje: ko je sredina splava čez rob, splav pade
+      if ((r.x < left || r.x > right) && G.phase === "play") fallOff(r.x < left ? -1 : 1);
+    } else if (r.x - RC < left) {
       var sl = ((rv2.cx - rv2.hw) - left) / 10, ln = Math.sqrt(1 + sl * sl);
       collide(1 / ln, -sl / ln, (left - (r.x - RC)) / ln, 0, 0, r.x - RC, r.y, thr);
     }
-    if (r.x + RC > right) {
+    if (!lv.noFence && r.x + RC > right) {
       var sr = ((rv2.cx + rv2.hw) - right) / 10, rn = Math.sqrt(1 + sr * sr);
       collide(-1 / rn, sr / rn, ((r.x + RC) - right) / rn, 0, 0, r.x + RC, r.y, thr);
     }
@@ -369,6 +382,29 @@
     }
 
     if (r.y >= lv.len && G.phase === "play") finish(true);
+  }
+
+  // Padec čez rob: kratka animacija, izgubljeno življenje, splav se vrne nekoliko nazaj na sredino.
+  var FALL_TIME = 1.1;
+  function fallOff(side) {
+    if (G.fall) return;
+    G.fall = { t: 0, side: side };
+    G.shake = 0.4;
+    sound.bonk(0.8);
+    splash(G.raft.x, G.raft.y, 20, "#e0f2fe");
+  }
+  function updateFall(dt) {
+    var f = G.fall, r = G.raft;
+    f.t += dt / FALL_TIME;
+    r.x += f.side * 120 * dt; r.ang += 2.5 * dt; // odnese čez rob in zavrti
+    if (f.t < 1) return;
+    G.fall = null;
+    G.lives--;
+    if (G.lives <= 0) { finish(false); return; }
+    var lv = LEVELS[G.lv], back = Math.max(140, r.y - 220);
+    r.x = river(lv, back).cx; r.y = back; r.vx = 0; r.vy = 0; r.av = SPIN;
+    G.inv = 2;
+    pushState(true);
   }
 
   function segHit(x0, x1, y, rad) {
@@ -593,7 +629,7 @@
     shX = shY = 0;
     if (G.shake > 0) { shX = (Math.random() - 0.5) * 16 * G.shake; shY = (Math.random() - 0.5) * 16 * G.shake; }
 
-    ctx.fillStyle = "#3f8f3a";
+    ctx.fillStyle = lv.noFence ? "#2a211c" : "#3f8f3a"; // brez ograje: globoka soteska
     ctx.fillRect(0, 0, W, H);
 
     var yTop = G.cam.y + (H * 0.6) / S + 80;
@@ -602,7 +638,7 @@
 
     // trava in grmi
     var g0 = Math.floor(yBot / 70) * 70;
-    for (y = g0; y < yTop; y += 70) {
+    for (y = g0; y < yTop && !lv.noFence; y += 70) {
       var rv = river(lv, y);
       for (var side = -1; side <= 1; side += 2) {
         for (var q = 0; q < 3; q++) {
@@ -620,7 +656,7 @@
 
     // pesek ob bregu + voda
     riverPath(lv, yBot, yTop, step, 16);
-    ctx.fillStyle = "#e7cf96"; ctx.fill();
+    ctx.fillStyle = lv.noFence ? "#94a3b8" : "#e7cf96"; ctx.fill();
     riverPath(lv, yBot, yTop, step, 0);
     var grd = ctx.createLinearGradient(0, 0, W, 0);
     grd.addColorStop(0, "#2f86cf"); grd.addColorStop(0.5, "#3b9ae1"); grd.addColorStop(1, "#2f86cf");
@@ -751,7 +787,14 @@
     });
 
     drawParts(false);
-    drawRaft();
+    if (G.fall) {
+      // padec: splav se manjša in bledi (pada v globino)
+      var fk = G.fall.t, fx0 = sx(G.raft.x), fy0 = sy(G.raft.y);
+      ctx.save(); ctx.globalAlpha = Math.max(0, 1 - fk);
+      ctx.translate(fx0, fy0); ctx.scale(1 - fk * 0.7, 1 - fk * 0.7); ctx.translate(-fx0, -fy0);
+      drawRaft();
+      ctx.restore();
+    } else drawRaft();
     drawParts(true);
     drawHud(lv);
   }
@@ -882,6 +925,7 @@
   function drawRaft() {
     var r = G.raft, rx = sx(r.x), ry = sy(r.y), R = RAFT * S;
     if (G.inv > 0 && Math.floor(G.inv * 10) % 2 === 0) ctx.globalAlpha = 0.55;
+    else if (G.fall) ctx.globalAlpha = Math.max(0, 1 - G.fall.t);
     // val okoli
     ctx.strokeStyle = "rgba(255, 255, 255, 0.4)"; ctx.lineWidth = 3 * S;
     ctx.beginPath(); ctx.arc(rx, ry, R * 1.18 + Math.sin(G.time * 4) * 2 * S, 0, Math.PI * 2); ctx.stroke();
@@ -902,7 +946,7 @@
     ctx.strokeStyle = "#78350f"; ctx.lineWidth = 2 * S;
     ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2); ctx.stroke();
     ctx.restore();
-    ctx.globalAlpha = 1;
+    ctx.globalAlpha = G.fall ? Math.max(0, 1 - G.fall.t) : 1;
 
     G.players.forEach(function (p) {
       var a = r.ang + p.phi;
@@ -1096,8 +1140,8 @@
       if (G.count <= 0) { G.phase = "play"; sound.fart(0.6); pushState(true); }
     } else if (G.phase === "play") {
       G.t += dt;
-      updatePlayers(dt, true);
-      physics(dt);
+      if (G.fall) updateFall(dt);
+      else { updatePlayers(dt, true); physics(dt); }
     } else if (G.phase === "menu" || G.phase === "lobby") {
       // splav na začetku lenobno pluje
       G.raft.y = 140 + Math.sin(G.time * 0.5) * 20;
