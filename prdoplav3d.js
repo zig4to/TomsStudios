@@ -32,7 +32,7 @@
 
     var A = api.ANIMALS, RAFT = api.RAFT;
     var t = 0;
-    var levelIdx = -1, levelGroup = null, water = null, waterBase = null, logs = [], pools = [], flows = [], gates = [], boulders = [];
+    var levelIdx = -1, levelGroup = null, water = null, waterBase = null, logs = [], pools = [], flows = [], gates = [], spinners = [];
     var curLv = null;
     function E(y) { return curLv ? api.elev(curLv, y) : 0; }
 
@@ -83,7 +83,7 @@
       var prof = lv.noFence ? CLIFF : COLS, floor = lv.noFence ? -490 : 0; // drevesa na dnu soteske
       levelGroup = new T.Group();
       scene.add(levelGroup);
-      logs = []; pools = []; flows = []; gates = []; boulders = [];
+      logs = []; pools = []; flows = []; gates = []; spinners = [];
 
       // teren (trava, pesek, dno)
       var y0 = -700, y1 = lv.len + 1400, step = 40;
@@ -185,11 +185,30 @@
         levelGroup.add(foam);
       });
 
-      // kotaleče se krogle
-      lv.B.forEach(function (b) {
-        var ball = mesh(new T.IcosahedronGeometry(b.r, 1), mat(0x78716c));
-        levelGroup.add(ball);
-        boulders.push({ b: b, m: ball });
+      // vrtiljaki: steber iz vode + vrteči se leseni križ z rdečimi konci
+      lv.Sp.forEach(function (sp) {
+        var base = E(sp.y);
+        var post = mesh(new T.CylinderGeometry(api.SPIN_HUB, api.SPIN_HUB * 1.2, 60, 10), mat(0x5b3a1f));
+        post.position.set(sp.x, base + 10, -sp.y);
+        levelGroup.add(post);
+        var rot = new T.Group();
+        rot.position.set(sp.x, base + 22, -sp.y);
+        for (var k = 0; k < sp.angs.length; k++) {
+          var arm = new T.Group();
+          var plank = mesh(new T.BoxGeometry(sp.len, 14, api.SPIN_ARM * 2), mat(0x92562a));
+          plank.position.x = sp.len / 2;
+          arm.add(plank);
+          var tip = mesh(new T.BoxGeometry(10, 18, api.SPIN_ARM * 2 + 4), mat(0xdc2626));
+          tip.position.x = sp.len - 5;
+          arm.add(tip);
+          arm.rotation.y = sp.angs[k];
+          rot.add(arm);
+        }
+        var cap = mesh(new T.CylinderGeometry(api.SPIN_HUB * 0.7, api.SPIN_HUB, 14, 10), mat(0xa16207));
+        cap.position.y = 12;
+        rot.add(cap);
+        levelGroup.add(rot);
+        spinners.push({ s: sp, g: rot });
       });
 
       // hlodi
@@ -523,10 +542,8 @@
       });
 
       // ovire, ki se premikajo
-      boulders.forEach(function (o) {
-        var p = api.boulderPos(lv, o.b);
-        o.m.position.set(p.x, E(p.y) + p.r * 0.75, -p.y);
-        o.m.rotation.x = p.spin; // kotali se proti kameri (navzdol po klancu)
+      spinners.forEach(function (o) {
+        o.g.rotation.y = api.spinAng(o.s); // svet (x, y) → 3D (x, -z): vrtenje okoli osi y se ujema
       });
       logs.forEach(function (o) {
         o.g.position.x = api.logX(o.l);

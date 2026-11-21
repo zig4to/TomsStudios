@@ -29,7 +29,7 @@
     {
       name: "Prvi pljusk", len: 2600, wide: 1.3,
       river: [[0, 0, 320], [800, 60, 320], [1600, -60, 300], [2800, 0, 320]],
-      rocks: [[-140, 900, 35], [150, 1700, 35]],
+      rocks: [[0, 500, 28], [-140, 900, 35], [120, 1350, 30], [150, 1700, 35], [-120, 2100, 30], [60, 2400, 25]],
       logs: [],
       pools: [],
       flows: [[1200, 250, 0, 80]]
@@ -37,7 +37,7 @@
     {
       name: "Lenobni potok", len: 4300, wide: 1.3,
       river: [[0, 0, 320], [600, 0, 300], [1200, 140, 260], [1800, 180, 240], [2400, -60, 250], [3000, -160, 240], [3600, 0, 270], [4600, 0, 300]],
-      rocks: [[-150, 900, 40], [-20, 1500, 45], [100, 1900, 35], [-40, 2300, 50], [-130, 2700, 40], [0, 3200, 45], [140, 3450, 35]],
+      rocks: [[100, 600, 30], [-150, 900, 40], [160, 1200, 30], [-20, 1500, 45], [100, 1900, 35], [-40, 2300, 50], [-130, 2700, 40], [0, 3200, 45], [140, 3450, 35], [-160, 3800, 30], [80, 4050, 28]],
       logs: [],
       pools: [],
       flows: [[2000, 260, 0, 70]]
@@ -45,22 +45,23 @@
     {
       name: "Račji ribnik", len: 3800, wide: 1.25,
       river: [[0, 0, 300], [700, 0, 280], [1200, 0, 420], [2000, 80, 440], [2600, 0, 280], [3200, -100, 260], [4000, 0, 300]],
-      rocks: [[-200, 1500, 40], [180, 1900, 40], [0, 2300, 30], [60, 3200, 35]],
+      rocks: [[-120, 900, 30], [-200, 1500, 40], [180, 1900, 40], [200, 2150, 35], [0, 2300, 30], [-180, 2650, 30], [60, 3200, 35], [-60, 3550, 30]],
       logs: [],
-      pools: [[120, 1700, 110, 0.7]],
+      pools: [[120, 1700, 110, 0.7], [-150, 2000, 90, 0.6]],
       flows: [[2700, 250, -70, 30]]
     },
     {
       name: "Hribovita reka", len: 4200, wide: 1.25,
       river: [[0, 0, 300], [1000, 80, 280], [2000, -80, 280], [3000, 60, 280], [4400, 0, 300]],
-      rocks: [[-150, 1300, 35], [140, 2700, 35]],
+      rocks: [[120, 600, 30], [-60, 1000, 30], [-150, 1300, 35], [60, 1900, 30], [-120, 2300, 30], [140, 2700, 35], [0, 3450, 30], [100, 3900, 30]],
       logs: [], pools: [], flows: [],
+      spinners: [[-20, 3100, 90, 0.6, "I", 0]],
       hills: [[0, 0], [500, 0], [800, 90], [1100, 90], [1350, 0], [1700, -60], [2100, -60], [2400, 50], [2700, 50], [3000, 130], [3300, 130], [3650, 30], [4400, 30]]
     },
     {
       name: "Skalni kanjon", len: 5200, wide: 1.15,
       river: [[0, 0, 300], [500, 0, 220], [1100, -150, 190], [1700, 100, 180], [2300, 250, 200], [2900, 0, 175], [3500, -200, 190], [4100, 0, 165], [4700, 150, 200], [5500, 0, 280]],
-      rocks: [[90, 700, 40], [-100, 1150, 40], [100, 1500, 40], [-90, 2050, 40], [60, 2400, 35], [-130, 2520, 30], [-100, 3000, 35], [90, 3450, 40], [-80, 4000, 35], [90, 4650, 40]],
+      rocks: [[90, 700, 40], [-100, 1150, 40], [100, 1500, 40], [-90, 2050, 40], [60, 2400, 35], [-130, 2520, 30], [-100, 3000, 35], [90, 3450, 40], [-80, 4000, 35], [-60, 4400, 30], [90, 4650, 40], [-70, 5000, 30]],
       logs: [[1300, 70, 1.1, 0], [2700, 70, 1.4, 1.5], [3750, 65, 1.6, 0.7]],
       pools: [],
       flows: [[1800, 260, -110, 20], [3250, 260, 110, 20], [4250, 300, 0, 110]]
@@ -68,15 +69,15 @@
     {
       name: "Zapornice", len: 4400, wide: 1.2,
       river: [[0, 0, 300], [800, 0, 260], [1600, 100, 250], [2400, -80, 260], [3200, 60, 250], [4000, 0, 260], [4700, 0, 300]],
-      rocks: [[-130, 1350, 35], [120, 2250, 35], [-100, 3150, 35]],
-      logs: [], pools: [],
+      rocks: [[100, 550, 30], [-130, 1350, 35], [60, 1550, 30], [-60, 2050, 30], [120, 2250, 35], [90, 2950, 30], [-100, 3150, 35], [-80, 3400, 30], [60, 4200, 30]],
+      logs: [[1150, 60, 0.9, 0], [3250, 60, 1.0, 1.2]], pools: [],
       flows: [[4000, 250, 0, 80]],
       gates: [[900, 6, 0], [1800, 5.5, 1.5], [2700, 5, 3], [3600, 4.5, 0.8]]
     },
     {
       name: "Hlodovina", len: 4600, wide: 1.15,
       river: [[0, 0, 300], [800, 0, 260], [1600, 120, 250], [2400, -100, 260], [3200, 80, 240], [4000, 0, 260], [4900, 0, 300]],
-      rocks: [[-120, 1100, 35], [110, 2100, 35], [-90, 3500, 35]],
+      rocks: [[100, 550, 30], [-120, 1100, 35], [100, 1350, 30], [-100, 1950, 30], [110, 2100, 35], [0, 3000, 28], [-90, 3500, 35], [100, 3750, 30], [-80, 4400, 30]],
       logs: [[900, 70, 0.9, 0], [1700, 70, 1.0, 1], [2600, 80, 1.1, 2], [3300, 70, 1.2, 0.5], [4100, 70, 1.3, 1.7]],
       pools: [],
       flows: [[2900, 250, 0, 90]]
@@ -84,7 +85,7 @@
     {
       name: "Vrtinčni slapovi", len: 6000, wide: 1.15,
       river: [[0, 0, 300], [600, 0, 240], [1200, 180, 200], [1800, -100, 175], [2400, -250, 220], [3000, 0, 165], [3600, 200, 200], [4200, 0, 160], [4800, -150, 190], [5400, 0, 175], [6300, 0, 300]],
-      rocks: [[-110, 900, 35], [100, 2000, 35], [-90, 3300, 35], [90, 4500, 40], [0, 5750, 35]],
+      rocks: [[-100, 550, 30], [-110, 900, 35], [100, 2000, 35], [-90, 3300, 35], [90, 4500, 40], [100, 5550, 30], [0, 5750, 35]],
       logs: [[1700, 70, 1.3, 0], [3000, 60, 1.6, 2], [4300, 60, 1.8, 1], [5300, 70, 1.5, 0.4]],
       pools: [[60, 1400, 120, 1], [-60, 2650, 130, 1.1], [50, 3900, 110, 1.2], [-50, 5050, 120, 1.25]],
       flows: [[2150, 240, 120, 10], [3450, 240, -130, 10], [4650, 220, 130, 10]]
@@ -92,7 +93,7 @@
     {
       name: "Bodičasti ovinki", len: 4800, wide: 1.15,
       river: [[0, 0, 300], [400, 0, 220], [900, -200, 190], [1400, 150, 185], [1900, -180, 190], [2400, 160, 185], [2900, -150, 190], [3400, 170, 185], [3900, -120, 190], [4400, 0, 200], [5100, 0, 280]],
-      rocks: [], logs: [], pools: [],
+      rocks: [[60, 1150, 25], [-60, 2150, 25], [60, 3150, 25], [-60, 4150, 25]], logs: [], pools: [],
       flows: [[2600, 250, 0, 60]],
       spikes: [[500, 4450]]
     },
@@ -100,34 +101,47 @@
       // brez bregov: kanal visoko nad sotesko — kdor zapelje čez rob, pade dol
       name: "Brez ograje", len: 4400, wide: 1.0, noFence: true,
       river: [[0, 0, 280], [600, 0, 240], [1200, 120, 230], [1800, -100, 220], [2400, 80, 230], [3000, -60, 220], [3600, 60, 230], [4600, 0, 280]],
-      rocks: [[0, 1500, 30], [0, 3000, 30]],
+      rocks: [[-90, 800, 28], [0, 1500, 30], [90, 2250, 28], [0, 3000, 30], [-80, 3750, 28]],
       logs: [], pools: [],
       flows: [[2100, 240, -80, 10]]
     },
     {
-      // dolg vzpon s počivališči; po klancu se kotalijo kamnite krogle,
+      // dolg vzpon s počivališči; na klancih se vrtijo leseni vrtiljaki,
       // vmes odseki brez ograje levo (L), desno (R) ali na obeh straneh (B)
       name: "Dolgi klanec", len: 5600, wide: 1.2,
       river: [[0, 0, 300], [800, 0, 260], [1600, 100, 250], [2400, -80, 240], [3200, 60, 250], [4000, -60, 240], [4800, 40, 250], [5900, 0, 300]],
-      rocks: [[100, 1100, 30]],
-      logs: [], pools: [], flows: [],
+      rocks: [[-100, 700, 30], [100, 1100, 30], [90, 2600, 30], [-80, 3750, 30], [60, 5150, 30]],
+      logs: [[1450, 70, 0.9, 0], [5400, 70, 1.0, 1]], pools: [], flows: [],
       hills: [[0, 0], [500, 0], [1300, 60], [1600, 60], [2400, 130], [2700, 130], [3600, 210], [3900, 210], [4900, 290], [5900, 290]],
       open: [[1650, 2350, "L"], [2750, 3550, "R"], [3950, 4800, "B"]],
-      // krogle: [x glede na sredino, vrh, dno, hitrost, zamik 0–1, polmer]
-      boulders: [[-80, 2350, 1600, 140, 0, 32], [90, 3550, 2750, 150, 0.5, 32], [0, 4850, 3950, 160, 0.3, 34], [-120, 4850, 3950, 160, 0.8, 30]]
+      // vrtiljaki: [x glede na sredino, y, dolžina kraka, hitrost (rad/s, predznak = smer), oblika, zamik]
+      // oblika: "+" križ, "T" brez enega kraka, "I" deska, "L" kot, ali število enakomernih krakov
+      spinners: [[-60, 2000, 140, 0.65, "T", 0], [80, 3150, 100, -1.1, "+", 0.4], [-90, 4250, 150, 0.55, "I", 0], [110, 4600, 85, -1.3, "L", 1]]
+    },
+    {
+      // zelo strmi klanci: tok sam ne nese gor, splav brez prdcev zdrsne nazaj.
+      // Na ravnih vmes se spočiješ (tok spet nese naprej).
+      name: "Težki prdec", len: 3800, wide: 1.2,
+      river: [[0, 0, 300], [700, 0, 260], [1500, -60, 250], [2300, 60, 250], [3100, -40, 250], [3900, 0, 300]],
+      rocks: [[-90, 800, 30], [110, 1000, 28], [100, 1800, 30], [-110, 2000, 28], [-60, 2700, 30], [100, 2850, 28]],
+      logs: [], pools: [], flows: [],
+      hills: [[0, 0], [500, 0], [1150, 200], [1450, 200], [2100, 420], [2400, 420], [3000, 670], [3900, 670]],
+      // vrtiljaki na ravninah med klanci (tam, kjer se spočiješ)
+      spinners: [[70, 1300, 120, 0.7, "T", 0], [70, 2250, 90, -1.1, "+", 0.5], [-60, 3400, 140, 0.6, "I", 0.2]]
     },
     {
       name: "Velika finala", len: 6600, wide: 1.15,
       river: [[0, 0, 300], [700, 0, 250], [1400, -150, 220], [2100, 120, 220], [2800, 0, 240], [3500, -180, 220], [4200, 100, 220], [4900, 0, 230], [5600, -120, 220], [6900, 0, 300]],
-      rocks: [[90, 800, 35], [-100, 1500, 35], [110, 2400, 35], [-90, 3300, 35], [100, 4500, 35], [-60, 5400, 35]],
+      rocks: [[-90, 500, 30], [90, 800, 35], [-100, 1500, 35], [110, 2400, 35], [90, 3150, 30], [-90, 3300, 35], [100, 4500, 35], [-60, 5400, 35], [80, 6400, 30]],
       logs: [[1900, 70, 1.1, 0], [3800, 70, 1.3, 1], [6000, 70, 1.4, 2]],
       pools: [[-40, 2900, 110, 0.9], [50, 5000, 110, 1]],
+      spinners: [[100, 4150, 110, 0.9, "T", 0], [-100, 5750, 80, -1.3, "L", 0.5]],
       flows: [[1100, 240, 90, 20], [4700, 240, -100, 20], [6200, 280, 0, 100]]
     },
     {
       name: "Gorski spust", len: 6200, wide: 1.15,
       river: [[0, 0, 300], [700, 0, 240], [1400, -150, 220], [2100, 120, 220], [2800, 0, 230], [3500, -160, 210], [4200, 120, 210], [4900, 0, 220], [5600, -100, 220], [6500, 0, 300]],
-      rocks: [[100, 1000, 35], [-90, 2600, 35], [90, 4700, 35]],
+      rocks: [[-90, 600, 30], [100, 1000, 35], [60, 1400, 30], [-90, 2600, 35], [0, 4050, 28], [90, 4700, 35], [-80, 5500, 30], [80, 6100, 30]],
       logs: [[5300, 70, 1.0, 0]],
       pools: [[-40, 2200, 100, 0.8]],
       flows: [],
@@ -161,12 +175,19 @@
     if (lv.noFence) return true;
     return !!lv.open && lv.open.some(function (o) { return y >= o[0] && y <= o[1] && (o[2] === "B" || o[2] === side); });
   }
-  // Kotaleča se krogla: od vrha klanca navzdol, nato spet na vrhu.
-  function boulderPos(lv, b) {
-    var range = b.top - b.bot;
-    var d = ((G.time * b.speed + b.ph * range) % range + range) % range;
-    var y = b.top - d;
-    return { x: river(lv, y).cx + b.ox, y: y, r: b.r, spin: d / b.r };
+  // Vrtiljak: lesen križ, ki se vrti okoli stebra. Vrne kot prvega kraka.
+  var SPIN_HUB = 16, SPIN_ARM = 9;
+  function spinAng(s) { return s.ph + G.time * s.w; }
+  // Oblika vrtiljaka → koti krakov (radiani).
+  function spinShape(sh) {
+    var q = Math.PI / 2;
+    if (sh === "T") return [0, q, 2 * q];
+    if (sh === "I") return [0, 2 * q];
+    if (sh === "L") return [0, q];
+    if (sh === "Y") return [0, 2 * Math.PI / 3, 4 * Math.PI / 3];
+    var n = typeof sh === "number" ? sh : 4, out = [];
+    for (var i = 0; i < n; i++) out.push(i * 2 * Math.PI / n);
+    return out;
   }
 
   function river(lv, y) {
@@ -187,6 +208,12 @@
   // Ovire v svetovne koordinate (enkrat na progo).
   // Lažje: širše reke, šibkejši vrtinci in tokovi, krajši in počasnejši hlodi.
   var LOG_LEN = 0.6, LOG_SPEED = 0.5, LOG_R = 10;
+  // Prdci na igralca po progah (težje / daljše proge → več). V meniju in sobi se prišteje G.fartDelta.
+  var FART_DEFAULT = {
+    "Prvi pljusk": 30, "Lenobni potok": 40, "Račji ribnik": 40, "Hribovita reka": 55,
+    "Skalni kanjon": 55, "Zapornice": 50, "Hlodovina": 50, "Vrtinčni slapovi": 65,
+    "Bodičasti ovinki": 60, "Brez ograje": 55, "Dolgi klanec": 85, "Težki prdec": 120, "Velika finala": 75, "Gorski spust": 85
+  };
   var EASY = 0.8;
   LEVELS.forEach(function (lv) {
     lv.river = lv.river.map(function (p) { return [p[0], p[1], p[2] * (lv.wide || 1.1)]; });
@@ -206,8 +233,10 @@
     lv.P = lv.pools.map(function (p) { return { x: river(lv, p[1]).cx + p[0], y: p[1], r: p[2], str: p[3] }; });
     lv.F = lv.flows.map(function (f) { return { y: f[0], h: f[1], fx: f[2], fy: f[3] }; });
     // zapornice: [y, perioda (s), zamik] — vrata z obeh bregov se zapirajo proti sredini
-    lv.B = (lv.boulders || []).map(function (b) {
-      return { ox: b[0], top: b[1], bot: b[2], speed: b[3], ph: b[4], r: b[5] };
+    // privzeto število prdcev na igralca — glede na težavnost in dolžino proge
+    lv.farts = FART_DEFAULT[lv.name] || Math.round(lv.len / 80);
+    lv.Sp = (lv.spinners || []).map(function (s) {
+      return { x: river(lv, s[1]).cx + s[0], y: s[1], len: s[2], w: s[3], angs: spinShape(s[4]), ph: s[5] || 0 };
     });
     lv.Gt = (lv.gates || []).map(function (g) {
       var rv = river(lv, g[0]);
@@ -247,6 +276,10 @@
     lives: 5, inv: 0, shake: 0,
     raft: null, players: [], parts: [],
     cam: { x: 0, y: 0 },
+    stuckY: 0, stuckT: 0,
+    refill: 0, refillT: 0, refillFlash: 0,
+    water: 100,                               // hitrost vode v % (100 = običajno, 0 = mirna voda)   // polnjenje prdcev: vsakih „refill“ s (0 = izklopljeno)
+    fartDelta: 0, fartInf: false,   // nastavitev števila prdcev (± glede na progo, ali neomejeno)
     best: null, newRecord: false
   };
   var keysDown = {};
@@ -270,7 +303,7 @@
       return {
         slot: src.slot, uid: src.uid || null, name: src.name,
         phi: -Math.PI / 2 - i * (2 * Math.PI / n),
-        gas: 1, charge: 0, holding: false, puff: 0,
+        gas: 1, charge: 0, holding: false, puff: 0, left: Infinity,
         inp: { l: false, r: false, f: false }, lastIn: performance.now()
       };
     });
@@ -292,6 +325,9 @@
       for (var k = 0; k < G.n; k++) list.push({ slot: k, name: "P" + (k + 1) });
     }
     G.players = makePlayers(list);
+    var lim = fartLimit(lv);
+    G.players.forEach(function (p) { p.left = lim; });
+    G.refillT = 0; G.refillFlash = 0;
     resetRaft(lv);
     G.lives = MAXL; G.inv = 0; G.t = 0; G.parts = []; G.newRecord = false;
     G.phase = "count"; G.count = 3.2; G.fall = null;
@@ -320,7 +356,8 @@
         wx += -dy / d * s; wy += dx / d * s;
       }
     }
-    return { x: wx, y: wy };
+    var wk = G.water / 100; // nastavljena hitrost vode
+    return { x: wx * wk, y: wy * wk };
   }
 
   function logX(l) { return l.bx + Math.sin(G.time * l.speed + l.ph) * l.amp; }
@@ -389,10 +426,19 @@
       var sr = ((rv2.cx + rv2.hw) - right) / 10, rn = Math.sqrt(1 + sr * sr);
       collide(-1 / rn, sr / rn, ((r.x + RC) - right) / rn, 0, 0, r.x + RC, r.y, thr);
     }
-    // kotaleče se krogle
-    for (var bi = 0; bi < lv.B.length; bi++) {
-      var bp = boulderPos(lv, lv.B[bi]), bx = r.x - bp.x, by = r.y - bp.y, bd = Math.sqrt(bx * bx + by * by);
-      if (bd < RC + bp.r && bd > 0.01) collide(bx / bd, by / bd, RC + bp.r - bd, 0, -lv.B[bi].speed, bp.x + bx / bd * bp.r, bp.y + by / bd * bp.r);
+    // vrtiljaki: steber + kraki; krak splav odrine v smeri vrtenja
+    for (var si = 0; si < lv.Sp.length; si++) {
+      var sp = lv.Sp[si], dx0 = r.x - sp.x, dy0 = r.y - sp.y;
+      if (Math.abs(dy0) > RC + sp.len + 10 || Math.abs(dx0) > RC + sp.len + 10) continue;
+      var hd = Math.sqrt(dx0 * dx0 + dy0 * dy0);
+      if (hd < RC + SPIN_HUB && hd > 0.01) collide(dx0 / hd, dy0 / hd, RC + SPIN_HUB - hd, 0, 0, sp.x + dx0 / hd * SPIN_HUB, sp.y + dy0 / hd * SPIN_HUB);
+      var a0 = spinAng(sp);
+      for (var ak = 0; ak < sp.angs.length; ak++) {
+        var aa = a0 + sp.angs[ak], ex = Math.cos(aa), ey = Math.sin(aa);
+        var tt = Math.max(0, Math.min(sp.len, (r.x - sp.x) * ex + (r.y - sp.y) * ey));
+        var apx = sp.x + ex * tt, apy = sp.y + ey * tt, aqx = r.x - apx, aqy = r.y - apy, aqd = Math.sqrt(aqx * aqx + aqy * aqy);
+        if (aqd < RC + SPIN_ARM && aqd > 0.01) collide(aqx / aqd, aqy / aqd, RC + SPIN_ARM - aqd, -ey * sp.w * tt, ex * sp.w * tt, apx, apy);
+      }
     }
     // zapornice: dve vrati od bregov do reže na sredini
     for (var gi = 0; gi < lv.Gt.length; gi++) {
@@ -416,6 +462,24 @@
     }
 
     if (r.y >= lv.len && G.phase === "play") finish(true);
+    // polnjenje: vsakih G.refill s vsi spet dobijo izbrano število prdcev
+    if (G.phase === "play" && G.refill > 0 && !G.fartInf) {
+      G.refillT += dt;
+      if (G.refillT >= G.refill) {
+        G.refillT = 0;
+        var full = fartLimit(lv);
+        G.players.forEach(function (p) { p.left = full; });
+        G.refillFlash = 1.2;
+        sound.tune([523, 784]);
+        pushState(true);
+      }
+    }
+    G.refillFlash = Math.max(0, G.refillFlash - dt);
+    // vsem je zmanjkalo prdcev: če splav 4 s ne napreduje, je vožnje konec
+    if (G.phase === "play" && G.players.length && G.players.every(function (p) { return p.left <= 0; })) {
+      if (r.y > G.stuckY + 25) { G.stuckY = r.y; G.stuckT = 0; }
+      else if ((G.stuckT += dt) > 4) finish(false, "gas");
+    } else { G.stuckY = r.y; G.stuckT = 0; }
   }
 
   // Padec čez rob: kratka animacija, izgubljeno življenje, splav se vrne nekoliko nazaj na sredino.
@@ -500,9 +564,21 @@
     return { a: a, x: G.raft.x + Math.cos(a) * RAFT, y: G.raft.y + Math.sin(a) * RAFT };
   }
 
+  // Koliko prdcev ima vsak igralec na tej progi (Infinity = neomejeno).
+  function fartLimit(lv) {
+    return G.fartInf ? Infinity : Math.max(1, lv.farts + G.fartDelta);
+  }
+
   function fart(p) {
     var c = p.charge;
     p.charge = 0;
+    if (p.left <= 0) {
+      // zmanjkalo prdcev: samo tihi „pff“ brez potiska
+      var e = animalPos(p);
+      puffs(e.x + Math.cos(e.a) * 12, e.y + Math.sin(e.a) * 12, Math.cos(e.a), Math.sin(e.a), 2, 0.1);
+      sound.fart(0.03, p.slot);
+      return;
+    }
     var cost = 0.16 + 0.34 * c;
     var k = p.gas >= cost ? 1 : Math.max(0, p.gas / cost);
     p.gas = Math.max(0, p.gas - cost);
@@ -512,6 +588,7 @@
       sound.fart(0.05, p.slot);
       return;
     }
+    p.left--;
     var power = (70 + 160 * c) * k; // prej 110 + 250 * c — prdec premakne manj
     G.raft.vx -= cos * power; G.raft.vy -= sin * power;
     G.raft.av += (Math.random() - 0.5) * 0.4 * c;
@@ -643,7 +720,7 @@
   })();
 
   /* =================== Konec proge =================== */
-  function finish(won) {
+  function finish(won, why) {
     G.phase = won ? "end" : "over";
     var lv = LEVELS[G.lv];
     $("btnPause").hidden = true;
@@ -658,9 +735,9 @@
         : "Rekord: " + fmt(prev);
     } else {
       sound.tune([392, 330, 262, 196]);
-      $("endTitle").textContent = "Splav je razpadel";
+      $("endTitle").textContent = why === "gas" ? "Zmanjkalo je prdcev" : "Splav je razpadel";
       $("endTime").textContent = Math.round(Math.min(1, G.raft.y / lv.len) * 100) + " % proge";
-      $("endInfo").textContent = "Splav je dobil preveč udarcev. Še enkrat?";
+      $("endInfo").textContent = why === "gas" ? "Splav je obstal. Poskusi z več prdci ali bolj premišljeno." : "Splav je dobil preveč udarcev. Še enkrat?";
     }
     var hasNext = won && G.lv < LEVELS.length - 1;
     $("btnNext").hidden = !hasNext;
@@ -847,20 +924,27 @@
       ctx.fillStyle = "#9ca3af"; ctx.beginPath(); ctx.arc(ox - or * 0.25, oy - or * 0.25, or * 0.6, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = "#d1d5db"; ctx.beginPath(); ctx.arc(ox - or * 0.38, oy - or * 0.4, or * 0.2, 0, Math.PI * 2); ctx.fill();
     });
-    // kotaleče se krogle
-    lv.B.forEach(function (b) {
-      var p = boulderPos(lv, b);
-      if (p.y - p.r > yTop || p.y + p.r < yBot) return;
-      var bx = sx(p.x), by = sy(p.y), br = p.r * S;
-      ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.beginPath(); ctx.ellipse(bx + 5 * S, by + 6 * S, br, br * 0.8, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = "#78716c"; ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = "#44403c"; ctx.lineWidth = 2.5 * S;
-      for (var k = 0; k < 3; k++) { // razpoke se vrtijo, ko se krogla kotali
-        var a = -p.spin + k * 2.1;
-        ctx.beginPath(); ctx.moveTo(bx + Math.cos(a) * br * 0.2, by + Math.sin(a) * br * 0.2);
-        ctx.lineTo(bx + Math.cos(a) * br * 0.85, by + Math.sin(a) * br * 0.85); ctx.stroke();
+    // vrtiljaki (leseni križi)
+    lv.Sp.forEach(function (sp) {
+      if (sp.y - sp.len > yTop || sp.y + sp.len < yBot) return;
+      var cx = sx(sp.x), cy = sy(sp.y), a0 = spinAng(sp);
+      ctx.strokeStyle = "rgba(255,255,255,0.18)"; ctx.lineWidth = 2 * S;
+      ctx.setLineDash([8 * S, 8 * S]); ctx.beginPath(); ctx.arc(cx, cy, sp.len * S, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+      ctx.lineCap = "round";
+      for (var k = 0; k < sp.angs.length; k++) {
+        var a = a0 + sp.angs[k];
+        var ex = cx + Math.cos(a) * sp.len * S, ey = cy - Math.sin(a) * sp.len * S; // y na zaslonu je obrnjen
+        ctx.strokeStyle = "rgba(0,0,0,0.3)"; ctx.lineWidth = SPIN_ARM * 2 * S;
+        ctx.beginPath(); ctx.moveTo(cx + 4 * S, cy + 5 * S); ctx.lineTo(ex + 4 * S, ey + 5 * S); ctx.stroke();
+        ctx.strokeStyle = "#92562a";
+        ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(ex, ey); ctx.stroke();
+        ctx.strokeStyle = "#c08048"; ctx.lineWidth = 4 * S;
+        ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(ex, ey); ctx.stroke();
+        ctx.fillStyle = "#dc2626"; ctx.beginPath(); ctx.arc(ex, ey, SPIN_ARM * S, 0, Math.PI * 2); ctx.fill();
       }
-      ctx.fillStyle = "rgba(255,255,255,0.25)"; ctx.beginPath(); ctx.arc(bx - br * 0.35, by - br * 0.35, br * 0.3, 0, Math.PI * 2); ctx.fill();
+      ctx.lineCap = "butt";
+      ctx.fillStyle = "#5b3a1f"; ctx.beginPath(); ctx.arc(cx, cy, SPIN_HUB * S, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#a16207"; ctx.beginPath(); ctx.arc(cx, cy, SPIN_HUB * 0.5 * S, 0, Math.PI * 2); ctx.fill();
     });
     // hlodi
     lv.L.forEach(function (l) {
@@ -894,7 +978,7 @@
 
   window.PRDOPLAV = {
     G: G, LEVELS: LEVELS, ANIMALS: ANIMALS, RAFT: RAFT, CURRENT: CURRENT,
-    river: river, logX: logX, elev: elev, openSide: openSide, boulderPos: boulderPos, slopeAt: slopeAt, GATE_R: GATE_R, LOG_R: LOG_R
+    river: river, logX: logX, elev: elev, openSide: openSide, spinAng: spinAng, SPIN_HUB: SPIN_HUB, SPIN_ARM: SPIN_ARM, slopeAt: slopeAt, GATE_R: GATE_R, LOG_R: LOG_R
   };
 
   function loadScript(src) {
@@ -1159,6 +1243,12 @@
     ctx.textAlign = "center"; ctx.font = "900 " + Math.round(38 * u) + "px Outfit, sans-serif";
     ctx.fillStyle = "rgba(0,0,0,0.35)"; ctx.fillText(fmt(G.t), W / 2 + 2, pad + 2);
     ctx.fillStyle = "#fff"; ctx.fillText(fmt(G.t), W / 2, pad);
+    if (G.refill > 0 && !G.fartInf && G.phase === "play") {
+      var rleft = Math.max(0, Math.ceil(G.refill - G.refillT));
+      ctx.font = "800 " + Math.round(16 * u) + "px Outfit, sans-serif";
+      ctx.fillStyle = G.refillFlash > 0 ? "#bef264" : "rgba(255,255,255,0.85)";
+      ctx.fillText(G.refillFlash > 0 ? "Prdci napolnjeni!" : "Polnjenje prdcev čez " + rleft + " s", W / 2, pad + 46 * u);
+    }
     // življenja
     for (var i = 0; i < MAXL; i++) heart(W - 130 - 20 * u - i * 40 * u, pad + 12 * u, 30 * u, i < G.lives); // levo od gumbov v kotu
 
@@ -1172,7 +1262,14 @@
       ctx.fillStyle = "#fff"; ctx.textAlign = "left"; ctx.textBaseline = "top";
       ctx.font = "800 " + Math.round(16 * u) + "px Outfit, sans-serif";
       var nm = G.mode === "tel" ? p.name : "P" + (p.slot + 1) + " · " + KEYS[p.slot].label.join(" ");
-      ctx.fillText(fit(nm, cw - 30 * u), x + 18 * u, y0 + 8 * u);
+      var lt = p.left === Infinity ? "" : String(Math.max(0, p.left));
+      if (lt) {
+        ctx.textAlign = "right";
+        ctx.fillStyle = p.left <= 0 ? "#f87171" : p.left <= 5 ? "#facc15" : "#d9f99d";
+        ctx.fillText(p.left <= 0 ? "brez prdcev" : lt + " prdcev", x + cw - 12 * u, y0 + 8 * u);
+        ctx.textAlign = "left"; ctx.fillStyle = "#fff";
+      }
+      ctx.fillText(fit(nm, cw - (lt ? 110 : 30) * u), x + 18 * u, y0 + 8 * u);
       ctx.fillStyle = "rgba(255,255,255,0.18)"; roundRect(x + 18 * u, y0 + 32 * u, cw - 32 * u, 12 * u, 6 * u); ctx.fill();
       ctx.fillStyle = p.gas > 0.5 ? "#a3e635" : p.gas > 0.2 ? "#facc15" : "#f97316";
       roundRect(x + 18 * u, y0 + 32 * u, Math.max(12 * u, (cw - 32 * u) * p.gas), 12 * u, 6 * u); ctx.fill();
@@ -1253,6 +1350,8 @@
   var tel = {
     room: null, code: null, ready: false,
     lobby: null, lobbyReady: false, lastN: -1, openedAt: 0, hostName: "",
+    lobbyKey: "h-" + NET.newCode() + Date.now().toString(36),
+    waitList: [],  // telefoni z odprtim Prdoplavom, ki še niso v sobi (čakalna vrsta)
     players: [],   // { uid, name, slot, waiting }
 
     open: function () {
@@ -1277,17 +1376,51 @@
             $("lobbyMsg").textContent = "Povezave s strežnikom ni. Preveri internet in odpri sobo znova.";
           }
         });
-      // oglas v skupnem kanalu — telefoni z gumbom »Pridruži se« sobo najdejo sami
-      var lobby = NET.lobbyChannel(sb, tel.code);
-      tel.lobby = lobby;
-      lobby.subscribe(function (status) {
-        if (status === "SUBSCRIBED") { tel.lobbyReady = true; tel.announce(); }
-      });
+      // oglas v skupnem kanalu — čakajoči telefoni se ob tem povežejo sami
+      tel.watch();
+      tel.announce();
       tel.render();
     },
 
+    // Skupni kanal poslušamo že od zagona: vidimo, kdo s telefonom čaka v vrsti.
+    watch: function () {
+      if (tel.lobby || !sb || !me) return;
+      var lobby = NET.lobbyChannel(sb, tel.lobbyKey);
+      tel.lobby = lobby;
+      lobby
+        .on("presence", { event: "sync" }, tel.onLobby)
+        .subscribe(function (status) {
+          if (status === "SUBSCRIBED") { tel.lobbyReady = true; tel.lastN = -1; tel.announce(); }
+        });
+    },
+
+    onLobby: function () {
+      if (!tel.lobby) return;
+      var st = tel.lobby.presenceState(), list = [];
+      Object.keys(st).forEach(function (k) {
+        var m = st[k] && st[k][0];
+        if (m && m.wait) list.push(m.name || "Igralec");
+      });
+      tel.waitList = list;
+      var el = $("telWait");
+      if (!el) return;
+      el.hidden = !list.length;
+      $("qTitle").textContent = list.length === 1 ? "1 igralec čaka s telefonom"
+        : list.length === 2 ? "2 igralca čakata s telefonom"
+        : list.length + (list.length < 5 ? " igralci čakajo" : " igralcev čaka") + " s telefonom";
+      var box = $("qList");
+      box.innerHTML = "";
+      list.forEach(function (nm) {
+        var chip = document.createElement("span"), av = document.createElement("i");
+        av.textContent = (nm.trim()[0] || "?").toUpperCase();
+        chip.appendChild(av);
+        chip.appendChild(document.createTextNode(nm));
+        box.appendChild(chip);
+      });
+    },
+
     announce: function () {
-      if (!tel.lobby || !tel.lobbyReady) return;
+      if (!tel.lobby || !tel.lobbyReady || !tel.room || !tel.code) return;
       var n = tel.players.filter(function (p) { return !p.waiting; }).length;
       if (tel.lastN === n) return;
       tel.lastN = n;
@@ -1296,8 +1429,9 @@
 
     close: function () {
       if (tel.room) { try { sb.removeChannel(tel.room); } catch (e) {} }
-      if (tel.lobby) { try { sb.removeChannel(tel.lobby); } catch (e) {} }
-      tel.room = null; tel.lobby = null; tel.lobbyReady = false; tel.lastN = -1;
+      // skupni kanal ostane (čakalna vrsta), samo soba se umakne iz oglasa
+      if (tel.lobby && tel.lobbyReady && tel.lastN !== -1) { try { tel.lobby.untrack(); } catch (e) {} }
+      tel.room = null; tel.lastN = -1;
       tel.ready = false; tel.players = [];
     },
 
@@ -1400,10 +1534,15 @@
       type: "broadcast", event: NET.EV.ST,
       payload: {
         ph: G.phase, lv: G.lv, lvName: lv.name, lives: G.lives, maxLives: MAXL,
+        farts: fartLimit(lv) === Infinity ? null : fartLimit(lv),
+        rf: G.refill > 0 && !G.fartInf ? G.refill : 0,
+        wt: G.water,
+        rfIn: G.refill > 0 && !G.fartInf ? Math.max(0, Math.ceil(G.refill - G.refillT)) : null,
         next: G.phase === "end" && G.lv < LEVELS.length - 1,
         p: tel.players.map(function (t) {
           var gp = byUid[t.uid];
-          return { u: t.uid, s: t.slot, w: !!t.waiting, g: gp ? Math.round(gp.gas * 100) / 100 : 1, c: gp ? Math.round(gp.charge * 100) / 100 : 0 };
+          return { u: t.uid, s: t.slot, w: !!t.waiting, g: gp ? Math.round(gp.gas * 100) / 100 : 1, c: gp ? Math.round(gp.charge * 100) / 100 : 0,
+            f: gp && gp.left !== Infinity ? Math.max(0, gp.left) : null };
         })
       }
     });
@@ -1435,8 +1574,111 @@
     }
   }
 
+  /* Nastavitev prdcev: število na igralca (natančno po 1, ali neomejeno) in
+     polnjenje — vsakih N sekund vsi spet dobijo izbrano število. */
+  var FART_MAX = 999, REFILL_MAX = 600;
+  function setFartCount(v) {
+    var lv = LEVELS[G.lv];
+    v = Math.max(1, Math.min(FART_MAX, Math.round(v) || 1));
+    G.fartDelta = v - lv.farts;
+  }
+  function setRefill(v) { G.refill = Math.max(1, Math.min(REFILL_MAX, Math.round(v) || 1)); }
+
+  // − [vnos] +  ; držanje gumba šteje hitreje
+  function stepper(row, value, min, max, onSet, disabled, label, step) {
+    step = step || 1;
+    var inp = document.createElement("input");
+    function mk(txt, d, aria) {
+      var b = document.createElement("button");
+      b.type = "button"; b.textContent = txt; b.setAttribute("aria-label", aria);
+      b.disabled = disabled || (d < 0 ? value <= min : value >= max);
+      var t1 = null, t2 = null, moved = false;
+      function bump() {
+        var v = Math.max(min, Math.min(max, (parseInt(inp.value, 10) || value) + d));
+        inp.value = v; onSet(v); moved = true;
+        pushState(false);
+      }
+      function stop() {
+        clearTimeout(t1); clearInterval(t2); t1 = t2 = null;
+        if (moved) { moved = false; renderFarts(); pushState(true); }
+      }
+      b.addEventListener("pointerdown", function (e) {
+        if (b.disabled) return;
+        e.preventDefault();
+        bump();
+        t1 = setTimeout(function () { t2 = setInterval(bump, 70); }, 380);
+      });
+      b.addEventListener("pointerup", stop);
+      b.addEventListener("pointerleave", stop);
+      b.addEventListener("pointercancel", stop);
+      // tipkovnica (Enter / preslednica na gumbu)
+      b.addEventListener("click", function (e) { if (e.detail === 0) { bump(); stop(); } });
+      return b;
+    }
+    row.appendChild(mk("−", -step, "Manj"));
+    inp.type = "number"; inp.inputMode = "numeric"; inp.min = min; inp.max = max; inp.step = step;
+    inp.value = disabled ? "" : value; inp.placeholder = disabled ? "∞" : "";
+    inp.disabled = !!disabled; inp.className = "num"; inp.setAttribute("aria-label", label);
+    inp.addEventListener("change", function () { onSet(parseInt(inp.value, 10)); renderFarts(); pushState(true); });
+    inp.addEventListener("keydown", function (e) { e.stopPropagation(); if (e.key === "Enter") inp.blur(); });
+    row.appendChild(inp);
+    row.appendChild(mk("+", step, "Več"));
+  }
+
+  function renderFarts() {
+    var lv = LEVELS[G.lv], lim = fartLimit(lv);
+    ["fartsMenu", "fartsLobby"].forEach(function (id) {
+      var box = $(id);
+      if (!box) return;
+      var focused = document.activeElement && box.contains(document.activeElement);
+      if (focused && document.activeElement.tagName === "INPUT") return; // ne prekinjaj vpisovanja
+      box.innerHTML = "";
+      function row() { var r = document.createElement("div"); r.className = "farts-row"; box.appendChild(r); return r; }
+      function btn(r, txt, label, fn, on) {
+        var b = document.createElement("button");
+        b.type = "button"; b.textContent = txt; b.setAttribute("aria-label", label);
+        if (on) b.className = "on";
+        b.addEventListener("click", function () { fn(); renderFarts(); pushState(true); });
+        r.appendChild(b);
+        return b;
+      }
+      function note(r, t) { var n = document.createElement("span"); n.className = "note"; n.textContent = t; r.appendChild(n); }
+
+      // število prdcev
+      var r1 = row();
+      stepper(r1, lim, 1, FART_MAX, setFartCount, G.fartInf, "Število prdcev na igralca");
+      btn(r1, "∞", "Neomejeno prdcev", function () { G.fartInf = !G.fartInf; }, G.fartInf);
+      if (G.fartDelta !== 0 && !G.fartInf) btn(r1, "privzeto", "Privzeto za to progo", function () { G.fartDelta = 0; }).classList.add("reset");
+      note(r1, G.fartInf ? "brez omejitve" : "privzeto za to progo: " + lv.farts);
+
+      // hitrost vode
+      var rw = row();
+      var wl = document.createElement("span"); wl.className = "lab"; wl.textContent = "Hitrost vode"; rw.appendChild(wl);
+      stepper(rw, G.water, 0, 300, function (v) { G.water = Math.max(0, Math.min(300, Math.round(v) || 0)); }, false, "Hitrost vode v odstotkih", 10);
+      note(rw, "%");
+      if (G.water !== 100) btn(rw, "običajno", "Običajna hitrost vode", function () { G.water = 100; }).classList.add("reset");
+      note(rw, G.water === 0 ? "mirna voda" : G.water < 100 ? "počasnejši tok" : G.water > 100 ? "hitrejši tok" : "");
+
+      // polnjenje
+      if (G.fartInf) return;
+      var r2 = row();
+      var lab = document.createElement("span"); lab.className = "lab"; lab.textContent = "Polnjenje"; r2.appendChild(lab);
+      btn(r2, G.refill > 0 ? "vklopljeno" : "izklopljeno", "Polnjenje prdcev", function () {
+        G.refill = G.refill > 0 ? 0 : (G.lastRefill || 30);
+      }, G.refill > 0).classList.add("reset");
+      if (G.refill > 0) {
+        note(r2, "vsakih");
+        stepper(r2, G.refill, 1, REFILL_MAX, function (v) { setRefill(v); G.lastRefill = G.refill; }, false, "Sekunde do polnjenja");
+        note(r2, "s se vsem napolni na " + lim);
+      } else {
+        note(r2, "prdci se med vožnjo ne obnavljajo");
+      }
+    });
+  }
+
   // Izbira proge — v meniju in v sobi pred »Začni vožnjo« (ista izbira).
   function renderLevels() {
+    renderFarts();
     ["lvPick", "lobbyLv"].forEach(function (id) {
       var box = $(id);
       box.innerHTML = "";
@@ -1537,12 +1779,13 @@
     }, 2000);
   });
 
-  // telefon → ponudi kontroler
+  // telefon → takoj kontroler: kdor ima Prdoplav odprt na telefonu, je samodejno v vrsti
   if (window.matchMedia && matchMedia("(pointer: coarse)").matches && !matchMedia("(any-pointer: fine)").matches &&
       Math.min(screen.width, screen.height) < 600) {
-    // na telefonu samo gumb »Pridruži se« — igra je na velikem zaslonu
-    $("phoneHint").hidden = false;
+    $("phoneHint").hidden = false; // rezerva, če preusmeritev ne uspe
     document.body.classList.add("is-phone");
+    location.replace("prdoplav-kontroler.html");
+    return;
   }
 
   /* =================== Zagon =================== */
@@ -1575,6 +1818,8 @@
       me = s.user;
       NET.myName(sb, me).then(function (n) { tel.hostName = n; });
       telBtn.disabled = false;
+      tel.watch(); // vidi čakalno vrsto telefonov že pred odprtjem sobe
+      $("btnQOpen").addEventListener("click", function () { telBtn.click(); });
     }, function () {
       telNote.hidden = false; telNote.textContent = "Ni povezave.";
     });

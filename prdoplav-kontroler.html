@@ -65,6 +65,12 @@
   .lives svg { width: 20px; height: 20px; }
   .status { font-size: 15px; color: var(--muted); }
   .status.warn { color: #fca5a5; }
+  .gas-row { display: flex; align-items: center; gap: 10px; }
+  .gas-row .gas { flex: 1; }
+  .left { font-weight: 900; font-size: 17px; color: #d9f99d; white-space: nowrap; }
+  .left[hidden] { display: none; }
+  .left.low { color: #facc15; }
+  .left.out { color: #f87171; }
   .gas { height: 12px; border-radius: 6px; background: rgba(255, 255, 255, 0.12); overflow: hidden; }
   .gas span { display: block; height: 100%; width: 100%; background: #a3e635; border-radius: 6px; transition: width .2s; }
   .act { font: inherit; font-weight: 900; font-size: 20px; padding: 14px; border-radius: 16px; border: 0; background: #38bdf8; color: #082f49; box-shadow: 0 4px 0 #0369a1; }
@@ -110,7 +116,7 @@
         <span class="me"><i id="meDot"></i><b id="meName"></b><span id="meAnimal"></span></span>
         <span class="lives" id="lives"></span>
       </div>
-      <div class="gas"><span id="gasFill"></span></div>
+      <div class="gas-row"><div class="gas"><span id="gasFill"></span></div><span class="left" id="fartsLeft" hidden></span></div>
       <div class="status" id="status">Povezujem …</div>
       <button class="act" id="act" type="button" hidden></button>
     </div>

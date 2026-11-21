@@ -36,9 +36,12 @@
   function findRoom() {
     gateMsg("Iščem odprto sobo …");
     lobby = NET.lobbyChannel(sb, user.id);
-    lobby
+    var ch = lobby;
+    ch
       .on("presence", { event: "sync" }, showRooms)
       .subscribe(function (status) {
+        // v čakalni vrsti: veliki zaslon vidi, da čakaš, in ob odprtju sobe te poveže
+        if (status === "SUBSCRIBED" && lobby === ch) ch.track({ wait: true, name: name, at: Date.now() });
         if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") gateMsg("Ni povezave. Poskušam znova …");
       });
   }
@@ -49,7 +52,7 @@
     if (rooms.length === 1) { enter(rooms[0].code); return; }
     if (!rooms.length) {
       box.hidden = true;
-      gateMsg("Ni odprte sobe. Na velikem zaslonu izberi »Telefoni kot kontrolerji« in »Odpri sobo«. Ko se soba odpre, te samo poveže.");
+      gateMsg("Si v vrsti. Ko se na velikem zaslonu odpre soba (»Telefoni kot kontrolerji« → »Odpri sobo«), te samo poveže.");
       return;
     }
     gateMsg("Odprtih je več sob. Izberi svojo:");
@@ -162,12 +165,25 @@
     fill.style.width = Math.round(g * 100) + "%";
     fill.style.background = g > 0.5 ? "#a3e635" : g > 0.2 ? "#facc15" : "#f97316";
 
+    // preostali prdci (null = neomejeno)
+    var fl = $("fartsLeft");
+    fl.hidden = mine.f == null || st.ph === "lobby";
+    if (mine.f != null) {
+      fl.textContent = (mine.f > 0 ? mine.f + " prdcev" : "brez prdcev") +
+        (st.rfIn != null && st.ph === "play" ? " · +" + st.rfIn + " s" : "");
+      fl.classList.toggle("low", mine.f > 0 && mine.f <= 5);
+      fl.classList.toggle("out", mine.f <= 0);
+    }
+
     var lives = "";
     for (var i = 0; i < (st.maxLives || 3); i++) lives += HEART.replace("FILL", i < st.lives ? "#ef4444" : "rgba(255,255,255,0.15)");
     $("lives").innerHTML = st.ph === "lobby" ? "" : lives;
 
     if (st.ph === "lobby") {
-      setStatus("Si " + a.name.toLowerCase() + " na splavu. Proga: " + st.lvName + ". Ko so vsi notri, začni.");
+      setStatus("Si " + a.name.toLowerCase() + " na splavu. Proga: " + st.lvName + " · " +
+        (st.farts == null ? "neomejeno prdcev" : st.farts + " prdcev na igralca" +
+          (st.rf ? ", polnjenje vsakih " + st.rf + " s" : "")) +
+        (st.wt != null && st.wt !== 100 ? ", voda " + st.wt + " %" : "") + ". Ko so vsi notri, začni.");
       act.hidden = false; act.textContent = "Začni vožnjo"; act.dataset.a = "start";
     } else if (st.ph === "count") {
       setStatus("Pripravi se … " + st.lvName);

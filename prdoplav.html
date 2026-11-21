@@ -79,6 +79,26 @@
   .mode p { margin: 0; color: var(--muted); line-height: 1.45; }
   .mode .grow { flex: 1; }
   .seg { display: flex; gap: 6px; }
+  .farts-h { margin-top: 14px; }
+  .farts { display: grid; gap: 10px; }
+  .farts-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .farts .num {
+    width: 84px; height: 46px; border-radius: 12px; border: 1px solid var(--line); background: rgba(255,255,255,0.06);
+    color: var(--text); font: inherit; font-size: 24px; font-weight: 900; text-align: center; -moz-appearance: textfield;
+  }
+  .farts .num::-webkit-inner-spin-button, .farts .num::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  .farts .num:disabled { opacity: 0.5; }
+  .farts .lab { font-weight: 800; min-width: 84px; }
+  .farts button {
+    min-width: 46px; height: 46px; padding: 0 12px; border-radius: 12px; border: 1px solid var(--line);
+    background: transparent; color: var(--text); font: inherit; font-weight: 800; font-size: 20px; cursor: pointer;
+  }
+  .farts button.on { background: #ecfccb; color: var(--go-ink); border-color: #ecfccb; }
+  .farts button:disabled { opacity: 0.35; cursor: default; }
+  .farts button { touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+  .farts .val { min-width: 64px; text-align: center; font-size: 26px; font-weight: 900; }
+  .farts .note { color: var(--muted); font-size: 14px; }
+  .farts .reset { font-size: 14px; font-weight: 700; }
   .seg button {
     flex: 1; padding: 10px 0; border-radius: 12px; border: 1px solid var(--line);
     background: transparent; color: var(--text); font: inherit; font-weight: 700; font-size: 17px; cursor: pointer;
@@ -103,6 +123,27 @@
     color: var(--text); font: inherit; font-weight: 700; font-size: 16px; cursor: pointer;
   }
   .note { font-size: 14px; color: #fcd34d !important; }
+  .queue {
+    margin: 14px 0 4px; padding: 12px 14px; border-radius: 16px;
+    background: rgba(132, 204, 22, 0.12); border: 1px solid rgba(190, 242, 100, 0.35);
+    display: grid; gap: 10px;
+  }
+  .queue[hidden] { display: none; }
+  .q-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .q-head b { font-size: 17px; }
+  .q-head .dot { width: 10px; height: 10px; border-radius: 50%; background: #a3e635; box-shadow: 0 0 0 0 rgba(163,230,53,.7); animation: qpulse 1.6s infinite; flex: none; }
+  @keyframes qpulse { 70% { box-shadow: 0 0 0 10px rgba(163,230,53,0); } 100% { box-shadow: 0 0 0 0 rgba(163,230,53,0); } }
+  @media (prefers-reduced-motion: reduce) { .q-head .dot { animation: none; } }
+  .q-head button { margin-left: auto; padding: 8px 14px; font-size: 15px; }
+  .q-list { display: flex; flex-wrap: wrap; gap: 8px; }
+  .q-list span {
+    display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 999px;
+    background: rgba(255,255,255,0.08); font-weight: 700; font-size: 15px;
+  }
+  .q-list i {
+    width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-style: normal;
+    background: #bef264; color: #1a2e05; font-weight: 900; font-size: 13px;
+  }
   .levels { margin-top: 18px; }
   .levels .seg button { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 6px; font-size: 15px; }
   .levels .seg small { font-weight: 500; font-size: 12px; opacity: 0.75; }
@@ -113,6 +154,7 @@
   }
   .is-phone .modes, .is-phone .levels, .is-phone .how, .is-phone #viewNote { display: none; }
   .phone-hint .join-btn { color: var(--alt-ink); text-decoration: none; width: 100%; text-align: center; font-size: 22px; padding: 18px; }
+  .phone-hint[hidden] { display: none; }
 
   /* Soba */
   .lobby { display: grid; grid-template-columns: auto 1fr; gap: clamp(18px, 4vw, 44px); align-items: center; width: min(1100px, 100%); }
@@ -174,6 +216,16 @@
       <h1>Prdoplav</h1>
       <p class="tag">Štiri živali, en splav in veliko plina. Peljite ga skupaj do cilja.</p>
 
+      <!-- čakalna vrsta: kdor ima Prdoplav odprt na telefonu -->
+      <div class="queue" id="telWait" hidden>
+        <div class="q-head">
+          <span class="dot" aria-hidden="true"></span>
+          <b id="qTitle"></b>
+          <button class="go alt" id="btnQOpen" type="button">Odpri sobo</button>
+        </div>
+        <div class="q-list" id="qList"></div>
+      </div>
+
       <div class="phone-hint" id="phoneHint" hidden>
         <span>Si na telefonu? Uporabi ga kot kontroler za igro na velikem zaslonu.</span>
         <a class="go alt join-btn" href="prdoplav-kontroler.html">Pridruži se</a>
@@ -203,6 +255,8 @@
         <div>
           <h2>Proga</h2>
           <div class="seg lv-seg" id="lvPick"></div>
+          <h2 class="farts-h">Prdci na igralca</h2>
+          <div class="farts" id="fartsMenu"></div>
         </div>
         <div>
           <h2>Izris</h2>
@@ -239,6 +293,8 @@
       <div class="lobby-levels">
         <h2>Izberi progo</h2>
         <div class="seg lv-seg" id="lobbyLv"></div>
+        <h2 class="farts-h">Prdci na igralca</h2>
+        <div class="farts" id="fartsLobby"></div>
       </div>
     </div>
   </div>
