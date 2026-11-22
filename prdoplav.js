@@ -525,6 +525,8 @@
     // G.raft = splav, ki se trenutno obdeluje (fizika, trki); v igri z enim splavom vedno edini.
     rafts: [], raft: null, players: [], parts: [],
     teamSize: 0,         // 0 = vsi na enem splavu; 1–4 = tekma ekip (toliko igralcev na splav)
+    raftMax: 4,          // največ splavov v tekmi (2 proti 2 → 2, 3 splavi po 2 → 3)
+    crew: 4,             // en splav: največ igralcev (4, 6 ali 8)
     race: false,         // tekma teče (več kot en splav)
     raceEndT: null,      // odštevanje do konca tekme po prvem v cilju
     placeN: 0,
@@ -565,7 +567,7 @@
   // igralci na tipkovnici; pri tekmi po vrsti v ekipe (npr. na splav 2: P1+P2, P3+P4)
   function kbList() {
     var out = [];
-    for (var k = 0; k < G.n; k++) out.push({ slot: k, name: "P" + (k + 1), team: G.teamSize ? Math.floor(k / G.teamSize) : 0 });
+    for (var k = 0; k < G.n; k++) out.push({ slot: k, name: "P" + (k + 1), team: G.teamSize ? Math.min(G.raftMax - 1, Math.floor(k / G.teamSize)) : 0 });
     return out;
   }
 
@@ -1181,7 +1183,7 @@
 
     function fart(p, slot) {
       if (!ac) return;
-      var v = VOICES[slot] || DEFAULT_VOICE;
+      var v = VOICES[slot % 4] || DEFAULT_VOICE;
       var t = ac.currentTime, dur = (0.18 + 0.55 * p) * v.len;
       var g = ac.createGain();
       g.gain.setValueAtTime(0.0001, t);
@@ -2003,6 +2005,7 @@
     else if (an === "pujs") { body = "#f9a8d4"; head = "#f9a8d4"; }
     else if (an === "koza") { body = "#d6b98c"; head = "#e7d3ad"; }
     else { body = "#fde047"; head = "#fde047"; }
+    if (ANIMALS[p.slot].body) { body = ANIMALS[p.slot].body; head = ANIMALS[p.slot].head || body; }
 
     // rep / perje
     ctx.strokeStyle = an === "pujs" ? "#ec4899" : dark; ctx.lineWidth = 2 * S;
@@ -2415,7 +2418,7 @@
     // prosta žival na splavu (ekipi) t
     freeSlot: function (t) {
       t = t || 0;
-      for (var s = 0; s < 4; s++) {
+      for (var s = 0; s < (G.teamSize ? 4 : G.crew); s++) {
         if (!tel.players.some(function (p) { return !p.waiting && (p.team || 0) === t && p.slot === s; })) return s;
       }
       return -1;
@@ -2425,14 +2428,14 @@
     },
     // ekipa za novega igralca: najprej se zapolni prvi splav, nato naslednji (največ 4 splavi)
     pickTeam: function () {
-      if (!G.teamSize) return tel.teamCount(0) < 4 ? 0 : -1;
-      for (var t = 0; t < 4; t++) if (tel.teamCount(t) < G.teamSize) return t;
+      if (!G.teamSize) return tel.teamCount(0) < G.crew ? 0 : -1;
+      for (var t = 0; t < G.raftMax; t++) if (tel.teamCount(t) < G.teamSize) return t;
       return -1;
     },
     canChangeTeams: function () { return G.phase === "lobby" || G.phase === "end" || G.phase === "over" || G.phase === "menu"; },
     // prestavi igralca na splav t (če je tam prostor)
     moveTo: function (p, t) {
-      if (!G.teamSize || !tel.canChangeTeams() || !(t >= 0 && t <= 3) || p.waiting) return false;
+      if (!G.teamSize || !tel.canChangeTeams() || !(t >= 0 && t < G.raftMax) || p.waiting) return false;
       if ((p.team || 0) === t || tel.teamCount(t, p) >= G.teamSize) return false;
       p.team = t; p.slot = -1;
       p.slot = tel.freeSlot(t);
@@ -2440,7 +2443,7 @@
       return true;
     },
     moveNext: function (p) {
-      for (var k = 1; k <= 4; k++) if (tel.moveTo(p, ((p.team || 0) + k) % 4)) return;
+      for (var k = 1; k <= G.raftMax; k++) if (tel.moveTo(p, ((p.team || 0) + k) % G.raftMax)) return;
     },
     // vsi znova po vrsti (ob spremembi velikosti ekipe ali »Premešaj«)
     reassign: function (shuffle) {
@@ -2546,7 +2549,7 @@
       var active = tel.players.filter(function (p) { return !p.waiting; }).sort(function (a, b) { return a.slot - b.slot; });
       ul.classList.toggle("teams", !!G.teamSize);
       if (G.teamSize) { tel.renderTeams(ul, active); return; }
-      for (var s = 0; s < 4; s++) {
+      for (var s = 0; s < G.crew; s++) {
         var p = active.find(function (x) { return x.slot === s; });
         var li = document.createElement("li");
         var dot = document.createElement("i");
@@ -2572,7 +2575,7 @@
     renderTeams: function (ul, active) {
       var used = 0;
       for (var t = 0; t < 4; t++) if (active.some(function (p) { return (p.team || 0) === t; })) used = t + 1;
-      var show = Math.min(4, Math.max(2, used + (used < 4 ? 1 : 0)));
+      var show = G.raftMax < 4 ? G.raftMax : Math.min(4, Math.max(2, used + (used < 4 ? 1 : 0)));
       for (var k = 0; k < show; k++) {
         var tm = TEAMS[k], li = document.createElement("li");
         li.className = "team"; li.style.setProperty("--tc", tm.c);
@@ -2636,7 +2639,7 @@
       payload: {
         ph: G.phase, lv: G.lv, lvName: lv.name, lives: G.raft ? G.raft.lives : MAXL, maxLives: MAXL,
         ts: G.teamSize,
-        teams: G.teamSize ? [0, 1, 2, 3].map(function (t) { return { n: tel.teamCount(t) }; }) : null,
+        teams: G.teamSize ? [0, 1, 2, 3].slice(0, G.raftMax).map(function (t) { return { n: tel.teamCount(t) }; }) : null,
         rafts: G.race ? G.rafts.map(function (r) { return { t: r.team, lives: r.lives, done: r.done, out: r.out, place: r.place, why: r.why || "", e: r.edgeT > 0 ? Math.max(0, Math.ceil(EDGE_OUT - r.edgeT)) : 0 }; }) : null,
         rank: G.race && (G.phase === "end" || G.phase === "over") ? ranking().map(function (r) { return r.team; }) : null,
         farts: fartLimit(lv) === Infinity ? null : fartLimit(lv),
@@ -2677,7 +2680,7 @@
       });
       d.appendChild(document.createTextNode(" (levo · desno · prdec)"));
       if (G.teamSize) {
-        var tm = TEAMS[Math.floor(i / G.teamSize)], tag = document.createElement("b");
+        var tm = TEAMS[Math.min(G.raftMax - 1, Math.floor(i / G.teamSize))], tag = document.createElement("b");
         tag.className = "team-tag"; tag.textContent = tm.name; tag.style.background = tm.c;
         d.appendChild(tag);
       }
@@ -2796,8 +2799,10 @@
   }
 
   /* Splavi: vsi na enem splavu ali tekma ekip (1–4 igralci na splav). */
-  function setTeamSize(v) {
+  function setTeamSize(v, max, crew) {
     G.teamSize = v;
+    G.raftMax = max || 4;
+    G.crew = v ? 4 : crew || 4;
     if (G.mode === "tel") tel.reassign(false);
     else if (G.phase === "menu") { G.players = makePlayers(kbList()); resetRaft(LEVELS[G.lv]); }
     renderKeys();
@@ -2810,24 +2815,39 @@
       if (!box) return;
       box.innerHTML = "";
       var r1 = document.createElement("div"); r1.className = "farts-row"; box.appendChild(r1);
-      function btn(txt, label, v) {
+      function btn(txt, label, v, max, row) {
         var b = document.createElement("button");
         b.type = "button"; b.textContent = txt; b.setAttribute("aria-label", label);
-        if (G.teamSize === v) b.className = "on";
-        b.addEventListener("click", function () { setTeamSize(v); });
-        r1.appendChild(b);
+        if (G.teamSize === v && G.raftMax === (max || 4) && (v || G.crew === (max || 4))) b.className = "on";
+        b.addEventListener("click", function () { setTeamSize(v, v ? max : 4, v ? 4 : max); });
+        (row || r1).appendChild(b);
         return b;
       }
-      btn("En splav", "Vsi na enem splavu", 0).classList.add("reset");
+      btn("En splav", "Vsi na enem splavu, do 4", 0).classList.add("reset");
+      // en splav za 6 ali 8 (samo s telefoni)
+      [6, 8].forEach(function (c) {
+        var b = document.createElement("button");
+        b.type = "button"; b.textContent = "En splav po " + c; b.setAttribute("aria-label", "En splav, do " + c + " igralcev");
+        if (!G.teamSize && G.crew === c) b.className = "on";
+        b.addEventListener("click", function () { setTeamSize(0, 4, c); });
+        r1.appendChild(b);
+      });
       var lab = document.createElement("span"); lab.className = "lab"; lab.textContent = "Tekma, na splav:"; r1.appendChild(lab);
       [1, 2, 3, 4].forEach(function (v) { btn(String(v), "Tekma, " + v + " na splav", v); });
       var note = document.createElement("span"); note.className = "note";
-      if (!G.teamSize) note.textContent = "vsi skupaj vozijo en splav";
+      if (!G.teamSize) note.textContent = G.crew > 4 ? "do " + G.crew + " igralcev na enem splavu (telefoni)" : "vsi skupaj vozijo en splav";
       else if (id === "raceMenu") {
-        var n = Math.ceil(G.n / G.teamSize);
+        var n = Math.min(G.raftMax, Math.ceil(G.n / G.teamSize));
         note.textContent = n > 1 ? n + " splavi tekmujejo (tipkovnica: " + G.n + " igralci)" : "na tipkovnici izberi več igralcev za tekmo";
-      } else note.textContent = "do " + G.teamSize * 4 + " igralcev, največ 4 splavi; reka se razširi";
+      } else note.textContent = "do " + G.teamSize * G.raftMax + " igralcev, " + G.raftMax + " splavi; reka se razširi";
       r1.appendChild(note);
+      // hitre izbire: ekipa proti ekipi
+      var r2 = document.createElement("div"); r2.className = "farts-row"; box.appendChild(r2);
+      var lab2 = document.createElement("span"); lab2.className = "lab"; lab2.textContent = "Ekipe:"; r2.appendChild(lab2);
+      btn("2 proti 2", "Dva splava, po 2 igralca", 2, 2, r2);
+      btn("3 proti 3", "Dva splava, po 3 igralci", 3, 2, r2);
+      btn("4 proti 4", "Dva splava, po 4 igralci", 4, 2, r2);
+      btn("3 splavi po 2", "Trije splavi, po 2 igralca", 2, 3, r2);
     });
   }
 

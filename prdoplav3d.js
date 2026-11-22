@@ -659,6 +659,7 @@
       g.add(body);
       var col = { krava: 0xf8fafc, pujs: 0xf9a8d4, koza: 0xd6b98c, raca: 0xfde047 }[key];
       var headCol = key === "koza" ? 0xe7d3ad : col;
+      if (A[slot].body) { col = new T.Color(A[slot].body).getHex(); headCol = new T.Color(A[slot].head || A[slot].body).getHex(); }
       var duck = key === "raca";
       // noge
       if (!duck) [[-0.7, -0.5], [-0.7, 0.5], [0.7, -0.5], [0.7, 0.5]].forEach(function (p) {

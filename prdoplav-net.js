@@ -18,7 +18,12 @@
     { key: "krava", name: "Krava", ring: "#ef4444" },
     { key: "pujs", name: "Pujs", ring: "#3b82f6" },
     { key: "koza", name: "Koza", ring: "#22c55e" },
-    { key: "raca", name: "Raca", ring: "#f59e0b" }
+    { key: "raca", name: "Raca", ring: "#f59e0b" },
+    // en splav po 6 ali 8: iste živali v drugih barvah
+    { key: "krava", name: "Bik", ring: "#f97316", body: "#92400e", head: "#a16207" },
+    { key: "pujs", name: "Merjasec", ring: "#a3e635", body: "#78716c", head: "#8b857f" },
+    { key: "koza", name: "Ovca", ring: "#94a3b8", body: "#f5f5f4", head: "#e7e5e4" },
+    { key: "raca", name: "Papagaj", ring: "#0ea5e9", body: "#16a34a", head: "#dc2626" }
   ];
 
   // Tekma več splavov: barva in ime splava (ekipe). Barve se ne prekrivajo z obroči živali.

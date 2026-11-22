@@ -181,6 +181,7 @@
     box.dataset.k = key;
     box.innerHTML = "";
     NET.TEAMS.forEach(function (tm, i) {
+      if (st.teams && i >= st.teams.length) return; // npr. 2 proti 2: samo dva splava
       var n = st.teams && st.teams[i] ? st.teams[i].n : 0;
       var b = document.createElement("button");
       b.type = "button"; b.style.setProperty("--tc", tm.c);
