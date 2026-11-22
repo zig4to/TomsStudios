@@ -46,6 +46,9 @@
   .levels .seg.lv-seg button, .lobby-levels .seg button { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 6px; font-size: 15px; }
   .lobby-levels .seg small { font-weight: 500; font-size: 12px; opacity: 0.75; }
   .lv-seg button { flex: 1 1 120px; }
+  .lv-seg .lv-tabs { flex: 1 1 100%; display: flex; gap: 6px; margin-bottom: 4px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+  .levels .seg.lv-seg .lv-tabs button, .lobby-levels .seg.lv-seg .lv-tabs button { flex: 0 0 auto; flex-direction: row; align-items: baseline; gap: 8px; padding: 8px 18px; font-size: 16px; font-weight: 800; }
+  .lv-seg .lv-tabs small { font-weight: 500; }
 
   .ov {
     position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
@@ -169,6 +172,13 @@
     background: #d9f99d; color: #1a2e05; font-weight: 900;
   }
   .steps strong { color: #d9f99d; }
+  /* QR za goste brez računa */
+  .steps li.guest-qr { align-items: center; font-size: clamp(16px, 1.8vw, 22px); font-weight: 600; }
+  .steps li.guest-qr > div:last-child { display: grid; gap: 4px; }
+  .steps li.guest-qr small { color: var(--muted); font-size: 0.75em; }
+  .steps li.guest-qr code { font-weight: 900; letter-spacing: 0.12em; color: #fde047; }
+  .qr { width: clamp(120px, 13vw, 170px); aspect-ratio: 1; flex: none; background: #fff; border-radius: 12px; padding: 6px; display: grid; place-items: center; color: #0f172a; font-size: 12px; }
+  .qr svg { width: 100%; height: 100%; display: block; }
   .roster { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 8px; }
   .roster li {
     display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px;
@@ -307,6 +317,14 @@
         <li><b>1</b>Na telefonu odpri ploščo TomsStudia</li>
         <li><b>2</b>Odpri <strong>Prdoplav</strong></li>
         <li><b>3</b>Pritisni <strong>Pridruži se</strong></li>
+        <li class="guest-qr">
+          <div class="qr" id="qrBox" aria-label="QR koda za goste"></div>
+          <div>
+            <strong>Brez računa?</strong>
+            Skeniraj s kamero telefona in vpiši ime.
+            <small>Koda sobe: <code id="qrCode"></code></small>
+          </div>
+        </li>
       </ol>
       <div class="side">
         <h1 style="font-size:clamp(32px,4.5vw,52px)">Pridružite se</h1>

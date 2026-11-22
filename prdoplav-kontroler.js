@@ -18,10 +18,14 @@
 
   if (!sb) { gateMsg("Povezava s TomsStudiom ni na voljo."); return; }
 
+  var guest = false;
   sb.auth.getSession().then(function (res) {
     var s = res && res.data && res.data.session;
     if (!s) {
-      gateMsg("Za igro se najprej prijavi na plošči TomsStudia, nato znova skeniraj kodo.");
+      // brez računa: gost lahko vstopi le s kodo sobe (QR na velikem zaslonu)
+      var gc = NET.cleanCode(new URLSearchParams(location.search).get("soba"));
+      if (gc.length === 4) guestForm(gc);
+      else gateMsg("Za igro se prijavi na plošči TomsStudia ali pa skeniraj QR kodo na velikem zaslonu (igra brez računa).");
       return;
     }
     user = s.user;
@@ -32,6 +36,33 @@
       else findRoom();
     });
   }, function () { gateMsg("Ni povezave."); });
+
+  // Gost: vpiše ime; id ostane shranjen v tem brskalniku (isto mesto ob osvežitvi).
+  function store(key, val) {
+    try { if (val === undefined) return localStorage.getItem(key); localStorage.setItem(key, val); } catch (e) {}
+    return null;
+  }
+  function guestForm(c) {
+    guest = true;
+    $("gateHome").hidden = true;
+    gateMsg("Igraš kot gost. Vpiši ime, ki se pokaže na velikem zaslonu.");
+    var f = $("guestForm"), inp = $("guestName");
+    f.hidden = false;
+    inp.value = store("prdoplav-guest-name") || "";
+    setTimeout(function () { inp.focus(); }, 50);
+    f.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var nm = inp.value.replace(/\s+/g, " ").trim().slice(0, 20);
+      if (!nm) { inp.focus(); return; }
+      store("prdoplav-guest-name", nm);
+      var gid = store("prdoplav-guest-id");
+      if (!gid || !/^g-[a-z0-9]{6,}$/.test(gid)) { gid = "g-" + Math.random().toString(36).slice(2, 12); store("prdoplav-guest-id", gid); }
+      user = { id: gid };
+      name = nm;
+      f.hidden = true;
+      join(c);
+    });
+  }
 
   /* Brez kode: odprte sobe se oglašajo v skupnem kanalu. Ena soba → takoj noter,
      več sob → izbereš po imenu gostitelja, nobene → čakaš, da se odpre. */
@@ -179,7 +210,8 @@
     if (!hostHere && Date.now() - stAt > 5000 && Date.now() - joinedAt > 5000) {
       // soba je zaprta (ali star naslov) → nazaj na iskanje odprte sobe
       leaveRoom();
-      findRoom();
+      if (guest) gateMsg("Soba je zaprta. Za novo igro skeniraj QR kodo na velikem zaslonu.");
+      else findRoom();
       return;
     }
     if (!hostHere && Date.now() - stAt > 3000) {

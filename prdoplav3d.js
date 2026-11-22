@@ -32,7 +32,7 @@
 
     var A = api.ANIMALS, RAFT = api.RAFT;
     var t = 0;
-    var levelIdx = -1, levelWk = -1, levelGroup = null, water = null, waterBase = null, logs = [], pools = [], flows = [], gates = [], spinners = [], crocs3 = [], mozje3 = [], buoys3 = [];
+    var levelIdx = -1, levelWk = -1, levelGroup = null, water = null, waterBase = null, logs = [], pools = [], flows = [], gates = [], spinners = [], crocs3 = [], mozje3 = [], buoys3 = [], wheels3 = [], cannons3 = [], geysers3 = [], portals3 = [], mines3 = [];
     var curLv = null, eTab = null, E_STEP = 10, E_Y0 = -600;
     // Višina v 3D. Strme dele klancev prikažemo položneje (največ naklon VIS_SLOPE),
     // sicer je razdalja po klancu na videz precej daljša od tiste, ki jo računa fizika
@@ -43,6 +43,7 @@
     function fallDrop(lv, y) {
       var d = 0;
       (lv.Fa || []).forEach(function (f) { d += f.drop * Math.max(0, Math.min(1, (y - f.y) / FALL_LEN)); });
+      (lv.Jp || []).forEach(function (j) { d -= j.rise * Math.max(0, Math.min(1, (y - j.y) / FALL_LEN)); }); // stena: nazaj gor
       return d;
     }
     function buildElev(lv) {
@@ -110,7 +111,7 @@
       var prof = lv.noFence ? CLIFF : COLS, floor = lv.noFence ? -490 : 0; // drevesa na dnu soteske
       levelGroup = new T.Group();
       scene.add(levelGroup);
-      logs = []; pools = []; flows = []; gates = []; spinners = []; crocs3 = []; mozje3 = []; buoys3 = [];
+      logs = []; pools = []; flows = []; gates = []; spinners = []; crocs3 = []; mozje3 = []; buoys3 = []; wheels3 = []; cannons3 = []; geysers3 = []; portals3 = []; mines3 = [];
 
       // teren (trava, pesek, dno)
       var y0 = -700, y1 = lv.len + 1400, step = 40;
@@ -166,7 +167,7 @@
       for (var bi = 0; bi < base.length; bi++) { base[bi] = E(-wa[bi * 3 + 2]); wa[bi * 3 + 1] = base[bi]; }
       waterBase = base;
       water = new T.Mesh(wg, new T.MeshStandardMaterial({
-        color: 0x2f8fd8, flatShading: true, roughness: 0.25, metalness: 0.1, transparent: true, opacity: 0.88
+        color: lv.ice ? 0xa9d6ef : 0x2f8fd8, flatShading: true, roughness: 0.25, metalness: 0.1, transparent: true, opacity: 0.88
       }));
       water.receiveShadow = true;
       levelGroup.add(water);
@@ -202,7 +203,7 @@
 
       // skale
       lv.R.forEach(function (o, n) {
-        var rock = mesh(new T.IcosahedronGeometry(o.r * 1.05, 0), mat(0x7b8491));
+        var rock = mesh(new T.IcosahedronGeometry(o.r * 1.05, 0), mat(lv.ice ? 0xe0f2fe : 0x7b8491));
         rock.position.set(o.x, 2 + E(o.y), -o.y);
         rock.scale.set(1, 0.75, 1);
         rock.rotation.set(hash(n) * 3, hash(n + 9) * 6, hash(n + 3) * 3);
@@ -241,7 +242,7 @@
       // hlodi
       lv.L.forEach(function (l) {
         var g = new T.Group();
-        var body = mesh(new T.CylinderGeometry(10, 10, l.half * 2, 10), mat(0x7c4a1e));
+        var body = mesh(new T.CylinderGeometry(10, 10, l.half * 2, 10), mat(lv.ice ? 0xf0f9ff : 0x7c4a1e));
         body.rotation.z = Math.PI / 2;
         g.add(body);
         [-1, 1].forEach(function (s) {
@@ -315,6 +316,63 @@
         mozje3.push({ pm: pm, g: g, body: body, swirl: swirl, arms: arms, near: 0 });
       });
 
+      // mine: krogla z bodicami in lučko
+      (lv.Mi || []).forEach(function (m) {
+        var g = new T.Group(), R = api.MINE_R;
+        g.add(mesh(new T.SphereGeometry(R, 12, 10), mat(0x3f3f46)));
+        [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, 0, 1], [0, 0, -1], [0.7, 0.7, 0], [-0.7, 0.7, 0], [0, 0.7, 0.7], [0, 0.7, -0.7]].forEach(function (d) {
+          var sp = mesh(new T.ConeGeometry(4, 12, 6), mat(0x27272a));
+          sp.position.set(d[0] * (R + 4), d[1] * (R + 4), d[2] * (R + 4));
+          sp.lookAt(d[0] * 100, d[1] * 100, d[2] * 100); sp.rotateX(Math.PI / 2);
+          g.add(sp);
+        });
+        var lamp = new T.Mesh(new T.SphereGeometry(5, 8, 6), new T.MeshBasicMaterial({ color: 0xef4444 }));
+        lamp.position.y = R + 2; g.add(lamp);
+        var boom = new T.Mesh(new T.SphereGeometry(1, 16, 12), new T.MeshBasicMaterial({ color: 0xfb923c, transparent: true, opacity: 0.7 }));
+        levelGroup.add(boom);
+        g.position.set(m.x, E(m.y) + 4, -m.y);
+        levelGroup.add(g);
+        mines3.push({ m: m, g: g, lamp: lamp, boom: boom });
+      });
+      // topovi na bregu + krogla
+      (lv.Cn || []).forEach(function (c) {
+        var e = E(c.y), g = new T.Group();
+        var base = mesh(new T.BoxGeometry(44, 22, 44), mat(0x78350f)); base.position.y = 11; g.add(base);
+        var barrel = mesh(new T.CylinderGeometry(11, 13, 60, 12), mat(0x27272a));
+        barrel.rotation.z = c.side * Math.PI / 2; barrel.position.set(-c.side * 26, 30, 0); g.add(barrel);
+        var mouth = mesh(new T.SphereGeometry(9, 10, 8), mat(0x18181b)); mouth.position.set(-c.side * 56, 30, 0); g.add(mouth);
+        g.position.set(c.x0 + c.side * 30, e, -c.y);
+        levelGroup.add(g);
+        var ball = mesh(new T.SphereGeometry(api.BALL_R, 14, 10), mat(0x18181b));
+        levelGroup.add(ball);
+        cannons3.push({ c: c, ball: ball, mouth: mouth });
+      });
+      // gejzirji: rjav krog, steber pare ob izbruhu
+      (lv.Gy || []).forEach(function (gz) {
+        var e = E(gz.y);
+        var disc = new T.Mesh(new T.CircleGeometry(api.GEY_R, 24), new T.MeshBasicMaterial({ color: 0x92400e, transparent: true, opacity: 0.45 }));
+        disc.rotation.x = -Math.PI / 2; disc.position.set(gz.x, e + 3, -gz.y); levelGroup.add(disc);
+        var col = new T.Mesh(new T.CylinderGeometry(api.GEY_R * 0.55, api.GEY_R * 0.9, 1, 16, 1, true),
+          new T.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.75 }));
+        col.position.set(gz.x, e, -gz.y); levelGroup.add(col);
+        var foam = new T.Mesh(new T.CircleGeometry(api.GEY_R * 0.7, 20), new T.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 }));
+        foam.rotation.x = -Math.PI / 2; foam.position.set(gz.x, e + 4, -gz.y); levelGroup.add(foam);
+        geysers3.push({ g: gz, col: col, foam: foam, e: e });
+      });
+      // portali: pokončen obroč na vhodu, ploščat obroč na izhodu
+      (lv.Po || []).forEach(function (po) {
+        var c3 = po.fwd ? 0x3b82f6 : 0xf97316;
+        var ring = new T.Mesh(new T.TorusGeometry(api.PORT_R + 6, 7, 10, 28), new T.MeshBasicMaterial({ color: c3 }));
+        ring.position.set(po.ax, E(po.ay) + api.PORT_R + 4, -po.ay); levelGroup.add(ring);
+        var film = new T.Mesh(new T.CircleGeometry(api.PORT_R, 28), new T.MeshBasicMaterial({ color: c3, transparent: true, opacity: 0.35, side: T.DoubleSide }));
+        film.position.copy(ring.position); levelGroup.add(film);
+        var pad = new T.Mesh(new T.CircleGeometry(api.PORT_R + 8, 28), new T.MeshBasicMaterial({ color: c3, transparent: true, opacity: 0.4 }));
+        pad.rotation.x = -Math.PI / 2; pad.position.set(po.ax, E(po.ay) + 3, -po.ay); levelGroup.add(pad);
+        var exitR = new T.Mesh(new T.TorusGeometry(api.PORT_R * 0.8, 3, 6, 28), new T.MeshBasicMaterial({ color: c3, transparent: true, opacity: 0.7 }));
+        exitR.rotation.x = -Math.PI / 2; exitR.position.set(po.bx, E(po.by) + 4, -po.by); levelGroup.add(exitR);
+        portals3.push({ ring: ring, film: film, exitR: exitR });
+      });
+
       // rešilni obroči (rdeče-beli)
       lv.Bu.forEach(function (b) {
         var g = new T.Group();
@@ -325,6 +383,79 @@
         g.position.set(b.x, 0, -b.y);
         levelGroup.add(g);
         buoys3.push({ b: b, g: g });
+      });
+
+      // otočki: pesek, trava, nekaj dreves
+      (lv.Is || []).forEach(function (is, n) {
+        var len = Math.hypot(is.x1 - is.x0, is.y1 - is.y0), mx = (is.x0 + is.x1) / 2, my = (is.y0 + is.y1) / 2;
+        var ang = Math.atan2(is.x1 - is.x0, is.y1 - is.y0);
+        var g = new T.Group();
+        var sand = mesh(new T.CapsuleGeometry(is.r + 10, len, 4, 10), mat(0xd6b77a));
+        sand.rotation.x = Math.PI / 2; sand.scale.set(1, 1, 0.35); g.add(sand);
+        var grass = mesh(new T.CapsuleGeometry(is.r, len, 4, 10), mat(0x4d7c0f));
+        grass.rotation.x = Math.PI / 2; grass.scale.set(1, 1, 0.55); grass.position.y = 4; g.add(grass);
+        for (var ty2 = -len / 2 + 30; ty2 < len / 2; ty2 += 80) {
+          var tr = mesh(new T.ConeGeometry(16, 46, 6), mat(0x2f6f2d));
+          tr.position.set((hash(ty2 + n) - 0.5) * 12, 34, ty2); g.add(tr);
+        }
+        g.position.set(mx, E(my) + 2, -my);
+        g.rotation.y = ang;
+        levelGroup.add(g);
+      });
+
+      // mlinska kolesa: stebra na bregovih, prečka, kolo z lopatami (vrti se okoli osi vzdolž reke)
+      (lv.Wh || []).forEach(function (wh) {
+        var base = E(wh.y), top = wh.h + 40;
+        [-1, 1].forEach(function (s2) {
+          var pil = mesh(new T.BoxGeometry(26, top + 60, 26), mat(0x57534e));
+          pil.position.set(wh.rcx + s2 * (wh.rhw + 30), base + (top + 60) / 2 - 40, -wh.y - 32);
+          levelGroup.add(pil);
+        });
+        var beam = mesh(new T.BoxGeometry(wh.rhw * 2 + 90, 18, 20), mat(0x78350f));
+        beam.position.set(wh.rcx, base + top + 10, -wh.y - 32);
+        levelGroup.add(beam);
+        var hang = mesh(new T.BoxGeometry(14, top - wh.h + 12, 14), mat(0x78350f));
+        hang.position.set(wh.x, base + (wh.h + top + 12) / 2, -wh.y - 32);
+        levelGroup.add(hang);
+        var rot = new T.Group();
+        rot.position.set(wh.x, base + wh.h, -wh.y);
+        var hub = mesh(new T.CylinderGeometry(16, 16, 30, 12), mat(0x5b3a1f));
+        hub.rotation.x = Math.PI / 2; rot.add(hub);
+        for (var k = 0; k < wh.nb; k++) {
+          var arm = new T.Group();
+          var spoke = mesh(new T.BoxGeometry(12, wh.R, 10), mat(0x92562a));
+          spoke.position.y = -wh.R / 2; arm.add(spoke);
+          var paddle = mesh(new T.BoxGeometry(12, wh.R * 0.45, api.WHEEL_T * 2 + 10), mat(0xa16207));
+          paddle.position.y = -wh.R * 0.77; arm.add(paddle);
+          var tip = mesh(new T.BoxGeometry(14, 14, api.WHEEL_T * 2 + 12), mat(0xdc2626));
+          tip.position.y = -wh.R + 7; arm.add(tip);
+          arm.rotation.z = k * 2 * Math.PI / wh.nb;
+          rot.add(arm);
+        }
+        levelGroup.add(rot);
+        wheels3.push({ wh: wh, g: rot });
+      });
+
+      // trampolin in kamnita stena (skok nazaj gor na višino pred slapom)
+      (lv.Jp || []).forEach(function (jp) {
+        var wallH = jp.rise + 30;
+        var wall = mesh(new T.BoxGeometry(jp.rhw * 2 + 80, wallH, FALL_LEN + 8), mat(0x78716c));
+        wall.position.set(jp.rcx, E(jp.y) + wallH / 2 - 20, -(jp.y + FALL_LEN / 2));
+        levelGroup.add(wall);
+        var g = new T.Group();
+        var frame = mesh(new T.BoxGeometry(jp.hw * 2 + 16, 8, 70), mat(0xef4444));
+        g.add(frame);
+        var matT = mesh(new T.BoxGeometry(jp.hw * 2, 9, 56), mat(0x1d4ed8));
+        matT.position.y = 2; g.add(matT);
+        [-1, 1].forEach(function (s3) {
+          [-1, 1].forEach(function (s4) {
+            var leg = mesh(new T.CylinderGeometry(3, 3, 22, 6), mat(0x334155));
+            leg.position.set(s3 * jp.hw, -10, s4 * 28); g.add(leg);
+          });
+        });
+        g.rotation.x = 0.22; // nagnjen naprej (proti steni)
+        g.position.set(jp.cx, E(jp.ty) + 14, -jp.ty);
+        levelGroup.add(g);
       });
 
       // slapovi: pena spodaj, temen rob zgoraj, zelena kola ob žlebu
@@ -640,7 +771,7 @@
         var m = raftMesh(i);
         var rx = r.x, rz = -r.y;
         var bob = wave(rx, rz) * 0.8;
-        var drop = r.fall ? r.fall.t * r.fall.t * 420 : r.sink ? r.sink.t * 60 : 0; // padec čez rob / povodni mož
+        var drop = r.fall ? r.fall.t * r.fall.t * 420 : r.sink ? r.sink.t * 60 : -api.airLift(r); // padec čez rob / povodni mož / skok
         m.g.position.set(rx, E(r.y) + 6 + bob - drop, rz);
         m.g.rotation.y = r.ang;
         m.g.rotation.x = Math.atan(visSlope(lv, r.y)); // nagib po klancu
@@ -696,6 +827,29 @@
         o.g.rotation.x = Math.sin(t * 2 + o.l.y) * 0.08;
       });
       pools.forEach(function (o) { o.g.rotation.y = t * 2.2 * o.p.str; });
+      wheels3.forEach(function (o) { o.g.rotation.z = api.wheelAng(o.wh); });
+      mines3.forEach(function (o) {
+        var on = api.mineOn(o.m), since = G.time - o.m.boomAt;
+        o.g.visible = on;
+        o.g.position.y = E(o.m.y) + 4 + Math.sin(t * 2 + o.m.y) * 2;
+        o.g.rotation.y = t * 0.3;
+        o.lamp.material.color.setHex((t * 2 + o.m.x * 0.01) % 1 < 0.5 ? 0xef4444 : 0x450a0a);
+        o.boom.visible = !on && since < 0.6;
+        if (o.boom.visible) { o.boom.scale.setScalar(20 + since * 200); o.boom.position.set(o.m.x, E(o.m.y) + 10, -o.m.y); o.boom.material.opacity = 0.75 * (1 - since / 0.6); }
+      });
+      cannons3.forEach(function (o) {
+        var b = api.cannonBall(o.c);
+        o.ball.visible = b.on;
+        if (b.on) o.ball.position.set(b.x, E(o.c.y) + api.BALL_R + 4 + wave(b.x, -o.c.y) * 0.5, -o.c.y);
+        o.mouth.material.color.setRGB(0.1 + 0.9 * b.warn, 0.1 + 0.15 * b.warn, 0.1);
+      });
+      geysers3.forEach(function (o) {
+        var st = api.geyserState(o.g), h = st.up ? 60 + 260 * Math.sin(Math.PI * Math.min(1, (1 - st.up) * 1.2 + 0.2)) : 2 + st.warn * 14;
+        o.col.scale.y = h; o.col.position.y = o.e + h / 2;
+        o.col.material.opacity = st.up ? 0.8 : 0.3 + st.warn * 0.4;
+        o.foam.scale.setScalar(0.6 + st.warn * 0.5 + (st.up ? 0.6 : 0) + Math.sin(t * 9) * 0.05 * st.warn);
+      });
+      portals3.forEach(function (o) { o.ring.rotation.y = t * 1.5; o.film.rotation.y = t * 1.5; o.exitR.rotation.z = -t; });
       crocs3.forEach(function (o) {
         var x = api.crocX(o.c), v = api.crocV(o.c);
         var want = v >= 0 ? 0 : Math.PI;
